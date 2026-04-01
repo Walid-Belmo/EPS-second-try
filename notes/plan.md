@@ -223,7 +223,34 @@ Reference: `docs/uart_obc_driver.md`
 can communicate with the OBC (or ESP32 pretending to be the OBC) using proper
 framing, CRC, and byte stuffing.
 
-**Status: NOT STARTED**
+**Status: COMPLETE**
+
+### What was built
+
+1. **assertion_handler.c/.h** — SATELLITE_ASSERT macro per conventions.md
+2. **millisecond_tick_timer_using_arm_systick.c/.h** — 1ms SysTick timer
+3. **chips_protocol_encode_decode_frames_with_crc16_kermit.c/.h** — CRC-16/KERMIT,
+   byte stuffing, streaming frame parser, frame builder (PURE LOGIC)
+4. **chips_protocol_dispatch_commands_and_build_responses.c/.h** — 6 command handlers,
+   idempotency tracking, telemetry struct (219 bytes placeholder)
+5. **main.c** — rewritten for CHIPS: non-blocking main loop with parser feeding,
+   SysTick-based heartbeat, 120-second OBC timeout detection
+6. **ESP32 test harness** — 9 automated test cases
+
+### Deviations from the original plan
+
+1. **Response command IDs changed.** Plan defined 0x10/0x11/0x7F as separate
+   response IDs. The CHIPS spec (PDF p.125) says responses must mirror the
+   command type. Fixed: responses use the same command ID with response_flag=1.
+2. **File names changed.** Plan said `chips_protocol.c/.h`. Actual names follow
+   conventions.md Rule A1 with full descriptive names.
+3. **Max payload limited to 256 bytes** (not 1024). All Phase 4 commands fit
+   within 256 bytes. Saves ~768 bytes of RAM. Easily increased later.
+4. **assertion_handler.h created** — did not exist before Phase 4.
+5. **SysTick millisecond timer added** — replaced blocking 500ms delay with
+   accurate non-blocking timer for heartbeat and timeout.
+6. **Blocking delay removed from main loop** — main loop now runs continuously,
+   polling UART bytes on every iteration for sub-millisecond response latency.
 
 ### Why this is priority 2
 

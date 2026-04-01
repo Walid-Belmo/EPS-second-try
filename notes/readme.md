@@ -48,6 +48,9 @@ debugging.
 | [`docs/uart_obc_driver.md`](docs/uart_obc_driver.md) | OBC UART driver: pin selection, interrupt architecture, timing analysis, debugging tips |
 | [`docs/mppt_algorithm.md`](docs/mppt_algorithm.md) | P&O vs IncCond, DC/DC dependency, laptop simulation approach |
 | [`docs/newlib_and_syscalls.md`](docs/newlib_and_syscalls.md) | Why syscalls_min.c exists, newlib dependency chain, prototype fixes |
+| [`docs/chips_protocol_framing_and_crc.md`](docs/chips_protocol_framing_and_crc.md) | CHIPS protocol: frame format, byte stuffing, CRC-16/KERMIT, parser state machine, verification tests |
+| [`docs/chips_command_interface.md`](docs/chips_command_interface.md) | EPS command table, telemetry struct, status codes, idempotency, OBC timeout — share with OBC team |
+| [`docs/millisecond_tick_timer_using_arm_systick.md`](docs/millisecond_tick_timer_using_arm_systick.md) | Millisecond tick timer: what ARM SysTick is, why we need it, register config, ISR, API |
 
 ---
 
@@ -140,16 +143,74 @@ This is the most common RX configuration bug on the SAMD21.
 See `docs/uart_obc_driver.md` for the complete technical reference including pin
 selection rationale, timing analysis, register details, and debugging tips.
 
+### Millisecond Tick Timer — `millisecond_tick_timer_using_arm_systick.c/.h`
+
+Hardware driver for the ARM Cortex-M0+ SysTick core peripheral (built into every
+ARM core, not a SAMD21-specific peripheral). Configures SysTick to fire an
+interrupt every 1 millisecond at 48 MHz, incrementing a `volatile uint32_t`
+counter. Provides accurate elapsed time measurement without blocking the CPU.
+
+Used for: OBC communication timeout detection (120 seconds), non-blocking LED
+heartbeat toggling (500ms). Replaces the blocking busy-wait delay from Phase 3.
+
+See `docs/millisecond_tick_timer_using_arm_systick.md` for details.
+
+### CHIPS Frame Codec — `chips_protocol_encode_decode_frames_with_crc16_kermit.c/.h`
+
+**PURE LOGIC** — no hardware access, testable on a laptop without a microcontroller.
+
+Implements the CHIPS (CHESS Internal Protocol over Serial) framing layer:
+- **CRC-16/KERMIT** with 256-entry lookup table (512 bytes flash)
+- **PPP-style byte stuffing** (0x7E → 0x7D 0x5E, 0x7D → 0x7D 0x5D)
+- **Streaming frame parser**: state machine, processes one byte at a time from
+  the UART receive buffer, handles back-to-back sync bytes (RFC 1662)
+- **Frame builder**: takes command fields + payload, produces complete wire-ready
+  frame with CRC and byte stuffing
+
+Includes boot self-tests: CRC test vector ("123456789" → 0x2189) and frame
+build-then-parse round-trip verification.
+
+See `docs/chips_protocol_framing_and_crc.md` for the complete protocol reference.
+
+### CHIPS Command Dispatch — `chips_protocol_dispatch_commands_and_build_responses.c/.h`
+
+Application-level command handler that sits above the frame codec. Located in
+`src/` (not `src/drivers/`) because it is application logic, not a hardware driver.
+
+- Receives parsed CHIPS frames from the frame parser
+- Dispatches to per-command handler functions (GET_TELEMETRY, SET_PARAMETER, etc.)
+- Builds response frames with status byte + payload
+- Tracks **idempotency**: caches the last response and re-sends it if a duplicate
+  sequence number arrives, without re-executing the command
+- Contains the **telemetry struct** (219 bytes, placeholder zeros until Phase 6)
+
+See `docs/chips_command_interface.md` for the command table and telemetry structure.
+
+### Assertion Handler — `assertion_handler.c/.h`
+
+Utility module providing the `SATELLITE_ASSERT` macro per conventions.md (NASA
+Power of 10 Rule C5). Located in `src/` (not `src/drivers/`).
+
+- Debug build: logs file name and line number to debug UART, then freezes
+- Flight build: triggers `NVIC_SystemReset()` for immediate recovery
+
+Every function longer than 10 lines must have at least two assertions (one
+precondition, one postcondition). Assertions remain active in flight builds.
+
 ---
 
 ## Status
 
-Phase 0 (toolchain + smoke test), Phase 1 (48 MHz clock + DMA UART logging), and
-Phase 3 (ESP32 test harness + bidirectional OBC UART) are complete. Phase 2 (MPPT
-algorithm) is in progress in a separate git worktree.
+Phase 0 (toolchain + smoke test), Phase 1 (48 MHz clock + DMA UART logging),
+Phase 3 (ESP32 test harness + bidirectional OBC UART), and Phase 4 (CHIPS protocol)
+are complete. Phase 2 (MPPT algorithm) is in progress in a separate git worktree.
 
-The debug logging system (SERCOM5/PA22) and OBC UART (SERCOM0/PA04-PA05) are both
-verified working simultaneously at 115200 baud. The ESP32 test harness sends PING
-messages and the SAMD21 echoes them back with zero data loss.
+Phase 4 added the CHIPS communication protocol: HDLC-style framing with
+CRC-16/KERMIT checksums, PPP byte stuffing, a streaming frame parser, 6 command
+handlers with idempotency tracking, and a 120-second OBC autonomy timeout.
+Telemetry data is placeholder zeros — real sensor values come in Phase 6.
+
+An ESP32 test harness (`esp32_test_harness/02_chips_protocol_test/`) implements
+the OBC side and runs 9 automated test cases covering all protocol features.
 
 See `plan.md` for current phase and next steps.
