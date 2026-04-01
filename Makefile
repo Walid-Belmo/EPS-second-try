@@ -12,6 +12,8 @@ BUILD  := build/
 # ── Add every new .c file here ────────────────────────────────────────────────
 SRCS :=
 SRCS += src/main.c
+#SRCS += src/clock_configure_48mhz_dfll_open_loop.c
+#SRCS += src/debug_functions.c
 SRCS += startup/startup_samd21g17d.c
 SRCS += startup/system_samd21g17d.c
 SRCS += syscalls_min.c

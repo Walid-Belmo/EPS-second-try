@@ -16,9 +16,25 @@ The guiding principle: **code must read like English sentences.**
 
 ### Rule A1: Names Must Be Sentences, Not Abbreviations
 
-Every variable, function, and struct field must be an unambiguous English description
-of what it is or what it does. There is no length limit. Long names are correct.
-Short cryptic names are wrong.
+Every variable, function, struct field, and **file name** must be an unambiguous
+English description of what it is or what it does. There is no length limit.
+Long names are correct. Short cryptic names are wrong.
+
+This applies to `.c` and `.h` file names as well. A file name describes the
+module's responsibility. Someone reading the project file listing should
+understand what each file does without opening it.
+
+**Wrong file names**
+```
+clk.c, dma_log.c, uart.c, sys.c
+```
+
+**Correct file names**
+```
+clock_configure_48mhz_dfll_open_loop.c
+debug_log_dma_uart_sercom5.c
+uart_initialize_sercom5_on_pb22.c
+```
 
 The name must answer "what is this?" without any surrounding context.
 

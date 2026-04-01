@@ -37,6 +37,7 @@ debugging.
 | File | What it covers |
 |---|---|
 | [`docs/how_to_build_and_flash.md`](docs/how_to_build_and_flash.md) | **ESSENTIAL** — Complete build and flash reference, verified working |
+| [`docs/how_to_recover_from_stalled_debug_port.md`](docs/how_to_recover_from_stalled_debug_port.md) | **EMERGENCY** — If OpenOCD says "stalled AP operation", read this to recover the board using MPLAB X IDE |
 | [`docs/toolchain_setup_windows.md`](docs/toolchain_setup_windows.md) | Installing compiler, flasher, Make, and serial terminal on Windows |
 | [`docs/project_structure.md`](docs/project_structure.md) | File layout, Makefile explained, build targets, DFP files |
 | [`docs/flashing.md`](docs/flashing.md) | How OpenOCD works, openocd.cfg, flash commands, common errors |
@@ -82,5 +83,5 @@ debugging.
 
 ## Status
 
-Project is in initial setup phase. Toolchain must be installed and verified
+
 before any code is written. See `plan.md` for current phase.
