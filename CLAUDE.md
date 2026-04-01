@@ -63,6 +63,18 @@ know which change caused it. This means:
 
 ---
 
+## Principle 4: Test What You Actually Need to Test
+
+When testing features that require user interaction (button presses, physical
+inputs), use long capture windows (15+ seconds) and clearly tell the user
+WHEN to act. A 6-second window where you silently hope the user presses a
+button at the right time is not a test — it's a coin flip.
+
+If a feature appears broken but the code looks correct, question your test
+methodology before questioning the code.
+
+---
+
 ## How to Build, Flash, and Read Serial Output
 
 You can do this autonomously without asking the user to open PuTTY.
