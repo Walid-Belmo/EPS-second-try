@@ -23,10 +23,20 @@ debugging.
 - [`plan.md`](plan.md) — High-level development phases and milestones.
   Not prescriptive — a map, not a contract. Updated as the project evolves.
 
+### **START HERE — Build and Flash Reference**
+
+- **[`docs/how_to_build_and_flash.md`](docs/how_to_build_and_flash.md)** —
+  Complete, verified reference for compiling and flashing code to the SAMD21G17D.
+  Contains exact commands, file layout, every compiler flag explained, the
+  correct register API style, startup sequence, common errors and fixes,
+  and vendor file download instructions. **Read this first if you need to
+  build or flash anything.**
+
 ### Technical Documentation (`docs/`)
 
 | File | What it covers |
 |---|---|
+| [`docs/how_to_build_and_flash.md`](docs/how_to_build_and_flash.md) | **ESSENTIAL** — Complete build and flash reference, verified working |
 | [`docs/toolchain_setup_windows.md`](docs/toolchain_setup_windows.md) | Installing compiler, flasher, Make, and serial terminal on Windows |
 | [`docs/project_structure.md`](docs/project_structure.md) | File layout, Makefile explained, build targets, DFP files |
 | [`docs/flashing.md`](docs/flashing.md) | How OpenOCD works, openocd.cfg, flash commands, common errors |
