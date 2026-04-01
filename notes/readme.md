@@ -48,6 +48,7 @@ debugging.
 | [`docs/uart_obc_driver.md`](docs/uart_obc_driver.md) | OBC UART driver: pin selection, interrupt architecture, timing analysis, debugging tips |
 | [`docs/mppt_algorithm.md`](docs/mppt_algorithm.md) | P&O vs IncCond, DC/DC dependency, laptop simulation approach |
 | [`docs/newlib_and_syscalls.md`](docs/newlib_and_syscalls.md) | Why syscalls_min.c exists, newlib dependency chain, prototype fixes |
+| [`docs/pwm_buck_converter_driver.md`](docs/pwm_buck_converter_driver.md) | **Phase 5** — TCC0 complementary PWM with dead-time: register config, pin selection, DTI explanation, four-level testing, what was NOT verified |
 
 ---
 
@@ -140,16 +141,52 @@ This is the most common RX configuration bug on the SAMD21.
 See `docs/uart_obc_driver.md` for the complete technical reference including pin
 selection rationale, timing analysis, register details, and debugging tips.
 
+### PWM Buck Converter — `driver_For_Generating_PWM_for_Buck_Converter.c/.h`
+
+Complementary PWM at 300 kHz with hardware dead-time insertion on TCC0, for driving
+the EPC2152 GaN half-bridge buck converter. Two output pins generate synchronized,
+opposite-phase switching signals with a ~42 ns safety gap at every transition.
+
+- **WO[2] pin:** PA18 (TCC0 WO[2], mux F) — high-side FET drive → EPC2152 HSin
+- **WO[6] pin:** PA20 (TCC0 WO[6], mux F) — low-side FET drive → EPC2152 LSin
+- **Frequency:** 300 kHz (PER = 159, GCLK0 = 48 MHz, no prescaler)
+- **Dead time:** 42 ns per transition (DTLS = DTHS = 2 GCLK counts)
+- **DTI generator:** DTIEN2 (channel 2 pair: WO[2] + WO[6])
+- **Duty cycle input:** 0-65535 (maps to CC[2] 0-159, clamped to 5%-94%)
+- **Fault safety:** DRVCTRL forces both outputs LOW on hardware fault
+
+Dead time is enforced in silicon by TCC0's DTI unit — no software bug can cause
+shoot-through. Verified with four-level testing: register readback, pin state sampling,
+ESP32 frequency measurement (293 kHz), and ESP32 complementary check (0 violations
+across 4 million samples).
+
+See `docs/pwm_buck_converter_driver.md` for the complete technical reference including
+register details, pin selection rationale, DTI explanation, testing methodology, and
+what was NOT verified.
+
+### Assertion Handler — `assertion_handler.h/.c`
+
+Implements the `SATELLITE_ASSERT()` macro required by conventions.md Rule C5. When
+an assertion fails:
+- **Debug build:** prints file name and line number to debug UART, then freezes
+  (watchdog will reset the chip).
+- **Flight build:** immediately resets the chip via `NVIC_SystemReset()`.
+
+Assertions remain active in flight builds as an early warning system for impossible
+states (memory corruption, hardware behaving outside specification).
+
 ---
 
 ## Status
 
-Phase 0 (toolchain + smoke test), Phase 1 (48 MHz clock + DMA UART logging), and
-Phase 3 (ESP32 test harness + bidirectional OBC UART) are complete. Phase 2 (MPPT
-algorithm) is in progress in a separate git worktree.
+Phase 0 (toolchain + smoke test), Phase 1 (48 MHz clock + DMA UART logging),
+Phase 3 (ESP32 test harness + bidirectional OBC UART), and Phase 5 (complementary
+PWM with dead-time) are complete. Phase 2 (MPPT algorithm) is in progress in a
+separate git worktree.
 
 The debug logging system (SERCOM5/PA22) and OBC UART (SERCOM0/PA04-PA05) are both
-verified working simultaneously at 115200 baud. The ESP32 test harness sends PING
-messages and the SAMD21 echoes them back with zero data loss.
+verified working simultaneously at 115200 baud. The TCC0 complementary PWM (PA18/PA20)
+generates 293 kHz switching signals with hardware dead-time insertion, verified by
+both SAMD21 self-tests and independent ESP32 measurement.
 
 See `plan.md` for current phase and next steps.
