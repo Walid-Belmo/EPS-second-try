@@ -150,98 +150,70 @@ The ESP32 will act as our universal test tool for all subsequent phases: it will
 simulate the OBC, sensors, and physics models. Nothing else can be tested until
 this works.
 
-**Status: NOT STARTED**
+**Status: COMPLETE**
 
-### Why this is the first priority
+### What was done
 
-Every subsequent step (CHIPS protocol, sensor drivers, MPPT closed loop, state
-machine) requires the ESP32 to inject data and verify responses. Without this,
-we can only test with debug log output and button presses — not enough for
-protocol verification, sensor simulation, or closed-loop control.
+1. Selected **SERCOM0** on **PA04** (TX, PAD[0], mux D) and **PA05** (RX, PAD[1], mux D)
+2. Created `src/drivers/uart_obc_sercom0_pa04_pa05.c` and `.h`
+3. Implemented **fully non-blocking interrupt-driven TX and RX** (no DMA, no blocking)
+4. Created ESP32 Arduino test sketch: `esp32_test_harness/01_uart_echo_test/`
+5. Verified bidirectional PING/echo between SAMD21 and ESP32
+6. Both debug UART (SERCOM5/PA22) and OBC UART (SERCOM0/PA04-PA05) work simultaneously
 
-### Requirements satisfied
+### SERCOM and pin selection rationale
 
-- R17: OBC-EPS interface is UART (team decision, doc says I2C — PDF p.125)
-- R18: Must use a SERCOM other than SERCOM5 (SERCOM5 = debug logging on PA22)
+**SERCOM0 on PA04 (TX) / PA05 (RX)** was chosen after verifying:
+- DM320119 User Guide Table 4-4 (p.13): PA04/PA05 have NO debugger connections
+- DM320119 User Guide Section 4.1.1 (p.11): both pins on edge headers
+- SAMD21 Datasheet Table 7-1 (p.29): PA04=SERCOM0/PAD[0] mux D, PA05=SERCOM0/PAD[1] mux D
+- No conflict with SERCOM5 (debug), TCC0 (PWM Phase 5 can use PA18/PA20 for DTI ch2),
+  SERCOM3 (I2C Phase 6 on PA16/PA17), or SERCOM4 (SPI Phase 6 on PA12-PA15)
 
-### What exists already
+### Deviations from the original plan
 
-- `src/drivers/debug_functions.c` — working UART TX+DMA on SERCOM5/PA22.
-  This is the pattern to follow for the new UART driver.
-- The ESP32 has a USB-serial for its own debug output PLUS additional hardware
-  UARTs (Serial1, Serial2) for talking to external devices.
+1. **File names changed.** Plan said `uart_obc_interface.c/.h`. Actual files are
+   `uart_obc_sercom0_pa04_pa05.c/.h` — per conventions.md, file names must describe
+   exactly what hardware they use.
 
-### What to build
+2. **TX is non-blocking (interrupt-driven), not blocking.** The original plan said
+   `uart_obc_send_bytes()` would be blocking (poll DRE flag per byte). Analysis showed
+   blocking TX would waste 18 ms of CPU time for a 210-byte CHIPS telemetry response.
+   Instead, both TX and RX use interrupt-driven ring buffers. The CPU writes to a RAM
+   buffer and returns immediately; SERCOM0_Handler drains TX and fills RX in the background.
+   CPU overhead: 0.7% at max sustained throughput.
 
-**SAMD21 side:**
-- New driver file: `src/drivers/uart_obc_interface.c`
-- New header file: `src/drivers/uart_obc_interface.h`
-- This driver must support BOTH TX and RX (debug_functions.c is TX-only)
-- RX needs an interrupt handler (SERCOM_Handler) that fires when a byte arrives
-  and stores it in a receive buffer
-- Public API:
-  ```c
-  void uart_obc_initialize(void);           /* init SERCOM, pins, NVIC */
-  void uart_obc_send_bytes(const uint8_t *data, uint32_t length);  /* blocking TX */
-  uint32_t uart_obc_bytes_available(void);  /* how many bytes in RX buffer */
-  uint8_t uart_obc_read_one_byte(void);     /* pop one byte from RX buffer */
-  ```
+3. **No DMA used.** The plan suggested following the debug_functions.c DMA pattern. However,
+   the SAMD21 has a single shared DMAC_Handler for all 12 DMA channels. The existing
+   DMAC_Handler lives inside debug_functions.c wrapped in `#ifdef DEBUG_LOGGING_ENABLED`.
+   Adding a second DMA channel would require splitting the ISR into a shared module —
+   too much structural change for Phase 3. Interrupt-driven TX is sufficient.
 
-**ESP32 side (Arduino sketch):**
-- Folder: `esp32_test_harness/01_uart_echo_test/01_uart_echo_test.ino`
-- ESP32 sends "PING\n" every second on Serial2
-- ESP32 reads response on Serial2 and prints it to Serial (USB) for monitoring
-- User watches Arduino Serial Monitor to see the responses
+4. **No assertion_handler.h yet.** conventions.md describes SATELLITE_ASSERT but the header
+   doesn't exist in the project. The driver uses simple guard checks instead. The
+   assertion handler should be created as a separate task before Phase 4.
 
-**Wiring (3 wires):**
-- ESP32 TX2 → SAMD21 RX pin (on the chosen SERCOM)
-- ESP32 RX2 → SAMD21 TX pin (on the chosen SERCOM)
-- ESP32 GND → SAMD21 GND
+5. **PING interval is 2 seconds, not 1 second.** The ESP32 sketch sends PING every 2s
+   (not every 1s as the plan stated) to avoid flooding the debug log.
 
-### CRITICAL: SERCOM and pin selection
+6. **Wiring was initially reversed.** During testing, ESP32 TX was accidentally connected
+   to SAMD21 TX (and RX to RX). Symptoms: ESP32 received garbled data, SAMD21 received
+   nothing. Swapping the two data wires fixed it. The correct wiring:
+   ESP32 TX2 (GPIO17) → SAMD21 PA05 (RX); ESP32 RX2 (GPIO16) → SAMD21 PA04 (TX).
 
-Before writing any code, the implementing Claude instance MUST:
+### Pass criterion — all verified
 
-1. Open `datasheets/dm320119_user_guide.pdf` and find the Curiosity Nano pinout
-   diagram. Identify which pins are available on the board headers.
-2. Open `datasheets/samd21_datasheet.pdf` Chapter 7 (I/O Multiplexing) and
-   `lib/samd21-dfp/pio/samd21g17d.h` to find which SERCOMs map to available pins.
-3. Choose a SERCOM that does NOT conflict with:
-   - SERCOM5 (debug UART on PA22)
-   - TCC0 pins (needed for PWM in Phase 5)
-   - I2C pins (needed for INA226 in Phase 6)
-   - SPI pins (needed for temp sensor in Phase 6)
-4. Document the choice in the code header comment with the reasoning.
+1. `make clean && make` — zero warnings ✓
+2. `make flash` — Verified OK ✓
+3. COM6 shows "OBC UART initialized on SERCOM0 PA04/PA05" ✓
+4. ESP32 sends "PING" → COM6 shows "OBC RX: PING" ✓
+5. SAMD21 echoes PING back → ESP32 Serial Monitor shows "Received: PING" ✓
+6. Both UARTs work simultaneously without interference ✓
+7. Heartbeat LED continues blinking at steady rate ✓
 
-Likely candidates: SERCOM0, SERCOM1, or SERCOM3. But VERIFY against the actual
-pin availability on the DM320119 headers before committing.
+### Saved code: `code_samples/04_esp32_uart_echo/`
 
-### SAMD21 UART RX implementation details
-
-The debug UART (debug_functions.c) is TX-only with DMA. For the OBC interface
-we need RX. The pattern is:
-
-1. Configure the RX pin with PMUXEN + INEN (input enable)
-2. Set RXPO field in SERCOM CTRLA to the correct PAD for the RX pin
-3. Enable RXEN in CTRLB (in addition to TXEN)
-4. Enable the RXC (Receive Complete) interrupt in INTENSET
-5. Write a SERCOMX_Handler ISR that reads SERCOM_DATA into a ring buffer
-6. Enable the SERCOM interrupt in NVIC with NVIC_EnableIRQ(SERCOMX_IRQn)
-
-The ring buffer pattern is the same as in debug_functions.c (circular buffer
-with read/write positions and index mask).
-
-### Pass criterion
-
-1. `make clean && make` — zero warnings
-2. `make flash` — Verified OK
-3. Open PuTTY on COM6 (debug UART) — see "OBC UART initialized on SERCOMX"
-4. Open Arduino Serial Monitor on ESP32 COM port
-5. ESP32 sends "PING" → SAMD21 debug log shows "OBC RX: PING" → SAMD21 echoes
-   "PING" back → ESP32 Serial Monitor shows "Received: PING"
-6. Both UARTs work simultaneously without interference
-
-### Estimated time: 30-45 minutes
+Reference: `docs/uart_obc_driver.md`
 
 ---
 

@@ -14,6 +14,7 @@ SRCS :=
 SRCS += src/main.c
 SRCS += src/drivers/clock_configure_48mhz_dfll_open_loop.c
 SRCS += src/drivers/debug_functions.c
+SRCS += src/drivers/uart_obc_sercom0_pa04_pa05.c
 SRCS += startup/startup_samd21g17d.c
 SRCS += startup/system_samd21g17d.c
 SRCS += syscalls_min.c

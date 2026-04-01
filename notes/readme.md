@@ -45,6 +45,7 @@ debugging.
 | [`docs/samd21_clocks.md`](docs/samd21_clocks.md) | Clock sources, GCLK system, 48MHz configuration, SYNCBUSY |
 | [`docs/smoke_test.md`](docs/smoke_test.md) | LED blink — the first program, why it matters, pass criteria |
 | [`docs/dma_uart_logging.md`](docs/dma_uart_logging.md) | DMA logging system design, implementation, Windows terminal setup |
+| [`docs/uart_obc_driver.md`](docs/uart_obc_driver.md) | OBC UART driver: pin selection, interrupt architecture, timing analysis, debugging tips |
 | [`docs/mppt_algorithm.md`](docs/mppt_algorithm.md) | P&O vs IncCond, DC/DC dependency, laptop simulation approach |
 | [`docs/newlib_and_syscalls.md`](docs/newlib_and_syscalls.md) | Why syscalls_min.c exists, newlib dependency chain, prototype fixes |
 
@@ -114,10 +115,41 @@ In flight builds (without `-DDEBUG_LOGGING_ENABLED`), all logging macros compile
 to `((void)0)` — zero code, zero RAM, zero CPU cost. See `docs/dma_uart_logging.md`
 for the full design and implementation details.
 
+### OBC UART Interface — `uart_obc_sercom0_pa04_pa05.c/.h`
+
+Non-blocking bidirectional UART for communication with the OBC (or ESP32 test
+harness). Both transmit and receive are interrupt-driven using 256-byte ring buffers.
+The CPU writes bytes to a RAM buffer and returns immediately; the SERCOM0 interrupt
+handler (SERCOM0_Handler) moves bytes between the buffers and the hardware in the
+background.
+
+- **TX pin:** PA04 (SERCOM0 PAD[0], mux D, TXPO=0)
+- **RX pin:** PA05 (SERCOM0 PAD[1], mux D, RXPO=1)
+- **Baud:** 115200 (same as debug UART)
+- **CPU overhead:** ~0.6 microseconds per byte (~0.7% at max sustained throughput)
+
+The driver does NOT use DMA (to avoid sharing the DMAC_Handler with debug_functions.c).
+Instead, the DRE (Data Register Empty) interrupt triggers per transmitted byte, and
+the RXC (Receive Complete) interrupt triggers per received byte. Both are handled in
+the same SERCOM0_Handler function.
+
+**Critical RX pin detail:** PA05 requires INEN (input enable) in PINCFG. Without it,
+the pin's input buffer is disabled and the SERCOM cannot read the voltage level.
+This is the most common RX configuration bug on the SAMD21.
+
+See `docs/uart_obc_driver.md` for the complete technical reference including pin
+selection rationale, timing analysis, register details, and debugging tips.
+
 ---
 
 ## Status
 
-Phase 0 (toolchain + smoke test) and Phase 1 (48 MHz clock + DMA UART logging)
-are complete. The debug logging system is verified working on COM6 at 115200 baud.
+Phase 0 (toolchain + smoke test), Phase 1 (48 MHz clock + DMA UART logging), and
+Phase 3 (ESP32 test harness + bidirectional OBC UART) are complete. Phase 2 (MPPT
+algorithm) is in progress in a separate git worktree.
+
+The debug logging system (SERCOM5/PA22) and OBC UART (SERCOM0/PA04-PA05) are both
+verified working simultaneously at 115200 baud. The ESP32 test harness sends PING
+messages and the SAMD21 echoes them back with zero data loss.
+
 See `plan.md` for current phase and next steps.
