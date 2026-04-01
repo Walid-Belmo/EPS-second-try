@@ -44,8 +44,8 @@ Source: SAMD21 DMA mechanics in detail:
 ## Board-Specific Details — DM320119
 
 The virtual COM port on the Curiosity Nano DM320119 is wired to:
-- **SERCOM5**, **PB22** (TX), **PB23** (RX)
-- PB22 uses mux function **D** (SERCOM-ALT) to reach SERCOM5 PAD[2]
+- **SERCOM5**, **PA22** (TX), **PB22** (RX)
+- PA22 uses mux function **D** (SERCOM-ALT) to reach SERCOM5 PAD[0]
 
 This is confirmed in the official DM320119 hardware schematic and from community
 verification. An earlier version of Microchip's documentation incorrectly listed
@@ -262,11 +262,11 @@ can route to two different SERCOMs: one via mux C, one via mux D. PB22 reaches
 SERCOM5 via mux D. Using mux C routes it to a different SERCOM and nothing works.
 
 **Port group index.** PB22 is in `PORT->Group[1]` (Port B), not `PORT->Group[0]` (Port A).
-PB22 is pin 22 within group B, so the PMUXE/PMUXO index is `22/2 = 11`.
+PA22 is pin 22 within group A, so the PMUXE/PMUXO index is `22/2 = 11`.
 
-**TXPO must be 1 for PAD[2].** The SERCOM UART TXPO field selects which pad group
-TX uses. TXPO=1 means TX is on PAD[2] (which is PB22 via the mux). TXPO=0 would
-select PAD[0] instead — wrong pin.
+**TXPO must be 0 for PAD[0].** The SERCOM UART TXPO field selects which pad group
+TX uses. TXPO=0 means TX is on PAD[0] (which is PA22 via mux D). TXPO=1 would
+select PAD[2] instead — wrong pin (PB22 is RX, not TX on the DM320119).
 
 **DMA channel 0 is used exclusively for logging.** If other modules need DMA
 (ADC, SPI, etc.), they must use channels 1 and above.
@@ -274,3 +274,44 @@ select PAD[0] instead — wrong pin.
 **The `volatile` qualifier on shared variables.** Variables written by the DMAC_Handler
 ISR and read by the main loop must be `volatile`. Without it, the compiler caches
 values in registers and the main loop never sees ISR updates.
+
+---
+
+## Corrections and Lessons Learned
+
+### TX pin is PA22, not PB22 (discovered 2026-04-01)
+
+Our original documentation and code assumed PB22 was the UART TX pin based on
+early online sources and a misreading of the DM320119 board pinout. This was wrong.
+
+**Symptom:** SERCOM5 UART appeared fully functional — the DRE flag set correctly,
+bytes were written to the DATA register, the LED continued blinking (code was not
+stuck). But zero bytes arrived on the PC's virtual COM port (COM6). PowerShell
+confirmed 0 bytes received.
+
+**Root cause:** On the DM320119 Curiosity Nano, the nEDBG CDC virtual COM port
+is wired as follows:
+- **PA22** → nEDBG UART RX (MCU transmits on this pin)
+- **PB22** → nEDBG UART TX (MCU receives on this pin)
+- **PB23 is NOT connected** to the CDC UART at all
+
+We were transmitting on PB22 (which connects to the nEDBG's TX output, not its
+RX input), so the nEDBG never received our data.
+
+**Fix applied:**
+- Pin mux: `PORT_REGS->GROUP[0]` (port A) instead of `GROUP[1]` (port B)
+- TXPO: `TXPO(0u)` (PAD[0] = PA22) instead of `TXPO(1u)` (PAD[2] = PB22)
+- PA22 via mux D = SERCOM5 PAD[0] (confirmed: `PIN_PA22D_SERCOM5_PAD0` in DFP)
+
+**How we confirmed:**
+- DM320119 User Guide (Microchip DS70005409D)
+- Microchip AN3563: SAMD21 Curiosity Nano Harmony v3 PLIBs Setup
+- mircobytes UART communication tutorial for DM320119
+- Empirical verification: "BOOT OK" and "blink" messages appeared on COM6
+  immediately after switching to PA22/TXPO=0
+
+**Lesson:** Always verify board-level pin connections against the specific board's
+schematic or user guide. The chip's pin mux capabilities (what the silicon supports)
+are different from the board's wiring (what the PCB actually connects). A pin can
+be electrically valid for a SERCOM function but physically routed to the wrong
+destination on the board.

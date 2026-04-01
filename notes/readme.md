@@ -63,7 +63,7 @@ debugging.
 | SERCOM blocks | 6 (SERCOM0–SERCOM5) |
 | Board | Curiosity Nano DM320119 |
 | Debugger chip | nEDBG (CMSIS-DAP, VID 0x03eb PID 0x2175) |
-| Virtual COM port | SERCOM5, PB22 (TX), PB23 (RX) |
+| Virtual COM port | SERCOM5, PA22 (TX), PB22 (RX) |
 | SWD pins | PA30 (SWCLK), PA31 (SWDIO) |
 | User LED | PB10 (active low) |
 | User button | PB11 |
@@ -81,7 +81,43 @@ debugging.
 
 ---
 
+## Driver Modules (`src/drivers/`)
+
+Hardware driver modules live in `src/drivers/` and are separate from application
+code (`src/main.c`). Each driver encapsulates one hardware subsystem and exposes
+a small public API through its header file.
+
+### Clock — `clock_configure_48mhz_dfll_open_loop.c/.h`
+
+Switches the CPU clock from the default 1 MHz (OSC8M/8) to 48 MHz using the
+DFLL48M oscillator in open-loop mode. The Curiosity Nano has no external crystal,
+so we use factory calibration values burned into the chip's OTP fuse area for
+~2% frequency accuracy. This must be called before any peripheral that depends
+on a specific clock frequency (UART baud rate, timer periods, etc.).
+
+Includes a workaround for Errata 1.2.1 (DS80000760G): the DFLL ONDEMAND bit
+must be cleared by writing DFLLCTRL with ENABLE before writing DFLLVAL, or the
+device freezes permanently. See `docs/samd21_clocks.md` for full details.
+
+### Debug Logging — `debug_functions.c/.h`
+
+Non-blocking DMA-based debug logging over SERCOM5 UART at 115200 baud. The CPU
+writes log messages into a 512-byte circular buffer (~1 microsecond per call),
+and DMAC channel 0 drains the buffer in the background with zero CPU involvement.
+When the DMA transfer completes, the DMAC_Handler ISR starts a new transfer if
+more data has accumulated, or goes idle.
+
+The TX pin is **PA22** (SERCOM5 PAD[0], mux D, TXPO=0), which connects to the
+nEDBG UART RX on the DM320119 board and appears as a virtual COM port on the PC.
+
+In flight builds (without `-DDEBUG_LOGGING_ENABLED`), all logging macros compile
+to `((void)0)` — zero code, zero RAM, zero CPU cost. See `docs/dma_uart_logging.md`
+for the full design and implementation details.
+
+---
+
 ## Status
 
-
-before any code is written. See `plan.md` for current phase.
+Phase 0 (toolchain + smoke test) and Phase 1 (48 MHz clock + DMA UART logging)
+are complete. The debug logging system is verified working on COM6 at 115200 baud.
+See `plan.md` for current phase and next steps.

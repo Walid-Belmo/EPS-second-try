@@ -12,8 +12,8 @@ BUILD  := build/
 # ── Add every new .c file here ────────────────────────────────────────────────
 SRCS :=
 SRCS += src/main.c
-#SRCS += src/clock_configure_48mhz_dfll_open_loop.c
-#SRCS += src/debug_functions.c
+SRCS += src/drivers/clock_configure_48mhz_dfll_open_loop.c
+SRCS += src/drivers/debug_functions.c
 SRCS += startup/startup_samd21g17d.c
 SRCS += startup/system_samd21g17d.c
 SRCS += syscalls_min.c
@@ -21,14 +21,14 @@ SRCS += syscalls_min.c
 OBJS := $(addprefix $(BUILD), $(addsuffix .o, $(basename $(notdir $(SRCS)))))
 
 # Include paths — use -isystem for vendor headers to suppress their warnings
-INC := -I src
+INC := -I src -I src/drivers
 VENDOR_INC := -isystem lib/cmsis -isystem lib/samd21-dfp -isystem startup
 
 # ── CPU flags — must match SAMD21G17D exactly ─────────────────────────────────
 CPU := -mcpu=cortex-m0plus -mthumb -mfloat-abi=soft
 
 CFLAGS  := $(CPU) $(INC) $(VENDOR_INC)
-CFLAGS  += -D__SAMD21G17D__ -DUSE_CMSIS_INIT
+CFLAGS  += -D__SAMD21G17D__ -DUSE_CMSIS_INIT -DDEBUG_LOGGING_ENABLED
 CFLAGS  += -std=c99
 CFLAGS  += -Wall -Wextra -Werror -Wshadow -Wstrict-prototypes -Wmissing-prototypes
 CFLAGS  += -ffunction-sections -fdata-sections -fno-common
@@ -53,6 +53,9 @@ $(BUILD)$(TARGET).bin: $(BUILD)$(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
 $(BUILD)%.o: src/%.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)%.o: src/drivers/%.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)%.o: startup/%.c | $(BUILD)

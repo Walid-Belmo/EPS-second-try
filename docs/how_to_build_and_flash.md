@@ -18,7 +18,7 @@ been verified to work.
 - **USB serial number:** MCHP3313043000000910
 - **User LED:** PB10 (active low — drive LOW to turn ON)
 - **User button:** PB11 (active low — reads LOW when pressed)
-- **Virtual COM port:** SERCOM5, PB22 (TX), PB23 (RX), mux D
+- **Virtual COM port:** SERCOM5, PA22 (TX), PB22 (RX), mux D
 - **No drag-and-drop programming.** Must use OpenOCD.
 
 ---

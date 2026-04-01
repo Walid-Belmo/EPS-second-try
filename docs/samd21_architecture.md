@@ -82,15 +82,13 @@ It presents itself to your laptop as a composite USB device with four interfaces
 
 The nEDBG connects to the SAMD21G17D through:
 - SWD: PA30 (SWCLK) and PA31 (SWDIO) — for programming and debugging
-- UART: PB22 (SAMD21 TX) and PB23 (SAMD21 RX) — for the virtual COM port
+- UART: PA22 (SAMD21 TX) and PB22 (SAMD21 RX) — for the virtual COM port
 
 These are physical copper traces on the PCB. They are always connected.
 You do not configure the nEDBG. You configure your SAMD21G17D to use SERCOM5
-on PB22 as TX, and the nEDBG automatically forwards bytes to your laptop.
+on PA22 as TX, and the nEDBG automatically forwards bytes to your laptop.
 
 Source: DM320119 User Guide, Microchip DS70005409D
-Source: element14 community review confirming PB22/PB22 and SERCOM5:
-        https://community.element14.com/products/roadtest/rv/roadtest_reviews/510/sam_d21_curiosity_na
 
 ---
 
@@ -103,7 +101,7 @@ This flexibility means you can have multiple independent serial buses simultaneo
 The tradeoff is that pin muxing must be configured correctly for each SERCOM.
 
 For this project:
-- **SERCOM5** is reserved for the virtual COM port (debug logging). PB22=TX, PB23=RX.
+- **SERCOM5** is reserved for the virtual COM port (debug logging). PA22=TX, PB22=RX.
   This is hardwired on the board — we cannot use other pins for this SERCOM.
 - Other SERCOMs are available for mission use (sensors, radio, etc.)
 

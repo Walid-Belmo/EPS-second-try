@@ -11,87 +11,79 @@ Each phase references the relevant doc file for implementation detail.
 **Goal:** Go from zero to a blinking LED + button toggle. Prove the entire chain
 works: compiler, linker, flasher, startup code, GPIO.
 
-### Status: IN PROGRESS
+### Status: COMPLETE
 
-### What is already done:
-- MSYS2, ARM toolchain (arm-none-eabi-gcc 12.2.1), OpenOCD (xPack 0.12.0),
-  Make (4.4.1), PuTTY — all installed and on PATH
-- All online sources and approaches verified (25 sources checked)
+### What was done:
+- Installed MSYS2, ARM toolchain (arm-none-eabi-gcc 12.2.1), OpenOCD (xPack 0.12.0),
+  Make (4.4.1), PuTTY
+- Downloaded fresh DFP v3.6.144 and CMSIS 5.9.1 files
+- Created project structure: src/, startup/, lib/, docs/, notes/, code_samples/
+- Wrote Makefile, openocd.cfg, syscalls_min.c, linker script
+- Wrote LED blink + button toggle code
+- Build: zero warnings, zero errors with -Wall -Wextra -Werror
+- Flash: "Verified OK" from OpenOCD
+- LED blinks at ~3s period, button toggles LED on/off
 
-### IMPORTANT — Vendor files must be downloaded fresh:
-A previous Claude Code instance may have modified local copies of the DFP and
-CMSIS files at `~/.mchp_packs/` and `~/.mcc/harmony/`. These CANNOT be trusted.
-All vendor files must be downloaded fresh from their official sources:
-- **DFP:** Download `.atpack` from https://packs.download.microchip.com/ (SAMD21 DFP)
-- **CMSIS:** Download from https://github.com/ARM-software/CMSIS_5 (raw files)
-Delete any existing copies in the project tree before extracting fresh ones.
+### Critical findings:
+- DFP v3.6.144 register API uses `PORT_REGS->GROUP[1].PORT_DIRSET` (NOT the
+  ASF3 `PORT->Group[1].DIRSET.reg` style shown in some online examples)
+- `SystemInit()` in the DFP is a stub — sets SystemCoreClock=1000000 and returns.
+  CPU runs at default 1 MHz (OSC8M/8), NOT 48 MHz
+- Reset_Handler does NOT call SystemInit(). It calls `_on_reset()` (weak),
+  `__libc_init_array()`, `_on_bootstrap()` (weak), then `main()`
+- `-isystem` required for vendor include paths to suppress warnings from DFP headers
 
-### What remains:
-1. Download and extract fresh DFP files into lib/samd21-dfp/ and startup/
-2. Download fresh CMSIS headers into lib/cmsis/
-3. Copy linker script to project root (samd21g17d_flash.ld)
-4. Create project directory structure (src/, tests/, build/)
-5. Write openocd.cfg
-6. Write syscalls_min.c (created but not in Makefile SRCS — using nosys.specs)
-7. Write Makefile (corrected for actual DFP filenames and register API)
-8. Write src/main.c — LED blink (~3s period) + button toggle on PB11
-9. `make` produces zero warnings and zero errors
-10. `make flash` produces "verified OK" from OpenOCD
-11. Observe: LED blinks with ~3s period, button toggles LED
-
-### Critical findings during planning:
-- The DFP v3.6.144 uses a **different register API** from the documentation
-  examples. Documentation shows `PORT->Group[1].DIRSET.reg` (ASF3 style).
-  The actual DFP uses `PORT_REGS->GROUP[1].PORT_DIRSET`. All code must use
-  the actual DFP API. (Verified by reading the actual component/port.h header)
-- The DFP's `SystemInit()` is a **stub that does nothing**. The CPU runs at
-  the default 1 MHz (OSC8M/8), NOT 48 MHz. (Verified by reading
-  system_samd21g17d.c — it just sets SystemCoreClock=1000000 and returns)
-- The DFP's `Reset_Handler` does NOT call `SystemInit()`. It calls
-  `_on_reset()` (weak), `__libc_init_array()`, `_on_bootstrap()` (weak),
-  then `main()`. (Verified by reading startup_samd21g17d.c)
-- The DFP subdirectory for G17D is `samd21d/`, NOT `samd21a/` as docs state.
-- Startup files are named `startup_samd21g17d.c` and `system_samd21g17d.c`,
-  NOT `startup_samd21.c` and `system_samd21.c`.
-- The `-pedantic` flag in conventions.md will cause errors on DFP headers
-  (GCC extensions). Use `-isystem` for vendor include paths to suppress.
-
-### Note on 48 MHz clock:
-The CPU starts at 1 MHz (OSC8M/8 default). Getting to 48 MHz requires writing
-clock configuration code ourselves (DFLL48M setup). This will be done AFTER
-the UART debugger is working so we can verify the clock frequency empirically
-by logging timing measurements.
-
-Pass criterion:
-1. LED blinks with ~3 second period (distinguishable from previous code on board)
-2. Button press on PB11 toggles LED on/off
-3. `make` produces zero warnings
-4. `make flash` produces "verified OK"
+### Saved code: `code_samples/01_blink_and_button/`
 
 Reference: `docs/toolchain_setup_windows.md`, `docs/project_structure.md`,
 `docs/flashing.md`, `docs/smoke_test.md`, `docs/samd21_architecture.md`
 
 ---
 
-## Phase 1 — DMA UART Logging (Debugger)
+## Phase 1 — 48 MHz Clock + DMA UART Logging (Debugger)
 
 **Goal:** Have a working real-time debug system before writing any application logic.
 This is the debugger — once it works, we can verify everything else (clock frequency,
 peripheral configuration, algorithm behavior) through UART output.
 
-Steps:
-1. Configure 48 MHz clock (DFLL48M) — required for correct UART baud rate
-2. Configure SERCOM5 as UART TX on PB22 at 115200 baud
-3. Configure DMAC channel 0 with SERCOM5_DMAC_ID_TX as trigger
-4. Implement the circular buffer + DMA state machine
-5. Call `LOG("BOOT OK\r\n")` in main
-6. Open PuTTY on the correct COM port
-7. See the message appear
-8. Verify clock frequency empirically: log a timestamp before and after
-   a known delay, compare to wall-clock time
+### Status: COMPLETE
 
-Pass criterion: Log messages appear in PuTTY in real time. Chip does not stall.
-Clock frequency confirmed to be 48 MHz.
+### What was done:
+1. Configured 48 MHz clock (DFLL48M open-loop with NVM factory calibration)
+2. Configured SERCOM5 as UART TX on **PA22** at 115200 baud
+3. Configured DMAC channel 0 with SERCOM5_DMAC_ID_TX (12) as trigger
+4. Implemented circular buffer (512 bytes) + DMA state machine + DMAC_Handler ISR
+5. Verified: "BOOT OK" and "blink" messages appear on COM6 at 115200 baud
+6. LED continues blinking (confirms DMA logging does not stall CPU)
+
+### Bugs encountered and fixed:
+
+**Bug 1 — AP stall from bad clock code (2026-04-01)**
+Our first clock configuration attempt wrote to DFLLVAL while the DFLL ONDEMAND
+bit was set. This triggered Errata 1.2.1 (DS80000760G) and froze the CPU. The
+debug access port stalled, and OpenOCD could not connect. Recovery required
+MPLAB X IDE → Production → Erase Device Memory Main Project. The fix: write
+DFLLCTRL with ENABLE bit first (which clears ONDEMAND) before writing DFLLVAL.
+Documented in `docs/how_to_recover_from_stalled_debug_port.md`.
+
+**Bug 2 — Wrong TX pin: PB22 vs PA22**
+Our documentation and initial code used PB22 as UART TX (SERCOM5 PAD[2], TXPO=1).
+The UART appeared to work — DRE flag set correctly, code ran, LED blinked — but
+zero bytes arrived on COM6. After extensive debugging and web research, we
+discovered the DM320119 board actually wires:
+- **PA22** → nEDBG UART RX (this is MCU TX, SERCOM5 PAD[0], mux D, TXPO=0)
+- **PB22** → nEDBG UART TX (this is MCU RX, SERCOM5 PAD[2], mux D)
+- **PB23 is NOT involved** in the CDC UART at all
+
+The original PB22-as-TX assumption came from early documentation that was
+incorrect. Sources confirming the fix: DM320119 User Guide DS70005409D,
+Microchip AN3563, mircobytes UART tutorial for DM320119.
+
+### Project structure change:
+Driver modules moved from `src/` to `src/drivers/` to separate stable hardware
+drivers from application code that changes frequently.
+
+### Saved code: `code_samples/02_first_uart_communication/`
 
 Reference: `docs/dma_uart_logging.md`, `docs/samd21_clocks.md`
 
@@ -137,21 +129,6 @@ Once the spec is received, we define:
 - Phase 5: Telemetry and command
 - Phase 6: Sleep and power management
 - Phase 7: Integration and endurance testing
-
----
-
-## Documentation Update (Deferred)
-
-All documentation files (readme.md and everything in docs/) must be updated
-to match the actual DFP v3.6.144 behavior discovered during Phase 0 planning.
-Key corrections needed:
-- Register API style (PORT_REGS->GROUP[] not PORT->Group[])
-- SystemInit() is a stub, not a 48 MHz configurator
-- Reset_Handler does not call SystemInit()
-- Correct DFP filenames and directory structure
-- Sources for each correction
-
-This is deferred until after Phase 0 execution. Do not touch conventions.md.
 
 ---
 

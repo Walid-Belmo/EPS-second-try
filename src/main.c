@@ -1,44 +1,49 @@
 /* =============================================================================
  * main.c
- * SAFE BLINK — no clock change, no UART, no DMA.
- * Uses default 1 MHz clock. Blinks LED on PB10 with ~3 second period.
- * This is a recovery build to confirm the board works after erase.
+ * Application entry point. Initializes hardware, starts the DMA-based debug
+ * logging system, and runs the main LED heartbeat loop.
  *
- * Category: HARDWARE DRIVER
- * Peripheral: PORT group B
+ * Category: APPLICATION
+ * Peripheral: PORT group B (LED)
  * Pins: PB10 (user LED, active low)
- * Clock: default 1 MHz (OSC8M / 8)
+ * Clock: 48 MHz (DFLL48M open-loop)
  * =============================================================================
  */
 
 #include "samd21g17d.h"
 #include <stdint.h>
+#include "clock_configure_48mhz_dfll_open_loop.h"
+#include "debug_functions.h"
 
 #define USER_LED_PIN_NUMBER  10u
 
+/* ── Private function prototypes ──────────────────────────────────────────── */
+
 static void configure_pb10_as_gpio_output_for_user_led(void);
 static void toggle_user_led(void);
-static void wait_approximately_20_milliseconds_at_1mhz(void);
+static void wait_approximately_500_milliseconds_at_48mhz(void);
+
+/* ── Public entry point ───────────────────────────────────────────────────── */
 
 int main(void)
 {
+    configure_cpu_clock_to_48mhz_using_dfll_open_loop();
     configure_pb10_as_gpio_output_for_user_led();
+    DEBUG_LOG_INIT();
 
-    uint32_t blink_counter = 0u;
+    DEBUG_LOG_TEXT("BOOT OK");
 
     while (1) /* @non-terminating@ */
     {
-        blink_counter += 1u;
-        if (blink_counter >= 75u)
-        {
-            toggle_user_led();
-            blink_counter = 0u;
-        }
-        wait_approximately_20_milliseconds_at_1mhz();
+        toggle_user_led();
+        DEBUG_LOG_TEXT("blink");
+        wait_approximately_500_milliseconds_at_48mhz();
     }
 
     return 0;
 }
+
+/* ── Private functions — LED ──────────────────────────────────────────────── */
 
 static void configure_pb10_as_gpio_output_for_user_led(void)
 {
@@ -51,9 +56,11 @@ static void toggle_user_led(void)
     PORT_REGS->GROUP[1].PORT_OUTTGL = (1u << USER_LED_PIN_NUMBER);
 }
 
-static void wait_approximately_20_milliseconds_at_1mhz(void)
+/* ── Private functions — delay ────────────────────────────────────────────── */
+
+static void wait_approximately_500_milliseconds_at_48mhz(void)
 {
-    volatile uint32_t count = 3333u;
+    volatile uint32_t count = 4000000u;
     while (count > 0u)
     {
         count -= 1u;
