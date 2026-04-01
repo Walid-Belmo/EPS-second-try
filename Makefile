@@ -44,7 +44,11 @@ all: $(BUILD)$(TARGET).bin
 	@$(SIZE) $(BUILD)$(TARGET).elf
 
 $(BUILD):
+ifeq ($(OS),Windows_NT)
+	if not exist build mkdir build
+else
 	mkdir -p $(BUILD)
+endif
 
 $(BUILD)$(TARGET).elf: $(OBJS) | $(BUILD)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS)
@@ -69,7 +73,11 @@ flash: all
 		-c "program $(BUILD)$(TARGET).bin verify reset exit 0x00000000"
 
 clean:
+ifeq ($(OS),Windows_NT)
+	-rmdir /s /q build 2>nul
+else
 	rm -rf $(BUILD)
+endif
 
 # Flight build: no logging, optimise for size
 flight: CFLAGS := $(filter-out -DDEBUG_LOGGING_ENABLED -O0, $(CFLAGS))
