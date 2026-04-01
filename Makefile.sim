@@ -1,0 +1,78 @@
+# =============================================================================
+# Makefile.sim
+# Builds the MPPT simulation for the host PC (not the ARM target).
+# Uses native GCC, not arm-none-eabi-gcc.
+#
+# Targets:
+#   make -f Makefile.sim          Build the simulation executable
+#   make -f Makefile.sim run      Build and run scenario 1 (steady state)
+#   make -f Makefile.sim runall   Build and run all 6 scenarios
+#   make -f Makefile.sim clean    Remove build artifacts
+# =============================================================================
+
+CC      := gcc
+TARGET  := tests/run_mppt_simulation
+BUILD   := build_sim
+
+# ── Source files ──────────────────────────────────────────────────────────────
+SRCS :=
+SRCS += src/assertion_handler.c
+SRCS += src/mppt_algorithm.c
+SRCS += tests/solar_panel_simulator.c
+SRCS += tests/buck_converter_model.c
+SRCS += tests/mppt_simulation_runner.c
+
+OBJS := $(addprefix $(BUILD)/, $(notdir $(SRCS:.c=.o)))
+
+# ── Include paths ─────────────────────────────────────────────────────────────
+INC := -I src -I tests
+
+# ── Compiler flags ────────────────────────────────────────────────────────────
+# All warning flags from conventions.md Rule C11, plus -pedantic.
+# -DTESTING_ON_HOST_NOT_ON_CHIP allows any future #ifdef guards.
+CFLAGS  := $(INC)
+CFLAGS  += -std=c99
+CFLAGS  += -Wall -Wextra -Werror -Wshadow -Wpointer-arith -Wcast-qual
+CFLAGS  += -Wstrict-prototypes -Wmissing-prototypes
+CFLAGS  += -pedantic
+CFLAGS  += -DTESTING_ON_HOST_NOT_ON_CHIP
+CFLAGS  += -g -O0
+
+LDFLAGS := -lm
+
+# ── Targets ───────────────────────────────────────────────────────────────────
+
+all: $(TARGET)
+
+$(BUILD):
+	mkdir -p $(BUILD)
+
+$(TARGET): $(OBJS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+
+# Pattern rules for each source directory
+$(BUILD)/%.o: src/%.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/%.o: tests/%.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# ── Run targets ───────────────────────────────────────────────────────────────
+
+run: $(TARGET)
+	./$(TARGET) 1 4p > tests/scenario_1_output.csv
+
+runall: $(TARGET)
+	@echo "=== Running all 6 scenarios ==="
+	./$(TARGET) 1 4p > tests/scenario_1_output.csv
+	./$(TARGET) 2 4p > tests/scenario_2_output.csv
+	./$(TARGET) 3 4p > tests/scenario_3_output.csv
+	./$(TARGET) 4 4p > tests/scenario_4_output.csv
+	./$(TARGET) 5 4p > tests/scenario_5_output.csv
+	./$(TARGET) 6 4p > tests/scenario_6_output.csv
+	@echo "=== All scenarios complete ==="
+
+clean:
+	rm -rf $(BUILD) $(TARGET) tests/scenario_*_output.csv
+
+.PHONY: all run runall clean
