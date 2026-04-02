@@ -13,6 +13,9 @@ let animFrameId = null;
 let lastTimestamp = null;
 let timeAccumulator = 0;
 
+// Precomputed axis ranges (fixed once data loads, never changes during playback)
+let axisRanges = {};
+
 const ORBIT_PERIOD_SECONDS = 94 * 60;  // 94 minutes
 const SUN_PERIOD_SECONDS = 57 * 60;    // 57 minutes sunlit
 
@@ -183,6 +186,67 @@ function initCharts() {
             }
         }
     });
+}
+
+// Compute fixed axis ranges from the FULL dataset once on load.
+// This prevents the jarring scale changes during playback.
+function computeFixedAxisRanges() {
+    if (simData.length === 0) return;
+
+    const margin = 0.05; // 5% padding above and below data range
+
+    function rangeOf(arr) {
+        let min = Infinity, max = -Infinity;
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] < min) min = arr[i];
+            if (arr[i] > max) max = arr[i];
+        }
+        const pad = Math.max((max - min) * margin, 1);
+        return { min: min - pad, max: max + pad };
+    }
+
+    const maxT = simData[simData.length - 1].t;
+    axisRanges = {
+        time: { min: 0, max: maxT },
+        vbat: rangeOf(simData.map(d => d.vbat)),
+        soc: rangeOf(simData.map(d => d.soc)),
+        psol: rangeOf(simData.map(d => d.psol)),
+        duty: rangeOf(simData.map(d => d.duty)),
+        ibat: rangeOf(simData.map(d => d.ibat)),
+    };
+
+    console.log('[EPS] Fixed axis ranges computed:', JSON.stringify(axisRanges));
+
+    // Apply fixed scales to all charts
+    chartVbat.options.scales.x.min = 0;
+    chartVbat.options.scales.x.max = maxT;
+    chartVbat.options.scales.y.min = axisRanges.vbat.min;
+    chartVbat.options.scales.y.max = axisRanges.vbat.max;
+    chartVbat.options.scales.y.grace = undefined;
+
+    chartSoc.options.scales.x.min = 0;
+    chartSoc.options.scales.x.max = maxT;
+    chartSoc.options.scales.y.min = axisRanges.soc.min;
+    chartSoc.options.scales.y.max = axisRanges.soc.max;
+    chartSoc.options.scales.y.grace = undefined;
+
+    chartPower.options.scales.x.min = 0;
+    chartPower.options.scales.x.max = maxT;
+    chartPower.options.scales.y.min = axisRanges.psol.min;
+    chartPower.options.scales.y.max = axisRanges.psol.max;
+    chartPower.options.scales.y.grace = undefined;
+    chartPower.options.scales.y1.min = axisRanges.duty.min;
+    chartPower.options.scales.y1.max = axisRanges.duty.max;
+    chartPower.options.scales.y1.grace = undefined;
+
+    chartCurrent.options.scales.x.min = 0;
+    chartCurrent.options.scales.x.max = maxT;
+    chartCurrent.options.scales.y.min = axisRanges.ibat.min;
+    chartCurrent.options.scales.y.max = axisRanges.ibat.max;
+    chartCurrent.options.scales.y.grace = undefined;
+
+    chartMode.options.scales.x.min = 0;
+    chartMode.options.scales.x.max = maxT;
 }
 
 function updateCharts(upToIndex) {
@@ -481,6 +545,11 @@ function loadScenario() {
         simData = result.data;
         currentIndex = 0;
         timeAccumulator = 0;
+
+        console.log(`[EPS] Loaded ${simData.length} points, t=[${simData[0].t}, ${simData[simData.length-1].t}]`);
+
+        // Fix chart scales to full data range ONCE (prevents jarring scale changes during playback)
+        computeFixedAxisRanges();
 
         statusEl.textContent = `Scenario ${scenario} loaded — ${simData.length} data points, ` +
             `${formatTime(simData[simData.length - 1].t)} total. ${result.stderr}`;
