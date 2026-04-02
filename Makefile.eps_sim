@@ -1,0 +1,82 @@
+# =============================================================================
+# Makefile.eps_sim
+# Builds the EPS state machine simulation for the host PC (not the ARM target).
+# Uses native GCC, not arm-none-eabi-gcc.
+#
+# Targets:
+#   make -f Makefile.eps_sim          Build the simulation executable
+#   make -f Makefile.eps_sim run      Build and run scenario 1
+#   make -f Makefile.eps_sim runall   Build and run all 8 scenarios
+#   make -f Makefile.eps_sim clean    Remove build artifacts
+# =============================================================================
+
+CC      := gcc
+TARGET  := tests/run_eps_simulation
+BUILD   := build_eps_sim
+
+# ── Source files ─────────────────────────────────────────────────────────────
+SRCS :=
+SRCS += src/assertion_handler.c
+SRCS += src/mppt_algorithm.c
+SRCS += src/eps_state_machine.c
+SRCS += tests/solar_panel_simulator.c
+SRCS += tests/buck_converter_model.c
+SRCS += tests/battery_model.c
+SRCS += tests/eps_simulation_runner.c
+
+OBJS := $(addprefix $(BUILD)/, $(notdir $(SRCS:.c=.o)))
+
+# ── Include paths ────────────────────────────────────────────────────────────
+INC := -I src -I tests
+
+# ── Compiler flags ───────────────────────────────────────────────────────────
+# All warning flags from conventions.md Rule C11, plus -pedantic.
+# -DTESTING_ON_HOST_NOT_ON_CHIP allows any future #ifdef guards.
+CFLAGS  := $(INC)
+CFLAGS  += -std=c99
+CFLAGS  += -Wall -Wextra -Werror -Wshadow -Wpointer-arith -Wcast-qual
+CFLAGS  += -Wstrict-prototypes -Wmissing-prototypes
+CFLAGS  += -pedantic
+CFLAGS  += -DTESTING_ON_HOST_NOT_ON_CHIP
+CFLAGS  += -g -O0
+
+LDFLAGS := -lm
+
+# ── Targets ──────────────────────────────────────────────────────────────────
+
+all: $(TARGET)
+
+$(BUILD):
+	mkdir -p $(BUILD)
+
+$(TARGET): $(OBJS)
+	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+
+# Pattern rules for each source directory
+$(BUILD)/%.o: src/%.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/%.o: tests/%.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# ── Run targets ──────────────────────────────────────────────────────────────
+
+run: $(TARGET)
+	./$(TARGET) 1 > tests/eps_scenario_1_output.csv
+
+runall: $(TARGET)
+	@echo "=== Running all 8 EPS scenarios ==="
+	./$(TARGET) 1 > tests/eps_scenario_1_output.csv
+	./$(TARGET) 2 > tests/eps_scenario_2_output.csv
+	./$(TARGET) 3 > tests/eps_scenario_3_output.csv
+	./$(TARGET) 4 > tests/eps_scenario_4_output.csv
+	./$(TARGET) 5 > tests/eps_scenario_5_output.csv
+	./$(TARGET) 6 > tests/eps_scenario_6_output.csv
+	./$(TARGET) 7 > tests/eps_scenario_7_output.csv
+	./$(TARGET) 8 > tests/eps_scenario_8_output.csv
+	@echo "=== All 8 scenarios complete ==="
+
+clean:
+	rm -rf $(BUILD) $(TARGET) tests/eps_scenario_*_output.csv
+
+.PHONY: all run runall clean

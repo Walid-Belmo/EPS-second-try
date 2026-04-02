@@ -45,6 +45,9 @@ debugging.
 | [`docs/smoke_test.md`](docs/smoke_test.md) | LED blink — the first program, why it matters, pass criteria |
 | [`docs/dma_uart_logging.md`](docs/dma_uart_logging.md) | DMA logging system design, implementation, Windows terminal setup |
 | [`docs/mppt_algorithm.md`](docs/mppt_algorithm.md) | P&O vs IncCond, DC/DC dependency, laptop simulation approach |
+| [`docs/simulation_of_MPPT.md`](docs/simulation_of_MPPT.md) | Detailed MPPT simulation reference |
+| [`docs/eps_state_machine_overview.md`](docs/eps_state_machine_overview.md) | **EPS State Machine** — Complete explanation from first principles with mission doc sources |
+| [`docs/eps_simulation.md`](docs/eps_simulation.md) | **EPS Simulation** — Closed-loop physics, battery model, timing, all 8 scenarios |
 | [`docs/newlib_and_syscalls.md`](docs/newlib_and_syscalls.md) | Why syscalls_min.c exists, newlib dependency chain, prototype fixes |
 
 ---
