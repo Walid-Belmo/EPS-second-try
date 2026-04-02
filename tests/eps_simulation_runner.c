@@ -118,7 +118,7 @@ static void print_csv_row(
 
     (void)printf(
         "%u,%.4f,%u,%u,%.2f,"
-        "%u,%d,%.2f,"
+        "%u,%d,%.6f,"
         "%u,%.3f,%d,"
         "%u,%u,%u\n",
         (unsigned)iteration,
@@ -164,7 +164,8 @@ static void run_one_scenario(
     double (*irradiance_function)(uint32_t iteration),
     double (*temperature_function)(uint32_t iteration,
                                    double initial_temperature),
-    uint8_t obc_heartbeat_active)
+    uint8_t obc_heartbeat_active,
+    uint32_t log_every_n_iterations)
 {
     // Initialize models
     struct solar_panel_parameters panel_parameters;
@@ -311,8 +312,8 @@ static void run_one_scenario(
             &configuration_thresholds,
             &actuator_commands);
 
-        // ── Step 8: Log CSV (every 1000th iteration to keep output small)
-        if ((iteration % 1000u) == 0u) {
+        // ── Step 8: Log CSV at configurable interval
+        if ((iteration % log_every_n_iterations) == 0u) {
             print_csv_row(
                 iteration, time_seconds,
                 &actuator_commands, &sensor_readings,
@@ -359,6 +360,17 @@ static double irradiance_full_orbit_cycle(uint32_t iteration)
     return (position_in_orbit < sun_period_iterations) ? 1.0 : 0.0;
 }
 
+static double irradiance_eclipse_heavy_orbit(uint32_t iteration)
+{
+    // Eclipse-heavy orbit: 30 min sun, 64 min eclipse = 94 min period
+    // 30 min = 1800s = 9000000 iterations
+    // 94 min = 5640s = 28200000 iterations
+    uint32_t orbit_period_iterations = 28200000u;
+    uint32_t sun_period_iterations = 9000000u;
+    uint32_t position_in_orbit = iteration % orbit_period_iterations;
+    return (position_in_orbit < sun_period_iterations) ? 1.0 : 0.0;
+}
+
 static double irradiance_rapid_cycling(uint32_t iteration)
 {
     // 30 seconds on, 30 seconds off at 200us per iteration
@@ -395,9 +407,9 @@ int main(int argc, char *argv[])
 
     if (argc >= 2) {
         scenario_number = atoi(argv[1]);
-        if (scenario_number < 1 || scenario_number > 12) {
+        if (scenario_number < 1 || scenario_number > 20) {
             (void)fprintf(stderr,
-                "Usage: %s [scenario 1-12]\n", argv[0]);
+                "Usage: %s [scenario 1-20]\n", argv[0]);
             return 1;
         }
     }
@@ -409,66 +421,118 @@ int main(int argc, char *argv[])
         // Full sun, battery at 50% SOC → charging
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.50, 25.0,
-            500000u, irradiance_full_sun, temperature_constant, 1u);
+            500000u, irradiance_full_sun, temperature_constant, 1u, 1000u);
     } else if (scenario_number == 2) {
         // Eclipse entry at halfway
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.70, 25.0,
             500000u, irradiance_eclipse_entry_at_halfway,
-            temperature_constant, 1u);
+            temperature_constant, 1u, 1000u);
     } else if (scenario_number == 3) {
         // Eclipse exit at halfway
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.70, 25.0,
             500000u, irradiance_eclipse_exit_at_halfway,
-            temperature_constant, 1u);
+            temperature_constant, 1u, 1000u);
     } else if (scenario_number == 4) {
         // Battery critically low → safe mode
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.05, 25.0,
-            500000u, irradiance_full_sun, temperature_constant, 1u);
+            500000u, irradiance_full_sun, temperature_constant, 1u, 1000u);
     } else if (scenario_number == 5) {
         // OBC heartbeat lost
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.70, 25.0,
-            1000000u, irradiance_full_sun, temperature_constant, 0u);
+            1000000u, irradiance_full_sun, temperature_constant, 0u, 1000u);
     } else if (scenario_number == 6) {
         // Cold temperature → heater on, charging forbidden
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.70, -20.0,
-            500000u, irradiance_full_sun, temperature_constant, 1u);
+            500000u, irradiance_full_sun, temperature_constant, 1u, 1000u);
     } else if (scenario_number == 7) {
         // Eclipse with high load → overcurrent shedding
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.30, 25.0,
-            500000u, irradiance_no_sun, temperature_constant, 1u);
+            500000u, irradiance_no_sun, temperature_constant, 1u, 1000u);
     } else if (scenario_number == 8) {
         // Full orbit cycle (57 min sun, 37 min eclipse)
         // Run 2 full orbits = ~56 million iterations
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.70, 25.0,
             56400000u, irradiance_full_orbit_cycle,
-            temperature_constant, 1u);
+            temperature_constant, 1u, 1000u);
     } else if (scenario_number == 9) {
         // Battery near full (95% SOC) → expect CV_FLOAT / SA_LOAD_FOLLOW
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.95, 25.0,
-            1000000u, irradiance_full_sun, temperature_constant, 1u);
+            1000000u, irradiance_full_sun, temperature_constant, 1u, 1000u);
     } else if (scenario_number == 10) {
         // Long eclipse (10 minutes) → visible battery decline
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.70, 25.0,
-            3000000u, irradiance_no_sun, temperature_constant, 1u);
+            3000000u, irradiance_no_sun, temperature_constant, 1u, 1000u);
     } else if (scenario_number == 11) {
         // Rapid sun/eclipse cycling (30s on, 30s off for 5 minutes)
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.50, 25.0,
-            1500000u, irradiance_rapid_cycling, temperature_constant, 1u);
+            1500000u, irradiance_rapid_cycling, temperature_constant, 1u, 1000u);
     } else if (scenario_number == 12) {
         // Temperature ramp from -20C to +25C over 5 min
         run_one_scenario(
             (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.70, -20.0,
-            1500000u, irradiance_full_sun, temperature_ramp_cold_to_warm, 1u);
+            1500000u, irradiance_full_sun, temperature_ramp_cold_to_warm, 1u, 1000u);
+
+    // ── Multi-day scenarios ─────────────────────────────────────────────
+    } else if (scenario_number == 13) {
+        // 1 day nominal (15.3 orbits). Log every 100000 iters = 4320 rows.
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.70, 25.0,
+            432000000u, irradiance_full_orbit_cycle,
+            temperature_constant, 1u, 100000u);
+    } else if (scenario_number == 14) {
+        // 3 days nominal (46 orbits). Log every 500000 iters = 2592 rows.
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.70, 25.0,
+            1296000000u, irradiance_full_orbit_cycle,
+            temperature_constant, 1u, 500000u);
+    } else if (scenario_number == 15) {
+        // 1 day eclipse-heavy orbit (30 min sun, 64 min eclipse per orbit)
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.90, 25.0,
+            432000000u, irradiance_eclipse_heavy_orbit,
+            temperature_constant, 1u, 100000u);
+    } else if (scenario_number == 16) {
+        // 1 day with OBC never responding (permanent autonomy)
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.70, 25.0,
+            432000000u, irradiance_full_orbit_cycle,
+            temperature_constant, 0u, 100000u);
+    } else if (scenario_number == 17) {
+        // 5 days nominal (76.6 orbits). Log every 1000000 iters = 2160 rows.
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.70, 25.0,
+            2160000000u, irradiance_full_orbit_cycle,
+            temperature_constant, 1u, 1000000u);
+
+    // ── Short verification scenarios (log every iteration) ──────────────
+    } else if (scenario_number == 18) {
+        // VERIFY: Constant sun, 1000 iterations, log ALL
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.50, 25.0,
+            1000u, irradiance_full_sun,
+            temperature_constant, 1u, 1u);
+    } else if (scenario_number == 19) {
+        // VERIFY: Eclipse only, 1000 iterations, log ALL
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.50, 25.0,
+            1000u, irradiance_no_sun,
+            temperature_constant, 1u, 1u);
+    } else if (scenario_number == 20) {
+        // VERIFY: Cold temp (-20C), 1000 iterations, log ALL
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.70, -20.0,
+            1000u, irradiance_full_sun,
+            temperature_constant, 1u, 1u);
     }
 
     (void)fprintf(stderr, "Scenario %d complete.\n",

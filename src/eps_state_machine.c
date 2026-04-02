@@ -322,6 +322,21 @@ static void run_mppt_charge_mode_logic(
             sensor_readings_this_iteration->solar_array_current_raw_adc_reading);
     }
 
+    // Post-MPPT recovery: if solar is available but panel current is zero,
+    // the operating point has drifted beyond Voc (duty cycle too low, panel
+    // voltage too high). Override MPPT and force D to 50% (a known-good
+    // starting point near MPP). Also reinitialize MPPT so it starts fresh.
+    // This is the firmware equivalent of "I have sun but no power — reset."
+    if ((sensor_readings_this_iteration->solar_array_current_raw_adc_reading == 0u)
+        && (sensor_readings_this_iteration->solar_array_voltage_in_millivolts
+            >= eps_configuration_thresholds->solar_array_minimum_voltage_for_availability_in_millivolts))
+    {
+        // 50% duty cycle = 32768, a safe starting point
+        duty_cycle = 32768u;
+        mppt_algorithm_initialize(
+            &eps_persistent_state->mppt_algorithm_persistent_state);
+    }
+
     eps_persistent_state->current_duty_cycle_as_fraction_of_65535 = duty_cycle;
     actuator_commands_output->buck_converter_duty_cycle_as_fraction_of_65535 = duty_cycle;
     eps_persistent_state->iterations_in_current_pcu_mode += 1u;
