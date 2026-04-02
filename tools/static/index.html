@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHESS EPS — State Machine Simulation</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.js"></script>
+</head>
+<body>
+    <!-- Top Control Bar -->
+    <header id="top-bar">
+        <div class="controls-left">
+            <select id="scenario-select">
+                <option value="1">1: Full sun, 50% SOC — charging</option>
+                <option value="2">2: Eclipse entry at 50s</option>
+                <option value="3">3: Eclipse exit at 50s</option>
+                <option value="4">4: Battery critically low</option>
+                <option value="5">5: OBC heartbeat lost (120s)</option>
+                <option value="6">6: Cold temperature (-20C)</option>
+                <option value="7">7: Eclipse overcurrent</option>
+                <option value="8">8: Full orbit x2 (188 min)</option>
+                <option value="9">9: Near-full battery (95% SOC)</option>
+                <option value="10">10: Long eclipse (10 min)</option>
+                <option value="11">11: Rapid sun/eclipse cycling</option>
+                <option value="12">12: Temperature ramp -20C→25C</option>
+            </select>
+            <button id="btn-load" onclick="loadScenario()">Load</button>
+            <span class="separator">|</span>
+            <button id="btn-play" onclick="togglePlay()">▶ Play</button>
+            <button id="btn-reset" onclick="resetPlayback()">⟲</button>
+            <select id="speed-select" onchange="setSpeed(this.value)">
+                <option value="1">1x</option>
+                <option value="10" selected>10x</option>
+                <option value="100">100x</option>
+                <option value="1000">1000x</option>
+            </select>
+        </div>
+        <div class="controls-right">
+            <span class="title">CHESS EPS Simulation</span>
+        </div>
+    </header>
+
+    <!-- Status Bar -->
+    <div id="status-bar">
+        <span id="status-text">Select a scenario and click Load</span>
+    </div>
+
+    <!-- Main Layout -->
+    <main id="main-grid">
+        <!-- Left Panel: Orbit + Live Variables -->
+        <aside id="left-panel">
+            <canvas id="orbit-canvas" width="280" height="280"></canvas>
+
+            <div id="clock-display">
+                <span class="clock-label">Mission Time</span>
+                <span id="clock-value">00:00.0</span>
+            </div>
+
+            <div id="live-vars">
+                <div class="var-row">
+                    <span class="var-label">PCU Mode</span>
+                    <span class="var-value" id="var-mode">—</span>
+                </div>
+                <div class="var-row">
+                    <span class="var-label">Safe Mode</span>
+                    <span class="var-value" id="var-safe">—</span>
+                </div>
+                <div class="var-row separator-line"></div>
+                <div class="var-row">
+                    <span class="var-label">V Battery</span>
+                    <span class="var-value" id="var-vbat">— mV</span>
+                </div>
+                <div class="var-row">
+                    <span class="var-label">I Battery</span>
+                    <span class="var-value" id="var-ibat">— mA</span>
+                </div>
+                <div class="var-row">
+                    <span class="var-label">SOC</span>
+                    <span class="var-value" id="var-soc">— %</span>
+                </div>
+                <div class="var-row separator-line"></div>
+                <div class="var-row">
+                    <span class="var-label">V Solar</span>
+                    <span class="var-value" id="var-vsol">— mV</span>
+                </div>
+                <div class="var-row">
+                    <span class="var-label">P Solar</span>
+                    <span class="var-value" id="var-psol">— W</span>
+                </div>
+                <div class="var-row">
+                    <span class="var-label">Duty Cycle</span>
+                    <span class="var-value" id="var-duty">— %</span>
+                </div>
+                <div class="var-row separator-line"></div>
+                <div class="var-row">
+                    <span class="var-label">Temperature</span>
+                    <span class="var-value" id="var-temp">— C</span>
+                </div>
+                <div class="var-row">
+                    <span class="var-label">Heater</span>
+                    <span class="var-value" id="var-heater">—</span>
+                </div>
+                <div class="var-row">
+                    <span class="var-label">Loads</span>
+                    <span class="var-value" id="var-loads">— / 5</span>
+                </div>
+                <div class="var-row">
+                    <span class="var-label">Panel eFuse</span>
+                    <span class="var-value" id="var-efuse">—</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Panel: Charts -->
+        <section id="right-panel">
+            <div class="chart-container" style="height:120px">
+                <canvas id="chart-mode"></canvas>
+            </div>
+            <div class="chart-container" style="height:160px">
+                <canvas id="chart-vbat"></canvas>
+            </div>
+            <div class="chart-container" style="height:160px">
+                <canvas id="chart-soc"></canvas>
+            </div>
+            <div class="chart-container" style="height:160px">
+                <canvas id="chart-power"></canvas>
+            </div>
+            <div class="chart-container" style="height:160px">
+                <canvas id="chart-current"></canvas>
+            </div>
+
+            <!-- Time Slider -->
+            <div id="slider-container">
+                <input type="range" id="time-slider" min="0" max="100" value="0"
+                       oninput="onSliderInput(this.value)">
+                <div id="slider-labels">
+                    <span id="slider-time-left">0:00</span>
+                    <span id="slider-time-right">0:00</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

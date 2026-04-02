@@ -1,0 +1,292 @@
+/* CHESS EPS Simulation — Dark Theme */
+
+:root {
+    --bg-primary: #0a0a0a;
+    --bg-card: #111111;
+    --bg-hover: #1a1a1a;
+    --border: rgba(255, 255, 255, 0.06);
+    --text-primary: #e0e0e0;
+    --text-secondary: #6b7280;
+    --text-dim: #3a3a3a;
+    --accent-green: #22c55e;
+    --accent-blue: #3b82f6;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #a855f7;
+    --accent-cyan: #06b6d4;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    overflow-x: hidden;
+}
+
+/* ── Top Bar ─────────────────────────────────────────────── */
+
+#top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    height: 44px;
+}
+
+.controls-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.controls-right .title {
+    color: var(--text-secondary);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+select, button {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    outline: none;
+}
+
+select:hover, button:hover {
+    background: var(--bg-hover);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+button:active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#btn-load {
+    color: var(--accent-blue);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+#btn-play {
+    color: var(--accent-green);
+    border-color: rgba(34, 197, 94, 0.3);
+    min-width: 70px;
+}
+
+#btn-play.playing {
+    color: var(--accent-orange);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.separator {
+    color: var(--text-dim);
+    margin: 0 4px;
+}
+
+/* ── Status Bar ──────────────────────────────────────────── */
+
+#status-bar {
+    padding: 4px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-secondary);
+    height: 24px;
+}
+
+#status-text.loading {
+    color: var(--accent-orange);
+}
+
+#status-text.ready {
+    color: var(--accent-green);
+}
+
+#status-text.error {
+    color: var(--accent-red);
+}
+
+/* ── Main Grid ───────────────────────────────────────────── */
+
+#main-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    height: calc(100vh - 68px);
+    overflow: hidden;
+}
+
+/* ── Left Panel ──────────────────────────────────────────── */
+
+#left-panel {
+    background: var(--bg-card);
+    border-right: 1px solid var(--border);
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#orbit-canvas {
+    width: 100%;
+    max-width: 280px;
+    height: 280px;
+    border-radius: 8px;
+    background: #050510;
+    display: block;
+    margin: 0 auto;
+}
+
+#clock-display {
+    text-align: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.clock-label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+
+#clock-value {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--accent-cyan);
+    letter-spacing: 2px;
+}
+
+/* ── Live Variables ──────────────────────────────────────── */
+
+#live-vars {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.var-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 3px;
+}
+
+.var-row:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.var-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.var-value {
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+}
+
+.separator-line {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+}
+
+/* Mode colors */
+.mode-mppt { color: var(--accent-green); }
+.mode-cvfloat { color: var(--accent-blue); }
+.mode-safollow { color: var(--accent-orange); }
+.mode-discharge { color: var(--accent-red); }
+.safe-yes { color: var(--accent-red); font-weight: bold; }
+.safe-no { color: var(--text-secondary); }
+.charging { color: var(--accent-green); }
+.discharging { color: var(--accent-red); }
+.heater-on { color: var(--accent-orange); }
+.heater-off { color: var(--text-secondary); }
+
+/* ── Right Panel ─────────────────────────────────────────── */
+
+#right-panel {
+    padding: 8px 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ── Time Slider ─────────────────────────────────────────── */
+
+#slider-container {
+    padding: 8px 0;
+}
+
+#time-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    outline: none;
+    border: none;
+}
+
+#time-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent-cyan);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--bg-primary);
+}
+
+#time-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--accent-cyan);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--bg-primary);
+}
+
+#slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}

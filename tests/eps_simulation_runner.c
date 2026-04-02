@@ -359,11 +359,32 @@ static double irradiance_full_orbit_cycle(uint32_t iteration)
     return (position_in_orbit < sun_period_iterations) ? 1.0 : 0.0;
 }
 
+static double irradiance_rapid_cycling(uint32_t iteration)
+{
+    // 30 seconds on, 30 seconds off at 200us per iteration
+    // 30s = 150000 iterations per half-cycle, 300000 per full cycle
+    uint32_t cycle_period = 300000u;
+    uint32_t sun_half = 150000u;
+    uint32_t position_in_cycle = iteration % cycle_period;
+    return (position_in_cycle < sun_half) ? 1.0 : 0.0;
+}
+
 static double temperature_constant(
     uint32_t iteration, double initial_temperature)
 {
     (void)iteration;
     return initial_temperature;
+}
+
+static double temperature_ramp_cold_to_warm(
+    uint32_t iteration, double initial_temperature)
+{
+    // Ramp from initial_temperature to +25C over 5 minutes (1500000 iterations)
+    double total_iterations_for_ramp = 1500000.0;
+    double target_temperature = 25.0;
+    double fraction = (double)iteration / total_iterations_for_ramp;
+    if (fraction > 1.0) { fraction = 1.0; }
+    return initial_temperature + (fraction * (target_temperature - initial_temperature));
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
@@ -374,9 +395,9 @@ int main(int argc, char *argv[])
 
     if (argc >= 2) {
         scenario_number = atoi(argv[1]);
-        if (scenario_number < 1 || scenario_number > 8) {
+        if (scenario_number < 1 || scenario_number > 12) {
             (void)fprintf(stderr,
-                "Usage: %s [scenario 1-8]\n", argv[0]);
+                "Usage: %s [scenario 1-12]\n", argv[0]);
             return 1;
         }
     }
@@ -428,6 +449,26 @@ int main(int argc, char *argv[])
             (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.70, 25.0,
             56400000u, irradiance_full_orbit_cycle,
             temperature_constant, 1u);
+    } else if (scenario_number == 9) {
+        // Battery near full (95% SOC) → expect CV_FLOAT / SA_LOAD_FOLLOW
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.95, 25.0,
+            1000000u, irradiance_full_sun, temperature_constant, 1u);
+    } else if (scenario_number == 10) {
+        // Long eclipse (10 minutes) → visible battery decline
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_BATTERY_DISCHARGE, 0.70, 25.0,
+            3000000u, irradiance_no_sun, temperature_constant, 1u);
+    } else if (scenario_number == 11) {
+        // Rapid sun/eclipse cycling (30s on, 30s off for 5 minutes)
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.50, 25.0,
+            1500000u, irradiance_rapid_cycling, temperature_constant, 1u);
+    } else if (scenario_number == 12) {
+        // Temperature ramp from -20C to +25C over 5 min
+        run_one_scenario(
+            (uint8_t)EPS_PCU_MODE_MPPT_CHARGE, 0.70, -20.0,
+            1500000u, irradiance_full_sun, temperature_ramp_cold_to_warm, 1u);
     }
 
     (void)fprintf(stderr, "Scenario %d complete.\n",
