@@ -6,15 +6,15 @@ into master. This is a living document — it tracks the execution of plan.md.
 
 ---
 
-## Current Status (Updated 2026-04-01)
+## Current Status (Updated 2026-04-02)
 
 ```
 master (Phases 0,1,3 complete)
-├── branch: phase4-chips      (worktree: ../EPS-phase4-chips)   — IN PROGRESS
-├── branch: phase5-pwm        (worktree: ../EPS-phase5-pwm)     — IN PROGRESS
+├── branch: phase4-chips      (worktree: ../EPS-phase4-chips)   — DONE
+├── branch: phase5-pwm        (worktree: ../EPS-phase5-pwm)     — DONE
 ├── branch: phase6-sensors    (worktree: ../EPS-phase6-sensors)  — PAUSED (deferred)
 └── branch: mppt-algorithm    (worktree: ../EPS-mppt-algorithm)  — IN PROGRESS
-    (originally just MPPT algorithm, now ALSO contains EPS state machine)
+    (MPPT algorithm + EPS state machine done, webapp being built around simulation)
 ```
 
 **Phase 6 (sensors) is intentionally paused.** We don't have the physical sensor
