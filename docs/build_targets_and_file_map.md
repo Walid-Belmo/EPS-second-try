@@ -123,7 +123,7 @@ This is the fastest way to confirm classification when you open a file.
 | File | Build | Notes |
 |---|---|---|
 | `src/main.c` | devboard only | Semester demo application. Uses PB10 user LED, PA22 debug UART, and the CHIPS OBC UART on PA10/PA11 through `uart_obc_sercom0_pa10_pa11_on_devboard.c`. |
-| `src/eps_demo_chips_command_dispatch.c/.h` | devboard only | Demo CHIPS command handlers for injected sensor values, state/debug snapshots, fixed duty command, mode command, and periodic telemetry streaming. |
+| `src/eps_demo_chips_command_dispatch.c/.h` | shared | Demo CHIPS command handlers for injected sensor values, state/debug snapshots, fixed duty command, mode command, periodic telemetry streaming, and the mainboard raw-ADC read command. |
 | `src/main_mainboard_chips_injection_demo.c` | mainboard only | Real-board CHIPS injection demo. Uses PB22 status LED and the real board J3 UART on PA10/PA11. |
 | `src/main_mainboard_blink_pb22.c` | mainboard only reference | Firmware A. Smallest possible "is the chip alive?" test. Kept for recovery/bring-up reference but not compiled by the current `BOARD=mainboard` target. |
 
@@ -136,6 +136,7 @@ This is the fastest way to confirm classification when you open a file.
 | `src/drivers/uart_obc_sercom0_pa04_pa05.c/.h` | devboard only | Older dev-board UART bring-up driver on PA04/PA05. Kept for reference, not compiled into the current dev-board demo build. |
 | `src/drivers/uart_obc_sercom0_pa10_pa11_on_devboard.c/.h` | devboard only | Current demo OBC UART driver. Uses SERCOM0 PA10/PA11 so the dev-board communication path matches the real board's UART pin pair. |
 | `src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.c/.h` | mainboard only | Current real-board OBC UART driver. Uses J3 UART nets on PA10/PA11. |
+| `src/drivers/mainboard_adc_reader.c/.h` | mainboard only | Read-only ADC reader for `PV_IMON`, `BAT_IMON`, `OUTA1`, `OUTA2`, `OUTV1`, and `OUTV2` on PB04..PB09. |
 | `src/drivers/uart_obc.h` | shared API | Generic OBC UART API used by application code; the Makefile selects the board-specific implementation. |
 | `src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.c/.h` | shared logic, devboard build today | Pure CHIPS frame builder/parser and CRC-16/KERMIT logic. |
 | `src/drivers/millisecond_tick_timer_using_arm_systick.c/.h` | shared logic, devboard build today | SysTick-backed millisecond counter for non-blocking timing and telemetry periods. |

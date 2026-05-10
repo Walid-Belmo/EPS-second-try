@@ -72,7 +72,9 @@ typedef enum {
     CHIPS_COMMAND_ID_SET_CONTROL_MODE          = 0x22,
     CHIPS_COMMAND_ID_SET_FIXED_DUTY            = 0x23,
     CHIPS_COMMAND_ID_GET_DEBUG_SNAPSHOT        = 0x24,
-    CHIPS_COMMAND_ID_SET_TELEMETRY_STREAM      = 0x25
+    CHIPS_COMMAND_ID_SET_TELEMETRY_STREAM      = 0x25,
+    CHIPS_COMMAND_ID_SET_DEMO_TIMING           = 0x26,
+    CHIPS_COMMAND_ID_GET_MAINBOARD_ADC         = 0x27
 } chips_command_id_type;
 
 /* ── Status codes for response payloads ──────────────────────────────────── */

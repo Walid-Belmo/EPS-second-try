@@ -19,6 +19,7 @@
 #include "samd21j17d.h"
 #include "clock_configure_48mhz_dfll_open_loop.h"
 #include "led_status_pb22_active_high_on_mainboard.h"
+#include "mainboard_adc_reader.h"
 #include "millisecond_tick_timer_using_arm_systick.h"
 #include "uart_obc.h"
 #include "chips_protocol_encode_decode_frames_with_crc16_kermit.h"
@@ -37,6 +38,7 @@ int main(void)
 {
     configure_cpu_clock_to_48mhz_using_dfll_open_loop();
     configure_pb22_as_gpio_output_for_status_led_on_mainboard();
+    mainboard_adc_reader_initialize();
     millisecond_tick_timer_initialize_at_48mhz();
     uart_obc_initialize_sercom0_at_115200_baud();
 

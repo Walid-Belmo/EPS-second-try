@@ -65,6 +65,7 @@ There is no default. See docs/build_targets_and_file_map.md for the file map.)
                         src/drivers/clock_configure_48mhz_dfll_open_loop.c \
                         src/drivers/led_status_pb22_active_high_on_mainboard.c \
                         src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.c \
+                        src/drivers/mainboard_adc_reader.c \
                         src/drivers/millisecond_tick_timer_using_arm_systick.c \
                         src/drivers/pwm_buck_converter_disabled_stub.c \
                         src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.c \

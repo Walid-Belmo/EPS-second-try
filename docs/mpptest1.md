@@ -248,6 +248,11 @@ The first test firmware should have three modes, in this order.
 
 Purpose: prove the MCU can read the measurement pins without driving the buck.
 
+Implementation status: first raw-read version is implemented in
+`src/drivers/mainboard_adc_reader.c` and exposed through CHIPS command
+`GET_MAINBOARD_ADC` / ESP32 console command `adc`. See
+`docs/mainboard_adc_reader_test.md`.
+
 Expected behavior:
 
 - Configure ADC on `PB04` through `PB09`.

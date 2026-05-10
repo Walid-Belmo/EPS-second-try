@@ -16,6 +16,10 @@
 #include "eps_state_machine.h"
 #include "pwm_buck_converter.h"
 
+#ifdef __SAMD21J17D__
+#include "mainboard_adc_reader.h"
+#endif
+
 #define INPUT_SOURCE_INJECTED_VALUES       0u
 #define INPUT_SOURCE_REAL_SENSORS          1u
 
@@ -27,6 +31,8 @@
 
 #define MINIMUM_TELEMETRY_STREAM_PERIOD_MS 100u
 #define MAXIMUM_TELEMETRY_STREAM_PERIOD_MS 10000u
+#define MINIMUM_DEMO_TIMEOUT_ITERATIONS     1u
+#define MAXIMUM_DEMO_TIMEOUT_ITERATIONS     60000u
 
 #define TELEMETRY_PAYLOAD_PROTOCOL_VERSION  2u
 #define CONTROL_LOOP_PERIOD_MS              100u
@@ -148,6 +154,12 @@ static void handle_set_fixed_duty(
     const chips_parsed_frame_type *received_command,
     chips_parsed_frame_type *response_to_build);
 static void handle_set_telemetry_stream(
+    const chips_parsed_frame_type *received_command,
+    chips_parsed_frame_type *response_to_build);
+static void handle_set_demo_timing(
+    const chips_parsed_frame_type *received_command,
+    chips_parsed_frame_type *response_to_build);
+static void handle_get_mainboard_adc(
     const chips_parsed_frame_type *received_command,
     chips_parsed_frame_type *response_to_build);
 static void build_unknown_command_response(
@@ -274,6 +286,14 @@ void eps_demo_chips_dispatch_received_command_and_send_response(
 
     case CHIPS_COMMAND_ID_SET_TELEMETRY_STREAM:
         handle_set_telemetry_stream(received_command_frame, &response_frame);
+        break;
+
+    case CHIPS_COMMAND_ID_SET_DEMO_TIMING:
+        handle_set_demo_timing(received_command_frame, &response_frame);
+        break;
+
+    case CHIPS_COMMAND_ID_GET_MAINBOARD_ADC:
+        handle_get_mainboard_adc(received_command_frame, &response_frame);
         break;
 
     default:
@@ -1024,6 +1044,94 @@ static void handle_set_telemetry_stream(
                  &position,
                  dispatch_state.telemetry_stream_period_ms);
     response_to_build->payload_length_in_bytes = position;
+}
+
+static void handle_set_demo_timing(
+    const chips_parsed_frame_type *received_command,
+    chips_parsed_frame_type *response_to_build)
+{
+    if (received_command->payload_length_in_bytes != 6u)
+    {
+        build_ack_payload(response_to_build,
+            (uint8_t)CHIPS_RESPONSE_STATUS_INVALID_PAYLOAD_LENGTH);
+        return;
+    }
+
+    uint16_t requested_mppt_timeout_iterations =
+        read_u16_le(&received_command->payload_bytes[0]);
+    uint16_t requested_cv_timeout_iterations =
+        read_u16_le(&received_command->payload_bytes[2]);
+    uint16_t requested_heartbeat_timeout_iterations =
+        read_u16_le(&received_command->payload_bytes[4]);
+
+    if ((requested_mppt_timeout_iterations < MINIMUM_DEMO_TIMEOUT_ITERATIONS)
+        || (requested_mppt_timeout_iterations > MAXIMUM_DEMO_TIMEOUT_ITERATIONS)
+        || (requested_cv_timeout_iterations < MINIMUM_DEMO_TIMEOUT_ITERATIONS)
+        || (requested_cv_timeout_iterations > MAXIMUM_DEMO_TIMEOUT_ITERATIONS)
+        || (requested_heartbeat_timeout_iterations
+            < MINIMUM_DEMO_TIMEOUT_ITERATIONS)
+        || (requested_heartbeat_timeout_iterations
+            > MAXIMUM_DEMO_TIMEOUT_ITERATIONS))
+    {
+        build_ack_payload(response_to_build,
+            (uint8_t)CHIPS_RESPONSE_STATUS_PARAMETER_OUT_OF_RANGE);
+        return;
+    }
+
+    dispatch_state.eps_configuration_thresholds.mppt_charge_timeout_for_insufficient_buffer_in_iterations =
+        requested_mppt_timeout_iterations;
+    dispatch_state.eps_configuration_thresholds.cv_float_low_voltage_wait_timeout_in_iterations =
+        requested_cv_timeout_iterations;
+    dispatch_state.eps_configuration_thresholds.obc_heartbeat_timeout_in_iterations =
+        requested_heartbeat_timeout_iterations;
+
+    uint16_t position = 0u;
+    write_u8(response_to_build->payload_bytes, &position,
+             (uint8_t)CHIPS_RESPONSE_STATUS_SUCCESS);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 requested_mppt_timeout_iterations);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 requested_cv_timeout_iterations);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 requested_heartbeat_timeout_iterations);
+    response_to_build->payload_length_in_bytes = position;
+}
+
+static void handle_get_mainboard_adc(
+    const chips_parsed_frame_type *received_command,
+    chips_parsed_frame_type *response_to_build)
+{
+    if (received_command->payload_length_in_bytes != 0u)
+    {
+        build_ack_payload(response_to_build,
+            (uint8_t)CHIPS_RESPONSE_STATUS_INVALID_PAYLOAD_LENGTH);
+        return;
+    }
+
+#ifdef __SAMD21J17D__
+    mainboard_adc_readings_type readings;
+    mainboard_adc_reader_read_all_channels(&readings);
+
+    uint16_t position = 0u;
+    write_u8(response_to_build->payload_bytes, &position,
+             (uint8_t)CHIPS_RESPONSE_STATUS_SUCCESS);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 readings.pv_imon_raw_adc);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 readings.bat_imon_raw_adc);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 readings.outa1_raw_adc);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 readings.outa2_raw_adc);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 readings.outv1_raw_adc);
+    write_u16_le(response_to_build->payload_bytes, &position,
+                 readings.outv2_raw_adc);
+    response_to_build->payload_length_in_bytes = position;
+#else
+    build_ack_payload(response_to_build,
+                      (uint8_t)CHIPS_RESPONSE_STATUS_COMMAND_NOT_AVAILABLE);
+#endif
 }
 
 static void build_unknown_command_response(

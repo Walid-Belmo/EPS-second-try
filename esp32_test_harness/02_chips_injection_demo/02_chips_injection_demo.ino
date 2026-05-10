@@ -40,6 +40,8 @@
 #define CHIPS_COMMAND_ID_SET_FIXED_DUTY           0x23u
 #define CHIPS_COMMAND_ID_GET_DEBUG_SNAPSHOT       0x24u
 #define CHIPS_COMMAND_ID_SET_TELEMETRY_STREAM     0x25u
+#define CHIPS_COMMAND_ID_SET_DEMO_TIMING          0x26u
+#define CHIPS_COMMAND_ID_GET_MAINBOARD_ADC        0x27u
 
 #define CHIPS_RESPONSE_STATUS_SUCCESS             0x00u
 #define CHIPS_RESPONSE_STATUS_UNKNOWN_COMMAND     0x01u
@@ -55,6 +57,40 @@
 
 #define CONTROL_MODE_OFF                          0u
 #define CONTROL_MODE_MPPT                         3u
+#define CONTROL_MODE_FULL_STATE_MACHINE           4u
+
+#define PCU_MODE_MPPT_CHARGE                      0u
+#define PCU_MODE_CV_FLOAT                         1u
+#define PCU_MODE_SA_LOAD_FOLLOW                   2u
+#define PCU_MODE_BATTERY_DISCHARGE                3u
+
+#define SATELLITE_MODE_CHARGING                   1u
+#define SATELLITE_MODE_SAFE                       3u
+
+#define SAFE_SUB_STATE_CHARGING                   1u
+
+#define SAFE_REASON_NONE                          0u
+#define SAFE_REASON_BATTERY_BELOW_MINIMUM         1u
+#define SAFE_REASON_TEMPERATURE_OUT_OF_RANGE      2u
+#define SAFE_REASON_INJECTED_FAULT                4u
+
+#define LOAD_MASK_ALL_LOADS                       0x1Fu
+#define LOAD_MASK_SAFE_CHARGING                   0x14u
+
+#define FSM_SIMULATOR_SETTLE_TIME_MS              500u
+#define FSM_SIMULATOR_INTER_SCENARIO_DELAY_MS     250u
+
+#define FSM_CHECK_CONTROL_MODE                    (1UL << 0)
+#define FSM_CHECK_PCU_MODE                        (1UL << 1)
+#define FSM_CHECK_PANEL_EFUSE                     (1UL << 2)
+#define FSM_CHECK_PWM_ENABLED                     (1UL << 3)
+#define FSM_CHECK_SAFE_ACTIVE                     (1UL << 4)
+#define FSM_CHECK_SAFE_ALERT                      (1UL << 5)
+#define FSM_CHECK_SAFE_REASON                     (1UL << 6)
+#define FSM_CHECK_HEATER                          (1UL << 7)
+#define FSM_CHECK_LOAD_MASK                       (1UL << 8)
+#define FSM_CHECK_APPLIED_DUTY_ZERO               (1UL << 9)
+#define FSM_CHECK_APPLIED_DUTY_NONZERO            (1UL << 10)
 
 #define MPPT_SIMULATOR_PERIOD_MS                  250u
 #define MPPT_SIMULATOR_BATTERY_VOLTAGE_MV         7400u
@@ -65,6 +101,9 @@
 #define MPPT_SIMULATOR_TEMP_DECIC                 220
 #define PANEL_RAW_ADC_TO_MILLIVOLTS_SCALE         5u
 #define PANEL_RAW_ADC_TO_MILLIAMPS_SCALE          2u
+
+#define DEFAULT_DEMO_TIMEOUT_ITERATIONS           1200u
+#define FAST_DEMO_TIMEOUT_ITERATIONS              20u
 
 typedef struct {
     uint8_t sequence_number;
@@ -118,6 +157,43 @@ typedef struct {
     uint8_t last_control_mode;
 } telemetry_snapshot_type;
 
+typedef struct {
+    uint16_t panel_voltage_raw_adc;
+    uint16_t panel_current_raw_adc;
+    uint16_t battery_voltage_mv;
+    int16_t battery_current_ma;
+    uint16_t charging_rail_voltage_mv;
+    int16_t battery_temperature_decicelsius;
+    uint8_t obc_heartbeat_present;
+    uint8_t satellite_mode;
+    uint8_t safe_mode_sub_state;
+    uint16_t fault_flags;
+} injected_sensor_frame_type;
+
+typedef struct {
+    const char *name;
+    const char *purpose;
+    injected_sensor_frame_type injected;
+    uint32_t checks;
+    uint8_t expected_control_mode;
+    uint8_t expected_pcu_mode;
+    uint8_t expected_panel_efuse;
+    uint8_t expected_pwm_enabled;
+    uint8_t expected_safe_active;
+    uint8_t expected_safe_alert;
+    uint8_t expected_safe_reason;
+    uint8_t expected_heater;
+    uint8_t expected_load_mask;
+} fsm_scenario_type;
+
+typedef enum {
+    FSM_RUNNER_IDLE = 0,
+    FSM_RUNNER_START_SCENARIO = 1,
+    FSM_RUNNER_WAIT_FOR_SETTLE = 2,
+    FSM_RUNNER_WAIT_FOR_TELEMETRY = 3,
+    FSM_RUNNER_INTER_SCENARIO_DELAY = 4
+} fsm_runner_phase_type;
+
 static chips_parser_type samd21_parser;
 static uint8_t next_sequence_number = 1u;
 static char command_line_buffer[COMMAND_LINE_BUFFER_LENGTH];
@@ -128,15 +204,152 @@ static bool mppt_simulator_next_telemetry_is_internal = false;
 static bool suppress_next_transmit_log = false;
 static uint8_t mppt_simulator_internal_response_count_to_suppress = 0u;
 static uint32_t mppt_simulator_last_step_ms = 0u;
+static bool fsm_runner_enabled = false;
+static bool fsm_runner_next_telemetry_is_internal = false;
+static uint8_t fsm_runner_internal_response_count_to_suppress = 0u;
+static uint8_t fsm_runner_scenario_index = 0u;
+static uint8_t fsm_runner_pass_count = 0u;
+static uint8_t fsm_runner_fail_count = 0u;
+static fsm_runner_phase_type fsm_runner_phase = FSM_RUNNER_IDLE;
+static uint32_t fsm_runner_phase_started_ms = 0u;
+
+static const fsm_scenario_type fsm_scenarios[] = {
+    {
+        "sun_nominal_mppt_charge",
+        "sun is available, battery is not full, so the FSM should charge with MPPT",
+        {2600u, 1200u, 7400u, 250, 7600u, 220, 1u,
+         SATELLITE_MODE_CHARGING, SAFE_SUB_STATE_CHARGING, 0u},
+        FSM_CHECK_CONTROL_MODE | FSM_CHECK_PCU_MODE | FSM_CHECK_PANEL_EFUSE |
+            FSM_CHECK_PWM_ENABLED | FSM_CHECK_SAFE_ALERT | FSM_CHECK_SAFE_REASON |
+            FSM_CHECK_HEATER | FSM_CHECK_APPLIED_DUTY_NONZERO,
+        CONTROL_MODE_FULL_STATE_MACHINE,
+        PCU_MODE_MPPT_CHARGE,
+        1u,
+        1u,
+        0u,
+        0u,
+        SAFE_REASON_NONE,
+        0u,
+        LOAD_MASK_ALL_LOADS
+    },
+    {
+        "sun_full_battery_load_follow",
+        "sun is available and battery is full, so the FSM should move to solar-array load-follow",
+        {2600u, 1000u, 8350u, 0, 8350u, 220, 1u,
+         SATELLITE_MODE_CHARGING, SAFE_SUB_STATE_CHARGING, 0u},
+        FSM_CHECK_CONTROL_MODE | FSM_CHECK_PCU_MODE | FSM_CHECK_PANEL_EFUSE |
+            FSM_CHECK_PWM_ENABLED | FSM_CHECK_SAFE_ALERT | FSM_CHECK_SAFE_REASON |
+            FSM_CHECK_HEATER | FSM_CHECK_APPLIED_DUTY_NONZERO,
+        CONTROL_MODE_FULL_STATE_MACHINE,
+        PCU_MODE_SA_LOAD_FOLLOW,
+        1u,
+        1u,
+        0u,
+        0u,
+        SAFE_REASON_NONE,
+        0u,
+        LOAD_MASK_ALL_LOADS
+    },
+    {
+        "no_sun_battery_discharge",
+        "solar voltage is below the availability threshold, so the FSM should disconnect the panel and stop PWM",
+        {1000u, 0u, 7400u, -300, 7400u, 220, 1u,
+         SATELLITE_MODE_CHARGING, SAFE_SUB_STATE_CHARGING, 0u},
+        FSM_CHECK_CONTROL_MODE | FSM_CHECK_PCU_MODE | FSM_CHECK_PANEL_EFUSE |
+            FSM_CHECK_PWM_ENABLED | FSM_CHECK_SAFE_ALERT | FSM_CHECK_SAFE_REASON |
+            FSM_CHECK_HEATER | FSM_CHECK_APPLIED_DUTY_ZERO,
+        CONTROL_MODE_FULL_STATE_MACHINE,
+        PCU_MODE_BATTERY_DISCHARGE,
+        0u,
+        0u,
+        0u,
+        0u,
+        SAFE_REASON_NONE,
+        0u,
+        LOAD_MASK_ALL_LOADS
+    },
+    {
+        "cold_battery_heater_and_temp_alert",
+        "battery is below the heater threshold and below the charging limit, so heater and temperature alert should be visible",
+        {2600u, 1000u, 7400u, 150, 7600u, -150, 1u,
+         SATELLITE_MODE_SAFE, SAFE_SUB_STATE_CHARGING, 0u},
+        FSM_CHECK_CONTROL_MODE | FSM_CHECK_PCU_MODE | FSM_CHECK_PANEL_EFUSE |
+            FSM_CHECK_PWM_ENABLED | FSM_CHECK_SAFE_ACTIVE | FSM_CHECK_SAFE_ALERT |
+            FSM_CHECK_SAFE_REASON | FSM_CHECK_HEATER | FSM_CHECK_LOAD_MASK |
+            FSM_CHECK_APPLIED_DUTY_NONZERO,
+        CONTROL_MODE_FULL_STATE_MACHINE,
+        PCU_MODE_MPPT_CHARGE,
+        1u,
+        1u,
+        1u,
+        1u,
+        SAFE_REASON_TEMPERATURE_OUT_OF_RANGE,
+        1u,
+        LOAD_MASK_SAFE_CHARGING
+    },
+    {
+        "critical_battery_safe_charging",
+        "battery is below the minimum threshold while OBC commands safe charging, so safe alert and reduced loads should appear",
+        {2600u, 900u, 4800u, -100, 5000u, 220, 1u,
+         SATELLITE_MODE_SAFE, SAFE_SUB_STATE_CHARGING, 0u},
+        FSM_CHECK_CONTROL_MODE | FSM_CHECK_PCU_MODE | FSM_CHECK_PANEL_EFUSE |
+            FSM_CHECK_PWM_ENABLED | FSM_CHECK_SAFE_ACTIVE | FSM_CHECK_SAFE_ALERT |
+            FSM_CHECK_SAFE_REASON | FSM_CHECK_HEATER | FSM_CHECK_LOAD_MASK |
+            FSM_CHECK_APPLIED_DUTY_NONZERO,
+        CONTROL_MODE_FULL_STATE_MACHINE,
+        PCU_MODE_MPPT_CHARGE,
+        1u,
+        1u,
+        1u,
+        1u,
+        SAFE_REASON_BATTERY_BELOW_MINIMUM,
+        0u,
+        LOAD_MASK_SAFE_CHARGING
+    },
+    {
+        "injected_fault_forces_pwm_off",
+        "the demo-level injected fault flag should override the controller and force applied PWM to zero",
+        {2600u, 900u, 7400u, 0, 7600u, 220, 1u,
+         SATELLITE_MODE_CHARGING, SAFE_SUB_STATE_CHARGING, 1u},
+        FSM_CHECK_CONTROL_MODE | FSM_CHECK_PANEL_EFUSE | FSM_CHECK_PWM_ENABLED |
+            FSM_CHECK_SAFE_ACTIVE | FSM_CHECK_SAFE_ALERT | FSM_CHECK_SAFE_REASON |
+            FSM_CHECK_APPLIED_DUTY_ZERO,
+        CONTROL_MODE_FULL_STATE_MACHINE,
+        PCU_MODE_MPPT_CHARGE,
+        0u,
+        0u,
+        1u,
+        1u,
+        SAFE_REASON_INJECTED_FAULT,
+        0u,
+        LOAD_MASK_ALL_LOADS
+    }
+};
 
 static void print_help(void);
 static void process_usb_serial_input(void);
 static void process_complete_command_line(char *line);
 static void process_samd21_uart_input(void);
 static void run_mppt_simulator_if_due(void);
+static void run_fsm_scenario_runner_if_due(void);
 static void start_mppt_simulator(void);
 static void stop_mppt_simulator(void);
 static void print_mppt_simulator_status(void);
+static void start_fsm_scenario_runner(void);
+static void stop_fsm_scenario_runner(void);
+static void print_fsm_scenario_runner_status(void);
+static void start_current_fsm_scenario(void);
+static void request_internal_fsm_runner_telemetry(void);
+static void finish_current_fsm_scenario_from_telemetry(void);
+static bool evaluate_current_fsm_scenario(void);
+static void print_current_fsm_scenario_injection(void);
+static void print_fsm_result_snapshot(void);
+static void print_expected_u8_mismatch(const char *field_name,
+                                       uint8_t expected_value,
+                                       uint8_t actual_value);
+static void send_injected_sensor_frame_from_struct(
+    const injected_sensor_frame_type *injected_frame);
+static uint8_t number_of_fsm_scenarios(void);
 static void request_internal_mppt_simulator_telemetry(void);
 static void inject_next_mppt_simulator_operating_point(void);
 static void inject_mppt_simulator_operating_point_from_duty(uint16_t duty);
@@ -155,6 +368,9 @@ static void send_one_byte_command(uint8_t command_id, uint8_t value);
 static void send_set_fixed_duty_command(uint16_t duty_fraction);
 static void send_set_telemetry_stream_command(uint8_t enabled,
                                               uint16_t period_ms);
+static void send_set_demo_timing_command(uint16_t mppt_timeout_iterations,
+                                         uint16_t cv_timeout_iterations,
+                                         uint16_t heartbeat_timeout_iterations);
 static void send_injected_sensor_frame(uint16_t panel_voltage_raw_adc,
                                        uint16_t panel_current_raw_adc,
                                        uint16_t battery_voltage_mv,
@@ -174,6 +390,10 @@ static void print_telemetry_payload(const uint8_t *payload,
 static void print_state_payload(const uint8_t *payload,
                                 uint16_t payload_length);
 static void print_set_injected_response(const uint8_t *payload,
+                                        uint16_t payload_length);
+static void print_set_demo_timing_response(const uint8_t *payload,
+                                           uint16_t payload_length);
+static void print_mainboard_adc_payload(const uint8_t *payload,
                                         uint16_t payload_length);
 static uint16_t build_chips_wire_frame(const chips_frame_type *frame,
                                        uint8_t *wire_buffer,
@@ -247,6 +467,7 @@ void loop()
     process_usb_serial_input();
     process_samd21_uart_input();
     run_mppt_simulator_if_due();
+    run_fsm_scenario_runner_if_due();
 }
 
 static void print_help(void)
@@ -256,6 +477,7 @@ static void print_help(void)
     Serial.println("  telemetry");
     Serial.println("  debug");
     Serial.println("  state");
+    Serial.println("  adc");
     Serial.println("  inject-default");
     Serial.println("  sunny");
     Serial.println("  lowbat");
@@ -265,6 +487,8 @@ static void print_help(void)
     Serial.println("  mode off|fixed|voltage|mppt|fsm");
     Serial.println("  duty 0..65535");
     Serial.println("  sim-mppt on|off|status");
+    Serial.println("  sim-fsm run|stop|status");
+    Serial.println("  test-timeouts fast|default|iters|mppt_iters cv_iters heartbeat_iters");
     Serial.println("  stream on [period_ms]");
     Serial.println("  stream off");
     Serial.println();
@@ -314,6 +538,13 @@ static void process_complete_command_line(char *line)
 
     if (token_equals_ignore_case(tokens[0], "state")) {
         send_simple_command(CHIPS_COMMAND_ID_GET_STATE);
+        return;
+    }
+
+    if (token_equals_ignore_case(tokens[0], "adc")) {
+        Serial.println("ADC: requesting mainboard raw monitor channels");
+        Serial.println("ADC: expected response is pv_imon, bat_imon, outa1, outa2, outv1, outv2");
+        send_simple_command(CHIPS_COMMAND_ID_GET_MAINBOARD_ADC);
         return;
     }
 
@@ -453,6 +684,81 @@ static void process_complete_command_line(char *line)
         return;
     }
 
+    if (token_equals_ignore_case(tokens[0], "sim-fsm")) {
+        if (token_count != 2) {
+            Serial.println("Usage: sim-fsm run|stop|status");
+            return;
+        }
+
+        if (token_equals_ignore_case(tokens[1], "run")) {
+            start_fsm_scenario_runner();
+            return;
+        }
+
+        if (token_equals_ignore_case(tokens[1], "stop")) {
+            stop_fsm_scenario_runner();
+            return;
+        }
+
+        if (token_equals_ignore_case(tokens[1], "status")) {
+            print_fsm_scenario_runner_status();
+            return;
+        }
+
+        Serial.println("Usage: sim-fsm run|stop|status");
+        return;
+    }
+
+    if (token_equals_ignore_case(tokens[0], "test-timeouts")) {
+        uint32_t mppt_timeout_iterations = DEFAULT_DEMO_TIMEOUT_ITERATIONS;
+        uint32_t cv_timeout_iterations = DEFAULT_DEMO_TIMEOUT_ITERATIONS;
+        uint32_t heartbeat_timeout_iterations = DEFAULT_DEMO_TIMEOUT_ITERATIONS;
+
+        if (token_count == 2) {
+            if (token_equals_ignore_case(tokens[1], "fast")) {
+                mppt_timeout_iterations = FAST_DEMO_TIMEOUT_ITERATIONS;
+                cv_timeout_iterations = FAST_DEMO_TIMEOUT_ITERATIONS;
+                heartbeat_timeout_iterations = FAST_DEMO_TIMEOUT_ITERATIONS;
+            } else if (token_equals_ignore_case(tokens[1], "default")) {
+                mppt_timeout_iterations = DEFAULT_DEMO_TIMEOUT_ITERATIONS;
+                cv_timeout_iterations = DEFAULT_DEMO_TIMEOUT_ITERATIONS;
+                heartbeat_timeout_iterations = DEFAULT_DEMO_TIMEOUT_ITERATIONS;
+            } else if (parse_u32_token(tokens[1], 1u, 60000u,
+                                       &mppt_timeout_iterations)) {
+                cv_timeout_iterations = mppt_timeout_iterations;
+                heartbeat_timeout_iterations = mppt_timeout_iterations;
+            } else {
+                Serial.println("Usage: test-timeouts fast|default|iters|mppt_iters cv_iters heartbeat_iters");
+                return;
+            }
+        } else if (token_count == 4) {
+            if (!parse_u32_token(tokens[1], 1u, 60000u,
+                                 &mppt_timeout_iterations)
+                || !parse_u32_token(tokens[2], 1u, 60000u,
+                                    &cv_timeout_iterations)
+                || !parse_u32_token(tokens[3], 1u, 60000u,
+                                    &heartbeat_timeout_iterations)) {
+                Serial.println("Invalid timeout iteration count");
+                return;
+            }
+        } else {
+            Serial.println("Usage: test-timeouts fast|default|iters|mppt_iters cv_iters heartbeat_iters");
+            return;
+        }
+
+        Serial.print("TEST TIMING: setting timeout iterations mppt=");
+        Serial.print(mppt_timeout_iterations);
+        Serial.print(" cv=");
+        Serial.print(cv_timeout_iterations);
+        Serial.print(" heartbeat=");
+        Serial.print(heartbeat_timeout_iterations);
+        Serial.println(" (20 iterations is about 2 seconds)");
+        send_set_demo_timing_command((uint16_t)mppt_timeout_iterations,
+                                     (uint16_t)cv_timeout_iterations,
+                                     (uint16_t)heartbeat_timeout_iterations);
+        return;
+    }
+
     if (token_equals_ignore_case(tokens[0], "stream")) {
         if (token_count < 2) {
             Serial.println("Usage: stream on [period_ms] | stream off");
@@ -504,6 +810,355 @@ static void process_samd21_uart_input(void)
             Serial.println("[RX] CHIPS frame too long");
         }
     }
+}
+
+static void run_fsm_scenario_runner_if_due(void)
+{
+    if (!fsm_runner_enabled) {
+        return;
+    }
+
+    uint32_t now_ms = (uint32_t)millis();
+
+    if (fsm_runner_phase == FSM_RUNNER_START_SCENARIO) {
+        if (fsm_runner_scenario_index >= number_of_fsm_scenarios()) {
+            Serial.println();
+            Serial.print("SIM FSM: complete pass=");
+            Serial.print(fsm_runner_pass_count);
+            Serial.print(" fail=");
+            Serial.println(fsm_runner_fail_count);
+            suppress_next_transmit_log = true;
+            fsm_runner_internal_response_count_to_suppress += 1u;
+            send_one_byte_command(CHIPS_COMMAND_ID_SET_CONTROL_MODE,
+                                  CONTROL_MODE_OFF);
+            fsm_runner_enabled = false;
+            fsm_runner_phase = FSM_RUNNER_IDLE;
+            return;
+        }
+
+        start_current_fsm_scenario();
+        fsm_runner_phase = FSM_RUNNER_WAIT_FOR_SETTLE;
+        fsm_runner_phase_started_ms = now_ms;
+        return;
+    }
+
+    if (fsm_runner_phase == FSM_RUNNER_WAIT_FOR_SETTLE) {
+        if ((now_ms - fsm_runner_phase_started_ms)
+            >= FSM_SIMULATOR_SETTLE_TIME_MS) {
+            request_internal_fsm_runner_telemetry();
+            fsm_runner_phase = FSM_RUNNER_WAIT_FOR_TELEMETRY;
+        }
+        return;
+    }
+
+    if (fsm_runner_phase == FSM_RUNNER_INTER_SCENARIO_DELAY) {
+        if ((now_ms - fsm_runner_phase_started_ms)
+            >= FSM_SIMULATOR_INTER_SCENARIO_DELAY_MS) {
+            fsm_runner_phase = FSM_RUNNER_START_SCENARIO;
+        }
+    }
+}
+
+static void start_fsm_scenario_runner(void)
+{
+    mppt_simulator_enabled = false;
+    mppt_simulator_next_telemetry_is_internal = false;
+
+    fsm_runner_enabled = true;
+    fsm_runner_next_telemetry_is_internal = false;
+    fsm_runner_internal_response_count_to_suppress = 0u;
+    fsm_runner_scenario_index = 0u;
+    fsm_runner_pass_count = 0u;
+    fsm_runner_fail_count = 0u;
+    fsm_runner_phase = FSM_RUNNER_START_SCENARIO;
+    fsm_runner_phase_started_ms = (uint32_t)millis();
+
+    Serial.println();
+    Serial.print("SIM FSM: starting ");
+    Serial.print(number_of_fsm_scenarios());
+    Serial.println(" injected state-machine scenarios");
+    Serial.println("SIM FSM: each scenario prints the exact injected values before checking telemetry");
+}
+
+static void stop_fsm_scenario_runner(void)
+{
+    fsm_runner_enabled = false;
+    fsm_runner_next_telemetry_is_internal = false;
+    fsm_runner_phase = FSM_RUNNER_IDLE;
+    suppress_next_transmit_log = true;
+    fsm_runner_internal_response_count_to_suppress += 1u;
+    send_one_byte_command(CHIPS_COMMAND_ID_SET_CONTROL_MODE, CONTROL_MODE_OFF);
+    Serial.println("SIM FSM: stopped");
+}
+
+static void print_fsm_scenario_runner_status(void)
+{
+    Serial.print("SIM FSM: ");
+    Serial.println(fsm_runner_enabled ? "running" : "idle");
+    Serial.print("SIM FSM: scenario_index=");
+    Serial.print(fsm_runner_scenario_index);
+    Serial.print("/");
+    Serial.print(number_of_fsm_scenarios());
+    Serial.print(" pass=");
+    Serial.print(fsm_runner_pass_count);
+    Serial.print(" fail=");
+    Serial.println(fsm_runner_fail_count);
+}
+
+static void start_current_fsm_scenario(void)
+{
+    const fsm_scenario_type *scenario =
+        &fsm_scenarios[fsm_runner_scenario_index];
+
+    Serial.println();
+    Serial.print("SIM FSM: scenario ");
+    Serial.print((uint32_t)fsm_runner_scenario_index + 1u);
+    Serial.print("/");
+    Serial.print(number_of_fsm_scenarios());
+    Serial.print(" ");
+    Serial.println(scenario->name);
+    Serial.print("SIM FSM: purpose=");
+    Serial.println(scenario->purpose);
+    print_current_fsm_scenario_injection();
+
+    suppress_next_transmit_log = true;
+    fsm_runner_internal_response_count_to_suppress += 1u;
+    send_one_byte_command(CHIPS_COMMAND_ID_SET_INPUT_SOURCE, 0u);
+
+    suppress_next_transmit_log = true;
+    fsm_runner_internal_response_count_to_suppress += 1u;
+    send_set_telemetry_stream_command(0u, 1000u);
+
+    suppress_next_transmit_log = true;
+    fsm_runner_internal_response_count_to_suppress += 1u;
+    send_one_byte_command(CHIPS_COMMAND_ID_SET_CONTROL_MODE,
+                          CONTROL_MODE_FULL_STATE_MACHINE);
+
+    suppress_next_transmit_log = true;
+    fsm_runner_internal_response_count_to_suppress += 1u;
+    send_injected_sensor_frame_from_struct(&scenario->injected);
+}
+
+static void request_internal_fsm_runner_telemetry(void)
+{
+    fsm_runner_next_telemetry_is_internal = true;
+    suppress_next_transmit_log = true;
+    send_simple_command(CHIPS_COMMAND_ID_GET_TELEMETRY);
+}
+
+static void finish_current_fsm_scenario_from_telemetry(void)
+{
+    bool passed = evaluate_current_fsm_scenario();
+
+    if (passed) {
+        fsm_runner_pass_count += 1u;
+        Serial.println("SIM FSM: PASS");
+    } else {
+        fsm_runner_fail_count += 1u;
+        Serial.println("SIM FSM: FAIL");
+    }
+
+    fsm_runner_scenario_index += 1u;
+    fsm_runner_phase = FSM_RUNNER_INTER_SCENARIO_DELAY;
+    fsm_runner_phase_started_ms = (uint32_t)millis();
+}
+
+static bool evaluate_current_fsm_scenario(void)
+{
+    const fsm_scenario_type *scenario =
+        &fsm_scenarios[fsm_runner_scenario_index];
+    bool passed = true;
+
+    print_fsm_result_snapshot();
+
+    if ((scenario->checks & FSM_CHECK_CONTROL_MODE) != 0u) {
+        if (latest_telemetry.control_mode != scenario->expected_control_mode) {
+            print_expected_u8_mismatch("control",
+                                       scenario->expected_control_mode,
+                                       latest_telemetry.control_mode);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_PCU_MODE) != 0u) {
+        if (latest_telemetry.pcu_mode != scenario->expected_pcu_mode) {
+            print_expected_u8_mismatch("pcu",
+                                       scenario->expected_pcu_mode,
+                                       latest_telemetry.pcu_mode);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_PANEL_EFUSE) != 0u) {
+        if (latest_telemetry.panel_efuse != scenario->expected_panel_efuse) {
+            print_expected_u8_mismatch("panel_efuse",
+                                       scenario->expected_panel_efuse,
+                                       latest_telemetry.panel_efuse);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_PWM_ENABLED) != 0u) {
+        if (latest_telemetry.pwm_enabled != scenario->expected_pwm_enabled) {
+            print_expected_u8_mismatch("pwm",
+                                       scenario->expected_pwm_enabled,
+                                       latest_telemetry.pwm_enabled);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_SAFE_ACTIVE) != 0u) {
+        if (latest_telemetry.safe_active != scenario->expected_safe_active) {
+            print_expected_u8_mismatch("safe_active",
+                                       scenario->expected_safe_active,
+                                       latest_telemetry.safe_active);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_SAFE_ALERT) != 0u) {
+        if (latest_telemetry.safe_alert != scenario->expected_safe_alert) {
+            print_expected_u8_mismatch("safe_alert",
+                                       scenario->expected_safe_alert,
+                                       latest_telemetry.safe_alert);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_SAFE_REASON) != 0u) {
+        if (latest_telemetry.safe_reason != scenario->expected_safe_reason) {
+            print_expected_u8_mismatch("safe_reason",
+                                       scenario->expected_safe_reason,
+                                       latest_telemetry.safe_reason);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_HEATER) != 0u) {
+        if (latest_telemetry.heater != scenario->expected_heater) {
+            print_expected_u8_mismatch("heater",
+                                       scenario->expected_heater,
+                                       latest_telemetry.heater);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_LOAD_MASK) != 0u) {
+        if (latest_telemetry.load_mask != scenario->expected_load_mask) {
+            print_expected_u8_mismatch("loads",
+                                       scenario->expected_load_mask,
+                                       latest_telemetry.load_mask);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_APPLIED_DUTY_ZERO) != 0u) {
+        if (latest_telemetry.applied_duty != 0u) {
+            Serial.print("SIM FSM: expected applied_duty=0 got=");
+            Serial.println(latest_telemetry.applied_duty);
+            passed = false;
+        }
+    }
+
+    if ((scenario->checks & FSM_CHECK_APPLIED_DUTY_NONZERO) != 0u) {
+        if (latest_telemetry.applied_duty == 0u) {
+            Serial.println("SIM FSM: expected applied_duty to be nonzero");
+            passed = false;
+        }
+    }
+
+    return passed;
+}
+
+static void print_current_fsm_scenario_injection(void)
+{
+    const injected_sensor_frame_type *injected =
+        &fsm_scenarios[fsm_runner_scenario_index].injected;
+
+    Serial.print("SIM FSM: inject pv_adc=");
+    Serial.print(injected->panel_voltage_raw_adc);
+    Serial.print(" pi_adc=");
+    Serial.print(injected->panel_current_raw_adc);
+    Serial.print(" batt_mv=");
+    Serial.print(injected->battery_voltage_mv);
+    Serial.print(" batt_ma=");
+    Serial.print((int)injected->battery_current_ma);
+    Serial.print(" rail_mv=");
+    Serial.print(injected->charging_rail_voltage_mv);
+    Serial.print(" temp_decic=");
+    Serial.print((int)injected->battery_temperature_decicelsius);
+    Serial.print(" heartbeat=");
+    Serial.print(injected->obc_heartbeat_present);
+    Serial.print(" sat=");
+    Serial.print(injected->satellite_mode);
+    Serial.print(" safe=");
+    Serial.print(injected->safe_mode_sub_state);
+    Serial.print(" faults=0x");
+    Serial.println(injected->fault_flags, HEX);
+
+    Serial.print("SIM FSM: derived panel_mv=");
+    Serial.print((uint32_t)injected->panel_voltage_raw_adc
+                 * PANEL_RAW_ADC_TO_MILLIVOLTS_SCALE);
+    Serial.print(" panel_ma=");
+    Serial.println((uint32_t)injected->panel_current_raw_adc
+                   * PANEL_RAW_ADC_TO_MILLIAMPS_SCALE);
+}
+
+static void print_fsm_result_snapshot(void)
+{
+    Serial.print("SIM FSM: result control=");
+    Serial.print(mode_name(latest_telemetry.control_mode));
+    Serial.print(" pcu=");
+    Serial.print(pcu_mode_name(latest_telemetry.pcu_mode));
+    Serial.print(" panel_efuse=");
+    Serial.print(latest_telemetry.panel_efuse);
+    Serial.print(" pwm=");
+    Serial.print(latest_telemetry.pwm_enabled);
+    Serial.print(" applied=");
+    Serial.print(latest_telemetry.applied_duty);
+    Serial.print(" safe_active=");
+    Serial.print(latest_telemetry.safe_active);
+    Serial.print(" alert=");
+    Serial.print(latest_telemetry.safe_alert);
+    Serial.print(" reason=");
+    Serial.print(latest_telemetry.safe_reason);
+    Serial.print(" heater=");
+    Serial.print(latest_telemetry.heater);
+    Serial.print(" loads=0x");
+    Serial.println(latest_telemetry.load_mask, HEX);
+}
+
+static void print_expected_u8_mismatch(const char *field_name,
+                                       uint8_t expected_value,
+                                       uint8_t actual_value)
+{
+    Serial.print("SIM FSM: expected ");
+    Serial.print(field_name);
+    Serial.print("=");
+    Serial.print(expected_value);
+    Serial.print(" got=");
+    Serial.println(actual_value);
+}
+
+static void send_injected_sensor_frame_from_struct(
+    const injected_sensor_frame_type *injected_frame)
+{
+    send_injected_sensor_frame(
+        injected_frame->panel_voltage_raw_adc,
+        injected_frame->panel_current_raw_adc,
+        injected_frame->battery_voltage_mv,
+        injected_frame->battery_current_ma,
+        injected_frame->charging_rail_voltage_mv,
+        injected_frame->battery_temperature_decicelsius,
+        injected_frame->obc_heartbeat_present,
+        injected_frame->satellite_mode,
+        injected_frame->safe_mode_sub_state,
+        injected_frame->fault_flags);
+}
+
+static uint8_t number_of_fsm_scenarios(void)
+{
+    return (uint8_t)(sizeof(fsm_scenarios) / sizeof(fsm_scenarios[0]));
 }
 
 static void run_mppt_simulator_if_due(void)
@@ -813,6 +1468,18 @@ static void send_set_telemetry_stream_command(uint8_t enabled,
                        payload, position);
 }
 
+static void send_set_demo_timing_command(uint16_t mppt_timeout_iterations,
+                                         uint16_t cv_timeout_iterations,
+                                         uint16_t heartbeat_timeout_iterations)
+{
+    uint8_t payload[6];
+    uint16_t position = 0u;
+    write_u16_le(payload, &position, mppt_timeout_iterations);
+    write_u16_le(payload, &position, cv_timeout_iterations);
+    write_u16_le(payload, &position, heartbeat_timeout_iterations);
+    send_chips_command(CHIPS_COMMAND_ID_SET_DEMO_TIMING, payload, position);
+}
+
 static void send_injected_sensor_frame(uint16_t panel_voltage_raw_adc,
                                        uint16_t panel_current_raw_adc,
                                        uint16_t battery_voltage_mv,
@@ -888,6 +1555,24 @@ static void send_chips_command(uint8_t command_id,
 static void print_received_frame(const chips_frame_type *frame)
 {
     if ((frame->command_id == CHIPS_COMMAND_ID_GET_TELEMETRY)
+        && fsm_runner_next_telemetry_is_internal) {
+        fsm_runner_next_telemetry_is_internal = false;
+
+        if (update_latest_telemetry_snapshot_from_payload(
+                frame->payload_bytes,
+                frame->payload_length_in_bytes)) {
+            finish_current_fsm_scenario_from_telemetry();
+        } else {
+            Serial.println("SIM FSM: telemetry v2 not available");
+            fsm_runner_fail_count += 1u;
+            fsm_runner_scenario_index += 1u;
+            fsm_runner_phase = FSM_RUNNER_INTER_SCENARIO_DELAY;
+            fsm_runner_phase_started_ms = (uint32_t)millis();
+        }
+        return;
+    }
+
+    if ((frame->command_id == CHIPS_COMMAND_ID_GET_TELEMETRY)
         && mppt_simulator_next_telemetry_is_internal) {
         mppt_simulator_next_telemetry_is_internal = false;
 
@@ -900,6 +1585,19 @@ static void print_received_frame(const chips_frame_type *frame)
             }
         } else {
             Serial.println("SIM MPPT: telemetry v2 not available");
+        }
+        return;
+    }
+
+    if ((fsm_runner_internal_response_count_to_suppress > 0u)
+        && (frame->command_id != CHIPS_COMMAND_ID_GET_TELEMETRY)) {
+        fsm_runner_internal_response_count_to_suppress -= 1u;
+        if ((frame->payload_length_in_bytes > 0u)
+            && (frame->payload_bytes[0] != CHIPS_RESPONSE_STATUS_SUCCESS)) {
+            Serial.print("SIM FSM: internal command failed: ");
+            Serial.print(command_name(frame->command_id));
+            Serial.print(" status=");
+            Serial.println(status_name(frame->payload_bytes[0]));
         }
         return;
     }
@@ -945,6 +1643,12 @@ static void print_received_frame(const chips_frame_type *frame)
     } else if (frame->command_id
                == CHIPS_COMMAND_ID_SET_INJECTED_SENSOR_FRAME) {
         print_set_injected_response(frame->payload_bytes,
+                                    frame->payload_length_in_bytes);
+    } else if (frame->command_id == CHIPS_COMMAND_ID_SET_DEMO_TIMING) {
+        print_set_demo_timing_response(frame->payload_bytes,
+                                       frame->payload_length_in_bytes);
+    } else if (frame->command_id == CHIPS_COMMAND_ID_GET_MAINBOARD_ADC) {
+        print_mainboard_adc_payload(frame->payload_bytes,
                                     frame->payload_length_in_bytes);
     }
 }
@@ -1145,6 +1849,46 @@ static void print_set_injected_response(const uint8_t *payload,
     Serial.print(read_u16_le(&payload[3]));
     Serial.print(" batt_mv=");
     Serial.println(read_u16_le(&payload[5]));
+}
+
+static void print_set_demo_timing_response(const uint8_t *payload,
+                                           uint16_t payload_length)
+{
+    if (payload_length < 7u) {
+        return;
+    }
+
+    Serial.print("     applied test timeout iterations mppt=");
+    Serial.print(read_u16_le(&payload[1]));
+    Serial.print(" cv=");
+    Serial.print(read_u16_le(&payload[3]));
+    Serial.print(" heartbeat=");
+    Serial.print(read_u16_le(&payload[5]));
+    Serial.println(" (SAMD control loop is 100 ms)");
+}
+
+static void print_mainboard_adc_payload(const uint8_t *payload,
+                                        uint16_t payload_length)
+{
+    if (payload_length < 13u) {
+        Serial.println("     mainboard ADC payload too short");
+        return;
+    }
+
+    Serial.print("     raw_adc pv_imon=");
+    Serial.print(read_u16_le(&payload[1]));
+    Serial.print(" bat_imon=");
+    Serial.print(read_u16_le(&payload[3]));
+    Serial.print(" outa1=");
+    Serial.print(read_u16_le(&payload[5]));
+    Serial.print(" outa2=");
+    Serial.print(read_u16_le(&payload[7]));
+    Serial.print(" outv1=");
+    Serial.print(read_u16_le(&payload[9]));
+    Serial.print(" outv2=");
+    Serial.println(read_u16_le(&payload[11]));
+
+    Serial.println("     channels: PB04/AIN12 PB05/AIN13 PB06/AIN14 PB07/AIN15 PB08/AIN2 PB09/AIN3");
 }
 
 static uint16_t build_chips_wire_frame(const chips_frame_type *frame,
@@ -1519,6 +2263,10 @@ static const char *command_name(uint8_t command_id)
         return "GET_DEBUG_SNAPSHOT";
     case CHIPS_COMMAND_ID_SET_TELEMETRY_STREAM:
         return "SET_TELEMETRY_STREAM";
+    case CHIPS_COMMAND_ID_SET_DEMO_TIMING:
+        return "SET_DEMO_TIMING";
+    case CHIPS_COMMAND_ID_GET_MAINBOARD_ADC:
+        return "GET_MAINBOARD_ADC";
     default:
         return "UNKNOWN";
     }
