@@ -3,6 +3,9 @@
  * Minimal C library system call stubs for bare-metal SAMD21.
  * Write once. Never touch again.
  *
+ * BUILD TARGET: shared (compiled into both devboard AND mainboard builds)
+ *   Pure C library plumbing — no chip-specific or board-specific code.
+ *
  * Category: PURE LOGIC (no hardware)
  * =============================================================================
  *

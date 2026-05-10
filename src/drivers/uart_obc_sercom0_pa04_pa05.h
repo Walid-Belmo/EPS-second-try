@@ -3,6 +3,8 @@
  * Non-blocking bidirectional UART driver for OBC communication.
  * Uses SERCOM0 on PA04 (transmit) and PA05 (receive) at 115200 baud.
  *
+ * BUILD TARGET: devboard only (mainboard uses PA10/PA11 instead)
+ *
  * Both transmit and receive are interrupt-driven with ring buffers.
  * The CPU never blocks — it writes to a RAM buffer and the SERCOM0 interrupt
  * handler drains the transmit buffer and fills the receive buffer in the

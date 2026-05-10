@@ -91,8 +91,10 @@ Reference: `docs/dma_uart_logging.md`, `docs/samd21_clocks.md`
 
 ## Phase 2 — MPPT Algorithm on Laptop
 
-**Status: IN PROGRESS** — being implemented in a separate git worktree.
-Do not touch this work from the main branch.
+**Status: IMPLEMENTED IN SEPARATE WORKTREE, NOT MERGED INTO MASTER.**
+The `mppt-algorithm` worktree contains the pure Incremental Conductance
+algorithm and simulation support. The code is intended to be merged into
+the main firmware after the board-specific UART/PWM/injection path exists.
 
 **Goal:** Implement and validate the core algorithm in pure C before touching
 any hardware peripheral.
@@ -223,7 +225,10 @@ Reference: `docs/uart_obc_driver.md`
 can communicate with the OBC (or ESP32 pretending to be the OBC) using proper
 framing, CRC, and byte stuffing.
 
-**Status: NOT STARTED**
+**Status: COMPLETE IN `phase4-chips` WORKTREE, NOT MERGED INTO MASTER.**
+The CHIPS frame codec, command dispatch layer, ESP32 test sketch, and
+self-tests exist in the separate `phase4-chips` worktree. They still need
+to be merged and adapted into the two-board build structure.
 
 ### Why this is priority 2
 
@@ -355,7 +360,10 @@ Replace with real sensor readings as drivers are built in Phase 6.
 dead-time insertion (DTI). This is the signal that will drive the EPC2152 GaN
 half-bridge buck converter.
 
-**Status: NOT STARTED**
+**Status: COMPLETE FOR DEV BOARD IN `phase5-pwm` WORKTREE; MAINBOARD DRIVER NOT YET WRITTEN.**
+The dev-board PWM driver targets PA18/PA20 as a natural TCC0 DTI pair. The
+mainboard needs a sibling driver for PA12/PA13 using the dual-channel
+TCC0 scheme documented in `research_logs/agent_F_tcc0_dual_channel_complementary_pwm.md`.
 
 ### Why this matters
 
@@ -439,7 +447,12 @@ The SAMD21 TCC (Timer/Counter for Control applications) peripheral supports:
 **Goal:** Build the I2C, ADC, and SPI drivers that will read real sensors in the
 final hardware, but test them using the ESP32 as a sensor simulator.
 
-**Status: NOT STARTED**
+**Status: PAUSED / DEFERRED UNTIL AFTER THE SEMESTER DEMO.**
+The semester-project demo does not need the physical sensor drivers first.
+Sensor values will be injected over the OBC UART so the state machine, MPPT
+logic, CHIPS communication, and PWM path can be tested as a coherent system.
+Real ADC/I2C/SPI sensor validation remains important, but it follows the
+hardware-in-the-loop demo.
 
 ### Why this matters
 
@@ -568,7 +581,10 @@ part number is known, we'll add the specific register map.
 the ESP32 providing the physics simulation (solar panel model + buck converter
 model). This proves the algorithm works on actual hardware with realistic feedback.
 
-**Status: NOT STARTED**
+**Status: NOT INTEGRATED INTO MAINBOARD FIRMWARE YET.**
+The MPPT algorithm itself exists in the `mppt-algorithm` worktree. The next
+useful MPPT test should run it on the real SAMD21 using injected voltage and
+current values over UART before relying on physical sensors.
 
 ### Why this is a key demo
 
@@ -670,7 +686,10 @@ the most dramatic.
 **Goal:** Implement the central state machine that governs all EPS behavior:
 mode transitions, load shedding, heater control, watchdog, autonomy timeout.
 
-**Status: NOT STARTED**
+**Status: PURE LOGIC IMPLEMENTED IN `mppt-algorithm` WORKTREE, NOT MERGED INTO MASTER.**
+The state-machine logic exists as host-testable C in the MPPT worktree. It
+still needs to be integrated into the SAMD21 firmware and connected to a
+sensor-input abstraction, CHIPS commands, telemetry, and actuator outputs.
 
 ### Why this matters
 
@@ -799,7 +818,7 @@ Phase 3 (ESP32 UART)
 Phase 5 (PWM) only needs Phase 3 for the ESP32 verification, but it can be done
 with just debug UART if the ESP32 isn't ready yet.
 
-## Implementation Order (Optimized for Tomorrow's Demo)
+## Historical Implementation Order (Optimized for Tomorrow's Demo)
 
 | Order | Phase | Time | What to show |
 |---|---|---|---|
@@ -813,6 +832,12 @@ with just debug UART if the ESP32 isn't ready yet.
 Total: ~7-8 hours. If time is tight, prioritize Phases 3→5→7 (UART + PWM + MPPT)
 as these are the most visual demos.
 
+**2026-05-10 correction:** this table is historical. It was useful when the
+goal was a quick dev-board demo. For the semester-project presentation, the
+priority is now a full mainboard hardware-in-the-loop EPS demo with injected
+values over UART. That demo moves Phase 6 physical sensor drivers after the
+communication, state-machine, MPPT, and PWM integration work.
+
 ---
 
 ## Non-Negotiable Rules Across All Phases
@@ -825,3 +850,452 @@ as these are the most visual demos.
 - Every test is run through the debug UART or ESP32 — no "trust me it works."
 - Before using any register, verify it against the datasheet (CLAUDE.md Principle 1).
 - SERCOM and pin allocation must be documented and checked for conflicts.
+
+---
+
+## Mainboard Bring-Up — Day 1 (2026-04-26)
+
+This section is APPENDED. Earlier sections describe development against the
+Curiosity Nano DM320119 dev board only. From this date onwards the same
+repo also targets the actual EPS PCU testing board V4.1 (the real PCB
+that will eventually fly), and the build system carries both.
+
+### What changed: the real board exists now
+
+| | Dev board (older work) | Mainboard (added today) |
+|---|---|---|
+| Physical board | Curiosity Nano DM320119 | EPS PCU testing board V4.1, repo `CHESS-mission/eps_pcu_eng` (private) |
+| Chip on board | ATSAMD21G17D, 48-pin TQFP | ATSAMD21J17D-MUT, 64-pin QFN |
+| Programmer | On-board nEDBG (USB-CMSIS-DAP) | External Atmel-ICE via Tag-Connect TC2050-IDC-NL footprint at `J1` |
+| User LED | PB10, active-LOW | PB22, active-HIGH (different polarity) |
+| OBC UART pins | PA04 (TX) / PA05 (RX), mux D | PA10 (TX) / PA11 (RX), mux C |
+| Debug UART | PA22, mux D, SERCOM5 | not exposed (PA22 on the mainboard is I²C SDA) |
+| Buck-converter PWM | PA18 + PA20 (TCC0/WO[2]+WO[6], natural DTI pair) | PA12 + PA13 (TCC0/WO[6]+WO[7], dual-channel scheme) |
+
+The two chips are the **same SAMD21 silicon die in different packages** —
+verified against the family datasheet, against a fresh diff of the DFP
+v3.6.144 atpack, and against the chip-id table in OpenOCD source. This
+means every driver register-write written for the dev board ports
+verbatim to the mainboard; the only changes are the chip-name macro,
+the pin numbers (when applicable), the startup file, and the linker
+script. See `docs/build_targets_and_file_map.md` and
+`research_logs/agent_A_samd21_g17d_vs_j17d_silicon.md` for the proof.
+
+### What we built today
+
+- Five vendor files dropped into the project, additive (existing G17D
+  files untouched): `lib/samd21-dfp/samd21j17d.h`,
+  `lib/samd21-dfp/pio/samd21j17d.h`, `startup/startup_samd21j17d.c`,
+  `startup/system_samd21j17d.c`, `samd21j17d_flash.ld`.
+- New driver `src/drivers/led_status_pb22_active_high_on_mainboard.c/.h`
+  — GPIO-only, smallest possible LED driver for PB22 active-HIGH.
+- New application `src/main_mainboard_blink_pb22.c` — Firmware A, the
+  smallest "is the chip alive?" test: 48 MHz clock + PB22 toggle at ~1 Hz.
+- `Makefile` reorganised so it can produce binaries for either board.
+  `BOARD` must be set explicitly on every invocation (no default), the
+  one exception being `make clean`. Wrong invocation prints a clear error.
+- Existing dev-board build verified byte-identical (4332/4/5704). Mainboard
+  build produces 1012/4/4124, well under the 128 KB / 16 KB chip limits.
+
+### Bring-up status as of 2026-04-26 evening
+
+- Programmer hardware identified: Microchip Atmel-ICE.
+- Cable identified: Tag-Connect TC2050-IDC-NL (0.1″ IDC end). Ribbon
+  marked with a red wire on pin 1.
+- Wiring path resolved: Atmel-ICE SAM port → numbered squid cable →
+  5 male-male jumpers → IDC plug → Tag-Connect head → board J1 pads.
+  Five active wires (numbers 1, 2, 3, 4, 10), the rest dangling.
+- Multimeter continuity check on the IDC plug orientation was **skipped**
+  (logged as a known failure point: if the first flash refuses to connect,
+  cable orientation is the first thing to suspect).
+- Firmware A binary built, sitting in `build/satellite_firmware.bin`.
+- First flash attempt scheduled for the same evening.
+
+### How firmware files are now organised — the "which board does this code apply to?" question
+
+This is the discipline the project now follows so that no future Claude
+Code instance (or human) confuses the two builds:
+
+**Three reinforcing layers, in order of authority:**
+
+1. **The Makefile** is the executable source of truth. Its
+   `ifeq ($(BOARD),devboard) … else ifeq ($(BOARD),mainboard)` block lists
+   exactly which `.c` files compile for each build. If a file isn't listed,
+   it doesn't compile.
+2. **The file name** is a sentence (per `notes/conventions.md`). Files
+   ending in `_on_mainboard.c/.h` are mainboard-specific. Files whose name
+   names specific dev-board pins (e.g. `..._sercom0_pa04_pa05.c`) are
+   dev-board specific. No suffix → shared.
+3. **The `BUILD TARGET:` line in every file's header comment** says
+   explicitly `devboard only`, `mainboard only`, or `shared`. This is the
+   fastest way to confirm classification when you open a file.
+
+If the three layers ever disagree, the Makefile wins. They were aligned on
+2026-04-26 across every project source file.
+
+**The three categories every file falls into:**
+
+- `devboard only` — used only by `make BOARD=devboard`. Examples: `src/main.c`,
+  `src/drivers/debug_functions.*`, `src/drivers/uart_obc_sercom0_pa04_pa05.*`,
+  the G17D vendor files.
+- `mainboard only` — used only by `make BOARD=mainboard`. Examples:
+  `src/main_mainboard_blink_pb22.c`, `src/drivers/led_status_pb22_active_high_on_mainboard.*`,
+  the J17D vendor files.
+- `shared` — used by both. Examples:
+  `src/drivers/clock_configure_48mhz_dfll_open_loop.*`, `syscalls_min.c`,
+  the family-wide DFP component / instance / cmsis headers.
+
+For the full file-by-file map (every source, every header, every vendor
+file, every linker script), see
+[`docs/build_targets_and_file_map.md`](../docs/build_targets_and_file_map.md).
+
+### Existing dev-board drivers — do they change?
+
+No. None of the dev-board drivers are edited. They are SHARED in spirit
+(same chip silicon underneath) but for the moment they are tagged
+`devboard only` because they reference dev-board pin numbers. When the
+mainboard needs equivalent functionality (e.g. UART for Firmware B), a
+sibling file is created (e.g. `uart_obc_sercom0_pa10_pa11_on_mainboard.c`)
+rather than editing the existing dev-board driver. That keeps the
+dev-board build alive and lets us flash the Curiosity Nano any time we
+need it for comparison.
+
+### What's queued after Firmware A flashes successfully
+
+1. Firmware B (UART echo on PA10/PA11 via SERCOM0, mux C, TXPO=1, RXPO=3).
+   New driver `uart_obc_sercom0_pa10_pa11_on_mainboard.c/.h` to be written.
+2. Firmware C (300 kHz complementary PWM on PA12 + PA13, scope-verifiable).
+   Will use the dual-channel TCC0 scheme verified by research agent F.
+3. Once all three pass on the mainboard: integrate the MPPT algorithm and
+   EPS state machine from the `mppt-algorithm` worktree, which are pure-logic
+   modules and port without any change.
+
+---
+
+## Next Step: Mainboard MPPT Test 1 MVP
+
+This section remains valid for later bench power-stage bring-up. It is no
+longer the immediate semester-demo priority. The next semester-project target
+is the hardware-in-the-loop full EPS demo appended below.
+
+The test firmware should:
+
+1. Generate buck PWM on the real mainboard pins `PWM_H`/`PWM_L`
+   (`PA12`/`PA13`).
+2. Read the analog measurement pins that the PCB already provides:
+   `OUTV1`, `OUTV2`, `OUTA1`, `OUTA2`, and optionally `PV_IMON`/`BAT_IMON`.
+3. Convert raw ADC readings into engineering values using the PCB scaling
+   constants, once those constants are verified from the schematic and/or
+   bench measurements.
+4. Log duty cycle, raw ADC readings, converted voltage/current estimates, and
+   computed power so Alexander can verify the hardware behavior.
+5. Start with fixed-duty and voltage-regulation tests before connecting the
+   existing Incremental Conductance MPPT algorithm to the real ADC and PWM
+   peripherals.
+
+This step is documented in
+[`docs/mpptest1.md`](../docs/mpptest1.md). That document is the working
+agreement for the first useful code we intend to send for bench testing.
+
+---
+
+## Semester Project Target: Full EPS Hardware-In-The-Loop Demo With Injected Values
+
+**Date added:** 2026-05-10
+
+This is now the highest-priority integration path for the semester project.
+The goal is to demonstrate a complete and coherent EPS firmware running on
+real hardware without being blocked by unfinished physical sensor bring-up.
+
+The demo should prove that the real EPS mainboard can:
+
+1. Communicate with an OBC-like external controller over the board UART.
+2. Accept injected voltage, current, temperature, mode, and fault values over
+   that communication link.
+3. Run the EPS state machine on the SAMD21 using those injected inputs.
+4. Run the Incremental Conductance MPPT algorithm on the SAMD21 using injected
+   panel voltage/current values.
+5. Produce real PWM duty-cycle outputs on the mainboard buck-converter pins.
+6. Return telemetry, state, commanded duty cycle, and alert information back
+   to the host so the behavior can be plotted and presented.
+
+This is not a fake software-only simulation. The control firmware runs on the
+real SAMD21. The only simulated part is the sensor environment.
+
+### Physical Test Setup
+
+The intended final setup is:
+
+```text
+Computer simulation / control UI
+    |
+    | USB serial
+    v
+ESP32 bridge
+    |
+    | 3.3 V UART
+    v
+EPS PCU mainboard J3 UART header
+    |
+    | SERCOM0 on PA10/PA11
+    v
+SAMD21J17D firmware
+```
+
+The first setup to build is the same communication architecture on the dev
+board:
+
+```text
+Computer simulation / control UI
+    |
+    | USB serial
+    v
+ESP32 bridge acting as the OBC
+    |
+    | 3.3 V UART
+    v
+SAMD21 dev board UART pins
+    |
+    | SERCOM0, preferably PA10/PA11 to match the mainboard SERCOM0 pad layout
+    v
+SAMD21G17D firmware
+```
+
+This dev-board setup is the first blocker to remove. Before integrating more
+MPPT, state-machine, or PWM behavior, the firmware must have a reliable way to
+receive commands and send back proof of what it is doing.
+
+Verified board assumptions:
+
+- J3 pin 1 is `AUX_3V3`.
+- J3 pin 2 is `UART_TX`.
+- J3 pin 3 is `UART_RX`.
+- J3 pin 4 is `GND`.
+- The MCU UART nets are `PA10` / `PA11`.
+- `PA10` is SERCOM0 PAD[2], mux C.
+- `PA11` is SERCOM0 PAD[3], mux C.
+- UART configuration for the mainboard is therefore SERCOM0, mux C,
+  `TXPO=1`, `RXPO=3`, 115200 baud initially.
+- Mainboard PWM pins are `PA12` / `PA13`, TCC0 `WO[6]` / `WO[7]`, mux F.
+- The mainboard PWM driver must use the dual-channel TCC0 scheme:
+  `CC[2] == CC[3]`, `DTIEN2 | DTIEN3`, and `INVEN7`.
+
+References:
+
+- `docs/mainboard_pinout_pcu_v4_1.md`
+- `docs/build_targets_and_file_map.md`
+- `docs/mpptest1.md`
+- `research_logs/agent_F_tcc0_dual_channel_complementary_pwm.md`
+- `research_logs/agent_H_j3_uart_header_pinout_and_power_input.md`
+
+### Why This Is The Right Semester Demo
+
+Physical sensor drivers are useful but they are not the critical path for a
+coherent EPS demonstration. A sensor-first plan risks spending most of the
+project on peripheral bring-up without showing the full EPS behavior.
+
+The hardware-in-the-loop injection plan demonstrates the actual architecture:
+
+- OBC communication works.
+- The EPS receives commands and runtime data.
+- The state machine transitions under controlled scenarios.
+- MPPT runs on the actual MCU.
+- PWM commands are applied to the actual timer peripheral.
+- Telemetry comes back through the same OBC-facing communication path.
+
+After this demo works, the physical sensor drivers become a clean next step:
+replace injected values with real ADC/I2C/SPI readings behind the same sensor
+input interface.
+
+### Firmware Architecture
+
+The key architectural rule is to separate **where sensor values come from**
+from **what the EPS does with them**.
+
+The second rule is that the demo uses **one bidirectional CHIPS UART channel**
+for both control and visibility. The host/ESP32 sends commands on that channel,
+and the EPS returns telemetry, state, debug snapshots, command acknowledgements,
+and optional periodic debug frames on the same channel.
+
+Do not mix raw text prints into the CHIPS UART stream. If a debug value needs
+to be visible, send it as a CHIPS response or CHIPS debug/telemetry frame. The
+dev-board DMA logger on SERCOM5/PA22 may still be used as a development aid,
+but the semester demo must not depend on it because the mainboard does not
+expose that same debug UART.
+
+The main loop should use this structure:
+
+```text
+1. Receive CHIPS frames from UART.
+2. Update injected sensor/input state if an injection command arrived.
+3. Build the current EPS input struct from the active source:
+      - injected UART values, or
+      - real ADC/I2C/SPI values later.
+4. Run the EPS state machine.
+5. Run MPPT when the state machine enables MPPT.
+6. Apply actuator outputs:
+      - PWM duty cycle,
+      - load enable/disable pins later,
+      - heater control later.
+7. Send telemetry/state/duty/alerts back over CHIPS.
+```
+
+This means the state machine and MPPT code do not know whether values came
+from physical sensors or the injected UART test harness.
+
+### Communication / Injection Protocol
+
+Use CHIPS as the preferred protocol rather than inventing a one-off binary
+format, because CHIPS is already the mission communication layer and exists
+in the `phase4-chips` worktree.
+
+Add or reserve commands for the demo:
+
+| Command | Direction | Purpose |
+|---|---|---|
+| `GET_TELEMETRY` | OBC/PC -> EPS | Request current EPS telemetry snapshot |
+| `SET_INJECTED_SENSOR_FRAME` | OBC/PC -> EPS | Inject voltage, current, temperature, mode, and fault inputs |
+| `SET_INPUT_SOURCE` | OBC/PC -> EPS | Select injected inputs or real sensor inputs |
+| `SET_CONTROL_MODE` | OBC/PC -> EPS | Select off, fixed-duty, voltage regulation, MPPT, or full state-machine control |
+| `SET_PARAMETER` | OBC/PC -> EPS | Change thresholds, safe limits, target voltage, duty clamps |
+| `GET_STATE` | OBC/PC -> EPS | Read current state-machine mode, safe substate, alerts |
+| `SET_FIXED_DUTY` | OBC/PC -> EPS | Directly command a duty cycle for PWM verification |
+| `GET_DEBUG_SNAPSHOT` | OBC/PC -> EPS | Request one detailed debug frame for presentation/diagnosis |
+| `SET_TELEMETRY_STREAM` | OBC/PC -> EPS | Enable/disable periodic telemetry/debug frames and set their period |
+
+The value-forcing commands should be implemented at the beginning, before the
+full algorithms are integrated. At first they only need to store the injected
+values and echo them back in telemetry. Later, the state machine, MPPT, and PWM
+code will consume the same stored input struct. This keeps the PC/ESP32 protocol
+stable while the firmware grows.
+
+The injected sensor frame should include at least:
+
+```text
+panel_voltage_raw_adc
+panel_current_raw_adc
+battery_voltage_mv
+battery_current_ma
+charging_rail_voltage_mv
+battery_temperature_decicelsius
+obc_heartbeat_present
+satellite_mode_commanded_by_obc
+safe_mode_sub_state_commanded_by_obc
+fault_flags
+```
+
+For the MPPT-only demo, the critical fields are:
+
+```text
+panel_voltage_raw_adc = simulated OUTV1
+panel_current_raw_adc = simulated OUTA1
+```
+
+### Implementation Order For The Semester Demo
+
+1. **Build the dev-board CHIPS UART visibility path first.**
+   - Create or adapt the dev-board UART driver for SERCOM0 on PA10/PA11 if
+     those pins are practical on the dev-board headers.
+   - If PA10/PA11 are blocked mechanically, temporarily use PA04/PA05, but keep
+     the UART API identical so the application code does not change later.
+   - Build the ESP32 bridge/test firmware that forwards PC serial traffic to
+     the SAMD21 UART and prints returned CHIPS frames on the PC.
+   - Build the SAMD21 dev-board application that receives CHIPS commands,
+     returns acknowledgements, and returns telemetry over the same UART.
+   - Implement `SET_INJECTED_SENSOR_FRAME`, `GET_TELEMETRY`,
+     `GET_DEBUG_SNAPSHOT`, and `SET_TELEMETRY_STREAM` immediately, even if they
+     initially only store and echo values.
+   - Pass condition: from the PC, inject values through the ESP32, then see the
+     same values, firmware state, command result, and heartbeat returned from
+     the SAMD21.
+
+2. **Fix build hygiene and preserve both board targets.**
+   - Make normal Windows builds reliable.
+   - Keep dev-board and mainboard builds separate.
+   - Do not let generated `build/` artifacts confuse source status.
+
+3. **Add the mainboard UART driver.**
+   - Create `uart_obc_sercom0_pa10_pa11_on_mainboard.c/.h`.
+   - Use SERCOM0, PA10/PA11, mux C, `TXPO=1`, `RXPO=3`.
+   - First test: UART echo over J3 through the ESP32 bridge.
+   - Keep the CHIPS protocol and application command handling identical to the
+     dev-board version.
+
+4. **Merge or copy the CHIPS protocol modules into the two-board build.**
+   - Reuse the pure frame codec and command dispatch from `phase4-chips`.
+   - Keep the frame codec shared.
+   - Keep board-specific UART drivers separate.
+   - Confirm host/ESP32 can send a command and receive a valid CRC response.
+
+5. **Add the injection input model.**
+   - Create a shared struct for EPS input values.
+   - Add injected-value storage updated by CHIPS commands.
+   - Add an input-source selector: injected values first, real sensors later.
+
+6. **Integrate the pure MPPT algorithm.**
+   - Merge `mppt_algorithm.c/.h` from `EPS-mppt-algorithm`.
+   - Feed it injected panel voltage/current raw ADC values.
+   - Return the duty cycle in telemetry before enabling real PWM output.
+
+7. **Add the mainboard PWM driver.**
+   - Create a mainboard-specific PA12/PA13 TCC0 driver.
+   - Start in a safe disabled state.
+   - Support fixed-duty mode first.
+   - Then let MPPT/state-machine output drive the duty cycle.
+
+8. **Integrate the EPS state machine.**
+   - Merge `eps_state_machine.c/.h` and `eps_configuration_parameters.h`.
+   - Feed it the injected input struct.
+   - Use its actuator outputs to decide MPPT enable, duty command, and alerts.
+
+9. **Build the PC + ESP32 demo harness.**
+   - PC runs simulation scenarios and sends CHIPS injection frames.
+   - ESP32 bridges USB serial to mainboard UART, or implements the OBC side
+     directly if that is simpler during the demo.
+   - PC logs returned telemetry and plots state, voltage/current, power,
+     duty cycle, and safe-mode transitions.
+
+10. **Run presentation scenarios.**
+   - Normal charging.
+   - MPPT convergence under constant illumination.
+   - Irradiance step change and MPPT recovery.
+   - Battery low -> safe/charging behavior.
+   - Temperature low -> heater request.
+   - OBC heartbeat timeout -> autonomous behavior.
+   - Fixed-duty PWM verification.
+
+11. **After the demo works, resume physical sensor drivers.**
+    - ADC on `PB04..PB09` for `PV_IMON`, `BAT_IMON`, `OUTA1`, `OUTA2`,
+      `OUTV1`, `OUTV2`.
+    - I2C sensors only if populated and confirmed.
+    - SPI battery temperature once the part and register map are known.
+
+### Pass Criteria
+
+The semester demo is successful when:
+
+1. `make BOARD=devboard` and `make BOARD=mainboard` both compile with zero warnings.
+2. The mainboard receives CHIPS commands over J3 UART through the ESP32 bridge.
+3. The host can inject a complete sensor/input frame.
+4. The mainboard reports telemetry/state back over the same link.
+5. Injected scenarios produce expected state-machine transitions.
+6. Injected panel voltage/current values cause MPPT duty-cycle movement.
+7. The computed duty cycle is applied to the real TCC0 PWM peripheral.
+8. The PWM signal can be observed on `PA12`/`PA13` or verified through register
+   telemetry before any risky power-stage test.
+9. The demo can be run repeatedly without reflashing for every scenario.
+10. Real sensor support can be added later by changing only the input source,
+    not the state machine or MPPT logic.
+
+### What Is Deferred
+
+The following work remains important but is not the next blocker:
+
+- INA226 I2C support, unless the board population is confirmed.
+- Full ADC calibration and engineering-unit conversion.
+- SPI battery temperature sensor, because the exact part remains uncertain.
+- Load-shedding/heater GPIO actuation on real hardware, until the downstream
+  circuitry is reviewed for safe bench use.
+- Closed-loop power-stage testing with actual PV/battery inputs.
+
+The firmware should still be designed so all of these can slot in cleanly.

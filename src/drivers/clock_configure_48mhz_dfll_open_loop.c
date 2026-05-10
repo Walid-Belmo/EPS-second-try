@@ -3,6 +3,13 @@
  * Switches the CPU clock from the default 1 MHz (OSC8M / 8) to 48 MHz
  * using the DFLL48M oscillator in open-loop mode.
  *
+ * BUILD TARGET: shared (compiled into both devboard AND mainboard builds)
+ *   The DFLL48M circuit is identical between the SAMD21G17D and the
+ *   SAMD21J17D-MUT — same registers, same calibration locations in NVM,
+ *   same errata. This file compiles for both `make BOARD=devboard` and
+ *   `make BOARD=mainboard`. Verified by research log
+ *   research_logs/agent_A_samd21_g17d_vs_j17d_silicon.md.
+ *
  * Category: HARDWARE DRIVER
  * Peripheral: NVMCTRL, SYSCTRL, GCLK
  * Clock: transitions GCLK0 from OSC8M/8 (1 MHz) to DFLL48M (48 MHz)
@@ -23,7 +30,7 @@
  */
 
 #include <stdint.h>
-#include "samd21g17d.h"
+#include "sam.h"
 #include "clock_configure_48mhz_dfll_open_loop.h"
 
 /* ── Private function prototypes ──────────────────────────────────────────── */

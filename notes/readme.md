@@ -48,6 +48,8 @@ debugging.
 | [`docs/uart_obc_driver.md`](docs/uart_obc_driver.md) | OBC UART driver: pin selection, interrupt architecture, timing analysis, debugging tips |
 | [`docs/mppt_algorithm.md`](docs/mppt_algorithm.md) | P&O vs IncCond, DC/DC dependency, laptop simulation approach |
 | [`docs/newlib_and_syscalls.md`](docs/newlib_and_syscalls.md) | Why syscalls_min.c exists, newlib dependency chain, prototype fixes |
+| [`docs/mainboard_pinout_pcu_v4_1.md`](docs/mainboard_pinout_pcu_v4_1.md) | **MAINBOARD** — full proof-backed pin map of the PCU testing board V4.1 (the actual EPS PCB). Chip is `ATSAMD21J17D-MUT` (64-pin QFN), not the dev board's `SAMD21G17D`. Read before porting any firmware to the mainboard. |
+| [`docs/build_targets_and_file_map.md`](docs/build_targets_and_file_map.md) | **CANONICAL FILE MAP** — every file in the repo classified as devboard-only, mainboard-only, or shared. How to tell which is which, what the Makefile does, what changes when adding a new file. Read this if you are confused about which code applies to your board. |
 
 ---
 
@@ -139,6 +141,72 @@ This is the most common RX configuration bug on the SAMD21.
 
 See `docs/uart_obc_driver.md` for the complete technical reference including pin
 selection rationale, timing analysis, register details, and debugging tips.
+
+### Mainboard Status LED — `led_status_pb22_active_high_on_mainboard.c/.h`
+
+GPIO-only driver for the green status LED (LED2) on the EPS PCU testing board V4.1
+(mainboard PCB). LED2 is wired between PB22 and GND through a 750Ω series resistor,
+so driving PB22 HIGH lights the LED, LOW turns it off (active-HIGH). This driver only
+exists in the mainboard build.
+
+See [`docs/mainboard_pinout_pcu_v4_1.md`](docs/mainboard_pinout_pcu_v4_1.md) for the
+proof-backed pin map of the mainboard.
+
+---
+
+## Build Targets
+
+This project builds firmware for two physically different boards from the
+**same source tree**. Each `make` invocation must say which board, **there
+is no default** (a default caused confusion in early bring-up and was
+removed). The `make clean` target is the one exception — it works without
+specifying a board.
+
+| Command | Board | Chip | What gets compiled |
+|---|---|---|---|
+| `make BOARD=devboard` | Curiosity Nano DM320119 dev board | SAMD21G17D (48-pin TQFP) | `src/main.c` — debugger stress test (LED + button + UART echo) |
+| `make BOARD=mainboard` | EPS PCU testing board V4.1 (real EPS PCB) | SAMD21J17D-MUT (64-pin QFN) | `src/main_mainboard_blink_pb22.c` — Firmware A: PB22 LED blink |
+| `make clean` | (any) | (any) | Wipes `build/`. No `BOARD` needed. |
+| `make BOARD=devboard flash` | Curiosity Nano via on-board nEDBG | SAMD21G17D | builds + flashes the dev board |
+| `make BOARD=mainboard flash` | Mainboard via Atmel-ICE on Tag-Connect J1 | SAMD21J17D-MUT | builds + flashes the mainboard |
+
+**Always run `make clean` when switching the `BOARD` variable.** Object files
+go into a single `build/` directory; reusing them across chip variants would
+silently produce a broken binary.
+
+### How to tell which file is for which board
+
+Three reinforcing layers. If they ever disagree, the Makefile wins.
+
+1. **The Makefile (executable source of truth).** The `ifeq ($(BOARD),...)`
+   block lists exactly which `.c` files compile for each board. If a file is
+   listed under `devboard`, it goes only into the dev-board binary. If it's
+   listed under `mainboard`, it goes only into the mainboard binary. Files
+   listed under both are shared.
+2. **The file name.** Driver names like `uart_obc_sercom0_pa04_pa05.c` say
+   exactly which pins the driver uses. Files ending in `_on_mainboard` are
+   mainboard-specific by convention.
+3. **The header comment** at the top of every project `.c` and `.h` file
+   contains a `BUILD TARGET:` line that says either `devboard only`,
+   `mainboard only`, or `shared`. This is a quick visual confirmation when
+   you open a file.
+
+For the full file-by-file breakdown — every source file, header, vendor file,
+linker script, classified — see
+[`docs/build_targets_and_file_map.md`](docs/build_targets_and_file_map.md).
+
+### Why this works without a refactor
+
+The two chips (G17D and J17D) are the same SAMD21 silicon die in different
+packages. Same memory map, same peripherals, same registers. The build
+differences reduce to (a) the `__SAMD21G17D__` vs `__SAMD21J17D__` chip-name
+define, (b) the matching startup file, (c) the matching linker script, and
+(d) the application-level files that pick the right pins for the right
+board. All driver register code (PORT, SERCOM, TCC, GCLK, NVMCTRL, DMAC) is
+identical between the two — see
+[`docs/mainboard_pinout_pcu_v4_1.md`](docs/mainboard_pinout_pcu_v4_1.md) and
+[`docs/build_targets_and_file_map.md`](docs/build_targets_and_file_map.md)
+for the proof.
 
 ---
 

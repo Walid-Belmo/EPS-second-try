@@ -1,37 +1,34 @@
 /* =============================================================================
- * main.c
- * Dev-board semester demo firmware entry point.
+ * main_mainboard_chips_injection_demo.c
+ * Real-board semester demo firmware entry point.
  *
- * BUILD TARGET: devboard only
+ * BUILD TARGET: mainboard only
  *
- * This application exposes the EPS demo through one bidirectional CHIPS UART:
- *   ESP32 TX2 -> SAMD21 PA11 RX
- *   ESP32 RX2 <- SAMD21 PA10 TX
- *   GND       <-> GND
+ * This application exposes the EPS demo through the real board's J3 UART:
+ *   board UART_TX = SAMD21 PA10
+ *   board UART_RX = SAMD21 PA11
  *
- * The same PA10/PA11 SERCOM0 pin pair exists on the real EPS board, so this
- * path is intended to move to the mainboard with minimal board-layer changes.
+ * It deliberately does not drive PWM_H/PWM_L, POWER_SW, or HEATER_SW yet.
+ * The first real-board demo step is communication visibility and injected
+ * values over CHIPS.
  * =============================================================================
  */
 
 #include <stdint.h>
 
-#include "samd21g17d.h"
+#include "samd21j17d.h"
 #include "clock_configure_48mhz_dfll_open_loop.h"
-#include "debug_functions.h"
+#include "led_status_pb22_active_high_on_mainboard.h"
 #include "millisecond_tick_timer_using_arm_systick.h"
 #include "uart_obc.h"
 #include "chips_protocol_encode_decode_frames_with_crc16_kermit.h"
 #include "eps_demo_chips_command_dispatch.h"
 
-#define USER_LED_PIN_NUMBER            10u
 #define HEARTBEAT_LED_PERIOD_MS        500u
 
 static chips_frame_parser_state_type chips_parser_state;
 static chips_parsed_frame_type most_recently_parsed_frame;
 
-static void configure_pb10_as_gpio_output_for_user_led(void);
-static void toggle_user_led(void);
 static void process_any_obc_uart_bytes_as_chips_frames(void);
 static void handle_one_chips_parser_result(
     chips_parser_result_type parser_result);
@@ -39,8 +36,7 @@ static void handle_one_chips_parser_result(
 int main(void)
 {
     configure_cpu_clock_to_48mhz_using_dfll_open_loop();
-    configure_pb10_as_gpio_output_for_user_led();
-    DEBUG_LOG_INIT();
+    configure_pb22_as_gpio_output_for_status_led_on_mainboard();
     millisecond_tick_timer_initialize_at_48mhz();
     uart_obc_initialize_sercom0_at_115200_baud();
 
@@ -48,10 +44,6 @@ int main(void)
     chips_verify_frame_build_and_parse_round_trip();
     chips_parser_initialize_state_machine_to_idle(&chips_parser_state);
     eps_demo_chips_command_dispatch_initialize();
-
-    DEBUG_LOG_TEXT("=== EPS DEMO BOOT OK ===");
-    DEBUG_LOG_UINT("CPU clock Hz", SystemCoreClock);
-    DEBUG_LOG_TEXT("CHIPS UART: SERCOM0 PA10 TX, PA11 RX, 115200");
 
     uint32_t last_heartbeat_timestamp_ms =
         millisecond_tick_timer_get_milliseconds_since_boot();
@@ -67,21 +59,10 @@ int main(void)
         if ((now_ms - last_heartbeat_timestamp_ms)
             >= HEARTBEAT_LED_PERIOD_MS)
         {
-            toggle_user_led();
+            toggle_pb22_status_led_on_mainboard();
             last_heartbeat_timestamp_ms = now_ms;
         }
     }
-}
-
-static void configure_pb10_as_gpio_output_for_user_led(void)
-{
-    PORT_REGS->GROUP[1].PORT_DIRSET = (1u << USER_LED_PIN_NUMBER);
-    PORT_REGS->GROUP[1].PORT_OUTSET = (1u << USER_LED_PIN_NUMBER);
-}
-
-static void toggle_user_led(void)
-{
-    PORT_REGS->GROUP[1].PORT_OUTTGL = (1u << USER_LED_PIN_NUMBER);
 }
 
 static void process_any_obc_uart_bytes_as_chips_frames(void)

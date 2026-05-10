@@ -3,6 +3,8 @@
  * Configures the CPU clock from default 1 MHz (OSC8M/8) to 48 MHz (DFLL48M)
  * using open-loop mode with factory calibration values from NVM.
  *
+ * BUILD TARGET: shared (used by both devboard AND mainboard builds)
+ *
  * Call once from main() before initializing any peripherals.
  * =============================================================================
  */

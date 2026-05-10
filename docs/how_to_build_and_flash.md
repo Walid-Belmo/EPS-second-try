@@ -85,7 +85,7 @@ EPS-second-try/
 From the project root, inside a terminal with the tools on PATH:
 
 ```bash
-make clean && make
+make BOARD=devboard
 ```
 
 This does:
@@ -119,7 +119,7 @@ The SIZE report:
 **Plug in the Curiosity Nano via USB.** Then:
 
 ```bash
-make flash
+make BOARD=devboard flash
 ```
 
 This runs `make` first (so the binary is up to date), then:
@@ -444,17 +444,17 @@ curl -L -o lib/cmsis/cmsis_version.h \
 ## Quick Reference
 
 ```bash
-# Build (compile + link + produce .bin)
-make
+# Build dev-board firmware (compile + link + produce .bin)
+make BOARD=devboard
 
-# Build and flash to board
-make flash
+# Build and flash to the Curiosity Nano dev board
+make BOARD=devboard flash
 
 # Clean all build artifacts
 make clean
 
-# Build flight version (size-optimized, no debug logging)
-make flight
+# Build dev-board flight version (size-optimized, no debug logging)
+make BOARD=devboard flight
 
 # Test OpenOCD connection without flashing
 openocd -f openocd.cfg -c "init; exit"

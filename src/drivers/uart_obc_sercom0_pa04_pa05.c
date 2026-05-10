@@ -5,6 +5,13 @@
  * The CPU writes to RAM buffers and returns immediately; the SERCOM0
  * interrupt handler moves bytes between the buffers and the hardware.
  *
+ * BUILD TARGET: devboard only
+ *   Compiled when `make BOARD=devboard`. The pins PA04 and PA05 are the
+ *   exposed edge-header pins on the Curiosity Nano DM320119. On the EPS
+ *   mainboard PCB the equivalent UART (J3 header) is wired to PA10/PA11
+ *   instead, so this file is NOT compiled when BOARD=mainboard. A sibling
+ *   driver targeting PA10/PA11 will be added when Firmware B is written.
+ *
  * Category: HARDWARE DRIVER
  * Peripheral: SERCOM0 (UART, bidirectional)
  * Pins: PA04 (TX, SERCOM0 PAD[0], mux D), PA05 (RX, SERCOM0 PAD[1], mux D)

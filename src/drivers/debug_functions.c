@@ -5,6 +5,13 @@
  * using DMAC channel 0. The CPU writes bytes into the buffer (~1 us cost)
  * and the DMA hardware drains them in the background.
  *
+ * BUILD TARGET: devboard only
+ *   Compiled when `make BOARD=devboard`. PA22 is wired to the on-board
+ *   nEDBG's UART RX on the Curiosity Nano, which is what makes COM6 carry
+ *   debug output. On the EPS mainboard PCB, PA22 is wired to I2C SDA
+ *   instead (see docs/mainboard_pinout_pcu_v4_1.md), so this driver would
+ *   conflict and is NOT compiled when BOARD=mainboard.
+ *
  * Category: HARDWARE DRIVER
  * Peripheral: SERCOM5 (UART TX), DMAC channel 0, PORT group A
  * Pins: PA22 (TX, mux D → SERCOM5 PAD[0])

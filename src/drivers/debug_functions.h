@@ -2,6 +2,8 @@
  * debug_functions.h
  * Non-blocking DMA-based debug logging over UART (SERCOM5, PA22, 115200 baud).
  *
+ * BUILD TARGET: devboard only (PA22 is I2C SDA on the mainboard)
+ *
  * In debug builds (-DDEBUG_LOGGING_ENABLED): macros call real functions that
  * write to a circular buffer drained by DMA. CPU cost: ~1 microsecond per call.
  *
