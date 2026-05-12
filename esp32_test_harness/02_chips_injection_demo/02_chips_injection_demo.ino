@@ -42,6 +42,7 @@
 #define CHIPS_COMMAND_ID_SET_TELEMETRY_STREAM     0x25u
 #define CHIPS_COMMAND_ID_SET_DEMO_TIMING          0x26u
 #define CHIPS_COMMAND_ID_GET_MAINBOARD_ADC        0x27u
+#define CHIPS_COMMAND_ID_SET_PWM_ARM              0x28u
 
 #define CHIPS_RESPONSE_STATUS_SUCCESS             0x00u
 #define CHIPS_RESPONSE_STATUS_UNKNOWN_COMMAND     0x01u
@@ -52,8 +53,16 @@
 #define INJECTED_SENSOR_FRAME_LENGTH              17u
 #define TELEMETRY_PAYLOAD_BASE_LENGTH             48u
 #define TELEMETRY_PAYLOAD_V2_LENGTH               75u
+#define TELEMETRY_PAYLOAD_V3_LENGTH               124u
+#define TELEMETRY_PAYLOAD_V4_LENGTH               125u
+#define MAINBOARD_ADC_EXTENDED_PAYLOAD_LENGTH     50u
 #define COMMAND_LINE_BUFFER_LENGTH                160u
 #define MAXIMUM_TOKENS_PER_COMMAND                14
+
+#define MAINBOARD_ADC_TELEMETRY_FLAG_READINGS_PRESENT 0x01u
+#define MAINBOARD_ADC_TELEMETRY_FLAG_CONVERSIONS_NOMINAL 0x02u
+#define MAINBOARD_ADC_TELEMETRY_FLAG_OUTA_SCALING_PROVISIONAL 0x04u
+#define MAINBOARD_ADC_TELEMETRY_FLAG_OUTV_SCALING_PROVISIONAL 0x08u
 
 #define CONTROL_MODE_OFF                          0u
 #define CONTROL_MODE_MPPT                         3u
@@ -155,6 +164,7 @@ typedef struct {
     uint8_t load_mask;
     uint8_t pwm_enabled;
     uint8_t last_control_mode;
+    uint8_t pwm_armed;
 } telemetry_snapshot_type;
 
 typedef struct {
@@ -395,6 +405,13 @@ static void print_set_demo_timing_response(const uint8_t *payload,
                                            uint16_t payload_length);
 static void print_mainboard_adc_payload(const uint8_t *payload,
                                         uint16_t payload_length);
+static void print_mainboard_analog_telemetry_v3(const uint8_t *payload,
+                                                uint16_t payload_length);
+static void print_pwm_safety_telemetry_v4(const uint8_t *payload,
+                                          uint16_t payload_length);
+static void print_set_pwm_arm_response(const uint8_t *payload,
+                                       uint16_t payload_length);
+static void print_mainboard_adc_scaling_flags(uint8_t flags);
 static uint16_t build_chips_wire_frame(const chips_frame_type *frame,
                                        uint8_t *wire_buffer,
                                        uint16_t wire_buffer_length);
@@ -478,6 +495,8 @@ static void print_help(void)
     Serial.println("  debug");
     Serial.println("  state");
     Serial.println("  adc");
+    Serial.println("  adc-stream hz");
+    Serial.println("  adc-stop");
     Serial.println("  inject-default");
     Serial.println("  sunny");
     Serial.println("  lowbat");
@@ -486,6 +505,8 @@ static void print_help(void)
     Serial.println("  source injected|real");
     Serial.println("  mode off|fixed|voltage|mppt|fsm");
     Serial.println("  duty 0..65535");
+    Serial.println("  pwm-arm");
+    Serial.println("  pwm-disarm");
     Serial.println("  sim-mppt on|off|status");
     Serial.println("  sim-fsm run|stop|status");
     Serial.println("  test-timeouts fast|default|iters|mppt_iters cv_iters heartbeat_iters");
@@ -542,9 +563,35 @@ static void process_complete_command_line(char *line)
     }
 
     if (token_equals_ignore_case(tokens[0], "adc")) {
-        Serial.println("ADC: requesting mainboard raw monitor channels");
-        Serial.println("ADC: expected response is pv_imon, bat_imon, outa1, outa2, outv1, outv2");
+        Serial.println("ADC: requesting mainboard raw and converted monitor channels");
+        Serial.println("ADC: converted values are nominal until bench calibration");
         send_simple_command(CHIPS_COMMAND_ID_GET_MAINBOARD_ADC);
+        return;
+    }
+
+    if (token_equals_ignore_case(tokens[0], "adc-stream")) {
+        if (token_count != 2) {
+            Serial.println("Usage: adc-stream hz");
+            return;
+        }
+
+        uint32_t requested_hz = 0u;
+        if (!parse_u32_token(tokens[1], 1u, 10u, &requested_hz)) {
+            Serial.println("Invalid adc-stream rate, use 1..10 Hz");
+            return;
+        }
+
+        uint16_t period_ms = (uint16_t)(1000u / requested_hz);
+        Serial.print("ADC STREAM: enabling telemetry stream at ");
+        Serial.print(requested_hz);
+        Serial.println(" Hz");
+        send_set_telemetry_stream_command(1u, period_ms);
+        return;
+    }
+
+    if (token_equals_ignore_case(tokens[0], "adc-stop")) {
+        Serial.println("ADC STREAM: stopping telemetry stream");
+        send_set_telemetry_stream_command(0u, 1000u);
         return;
     }
 
@@ -639,6 +686,7 @@ static void process_complete_command_line(char *line)
             return;
         }
 
+        Serial.println("MODE: firmware disarms PWM on every mode change; use pwm-arm after setting safe test inputs");
         send_one_byte_command(CHIPS_COMMAND_ID_SET_CONTROL_MODE, mode);
         return;
     }
@@ -656,6 +704,18 @@ static void process_complete_command_line(char *line)
         }
 
         send_set_fixed_duty_command((uint16_t)duty);
+        return;
+    }
+
+    if (token_equals_ignore_case(tokens[0], "pwm-arm")) {
+        Serial.println("PWM SAFETY: arming nonzero PWM output; use pwm-disarm before rewiring or changing power setup");
+        send_one_byte_command(CHIPS_COMMAND_ID_SET_PWM_ARM, 1u);
+        return;
+    }
+
+    if (token_equals_ignore_case(tokens[0], "pwm-disarm")) {
+        Serial.println("PWM SAFETY: disarming PWM and forcing output duty to zero");
+        send_one_byte_command(CHIPS_COMMAND_ID_SET_PWM_ARM, 0u);
         return;
     }
 
@@ -829,6 +889,9 @@ static void run_fsm_scenario_runner_if_due(void)
             Serial.println(fsm_runner_fail_count);
             suppress_next_transmit_log = true;
             fsm_runner_internal_response_count_to_suppress += 1u;
+            send_one_byte_command(CHIPS_COMMAND_ID_SET_PWM_ARM, 0u);
+            suppress_next_transmit_log = true;
+            fsm_runner_internal_response_count_to_suppress += 1u;
             send_one_byte_command(CHIPS_COMMAND_ID_SET_CONTROL_MODE,
                                   CONTROL_MODE_OFF);
             fsm_runner_enabled = false;
@@ -887,6 +950,9 @@ static void stop_fsm_scenario_runner(void)
     fsm_runner_phase = FSM_RUNNER_IDLE;
     suppress_next_transmit_log = true;
     fsm_runner_internal_response_count_to_suppress += 1u;
+    send_one_byte_command(CHIPS_COMMAND_ID_SET_PWM_ARM, 0u);
+    suppress_next_transmit_log = true;
+    fsm_runner_internal_response_count_to_suppress += 1u;
     send_one_byte_command(CHIPS_COMMAND_ID_SET_CONTROL_MODE, CONTROL_MODE_OFF);
     Serial.println("SIM FSM: stopped");
 }
@@ -937,6 +1003,12 @@ static void start_current_fsm_scenario(void)
     suppress_next_transmit_log = true;
     fsm_runner_internal_response_count_to_suppress += 1u;
     send_injected_sensor_frame_from_struct(&scenario->injected);
+
+    if (scenario->injected.fault_flags == 0u) {
+        suppress_next_transmit_log = true;
+        fsm_runner_internal_response_count_to_suppress += 1u;
+        send_one_byte_command(CHIPS_COMMAND_ID_SET_PWM_ARM, 1u);
+    }
 }
 
 static void request_internal_fsm_runner_telemetry(void)
@@ -1114,6 +1186,8 @@ static void print_fsm_result_snapshot(void)
     Serial.print(latest_telemetry.panel_efuse);
     Serial.print(" pwm=");
     Serial.print(latest_telemetry.pwm_enabled);
+    Serial.print(" armed=");
+    Serial.print(latest_telemetry.pwm_armed);
     Serial.print(" applied=");
     Serial.print(latest_telemetry.applied_duty);
     Serial.print(" safe_active=");
@@ -1207,6 +1281,11 @@ static void start_mppt_simulator(void)
 
     inject_mppt_simulator_operating_point_from_duty(
         MPPT_SIMULATOR_STARTING_DUTY);
+
+    suppress_next_transmit_log = true;
+    mppt_simulator_internal_response_count_to_suppress += 1u;
+    send_one_byte_command(CHIPS_COMMAND_ID_SET_PWM_ARM, 1u);
+
     request_internal_mppt_simulator_telemetry();
 }
 
@@ -1214,6 +1293,9 @@ static void stop_mppt_simulator(void)
 {
     mppt_simulator_enabled = false;
     mppt_simulator_next_telemetry_is_internal = false;
+    suppress_next_transmit_log = true;
+    mppt_simulator_internal_response_count_to_suppress += 1u;
+    send_one_byte_command(CHIPS_COMMAND_ID_SET_PWM_ARM, 0u);
     suppress_next_transmit_log = true;
     mppt_simulator_internal_response_count_to_suppress += 1u;
     send_one_byte_command(CHIPS_COMMAND_ID_SET_CONTROL_MODE, CONTROL_MODE_OFF);
@@ -1259,6 +1341,9 @@ static void inject_next_mppt_simulator_operating_point(void)
         mppt_simulator_internal_response_count_to_suppress += 1u;
         send_one_byte_command(CHIPS_COMMAND_ID_SET_CONTROL_MODE,
                               CONTROL_MODE_MPPT);
+        suppress_next_transmit_log = true;
+        mppt_simulator_internal_response_count_to_suppress += 1u;
+        send_one_byte_command(CHIPS_COMMAND_ID_SET_PWM_ARM, 1u);
         return;
     }
 
@@ -1324,6 +1409,8 @@ static void print_mppt_simulator_observation(void)
     Serial.print(latest_telemetry.input_power_mw);
     Serial.print("mW pwm=");
     Serial.print(latest_telemetry.pwm_enabled);
+    Serial.print(" armed=");
+    Serial.print(latest_telemetry.pwm_armed);
     Serial.print(" mode=");
     Serial.println(mode_name(latest_telemetry.control_mode));
 }
@@ -1358,6 +1445,8 @@ static bool update_latest_telemetry_snapshot_from_payload(
     latest_telemetry.load_mask = payload[72];
     latest_telemetry.pwm_enabled = payload[73];
     latest_telemetry.last_control_mode = payload[74];
+    latest_telemetry.pwm_armed =
+        (payload_length >= TELEMETRY_PAYLOAD_V4_LENGTH) ? payload[124] : 0u;
     latest_telemetry.valid =
         (latest_telemetry.status == CHIPS_RESPONSE_STATUS_SUCCESS);
 
@@ -1650,6 +1739,9 @@ static void print_received_frame(const chips_frame_type *frame)
     } else if (frame->command_id == CHIPS_COMMAND_ID_GET_MAINBOARD_ADC) {
         print_mainboard_adc_payload(frame->payload_bytes,
                                     frame->payload_length_in_bytes);
+    } else if (frame->command_id == CHIPS_COMMAND_ID_SET_PWM_ARM) {
+        print_set_pwm_arm_response(frame->payload_bytes,
+                                   frame->payload_length_in_bytes);
     }
 }
 
@@ -1799,6 +1891,9 @@ static void print_telemetry_payload(const uint8_t *payload,
         Serial.print(" last_control=");
         Serial.println(mode_name(last_control_mode));
     }
+
+    print_mainboard_analog_telemetry_v3(payload, payload_length);
+    print_pwm_safety_telemetry_v4(payload, payload_length);
 }
 
 static void print_state_payload(const uint8_t *payload,
@@ -1831,6 +1926,10 @@ static void print_state_payload(const uint8_t *payload,
         Serial.print(payload[10]);
         Serial.print(" loads=0x");
         Serial.print(payload[11], HEX);
+        if (payload_length >= 13u) {
+            Serial.print(" armed=");
+            Serial.print(payload[12]);
+        }
     }
 
     Serial.println();
@@ -1870,25 +1969,201 @@ static void print_set_demo_timing_response(const uint8_t *payload,
 static void print_mainboard_adc_payload(const uint8_t *payload,
                                         uint16_t payload_length)
 {
+    if (payload_length < 1u) {
+        Serial.println("     mainboard ADC payload empty");
+        return;
+    }
+
+    uint8_t status = payload[0];
+    if (status != CHIPS_RESPONSE_STATUS_SUCCESS) {
+        Serial.print("     mainboard ADC status=");
+        Serial.println(status_name(status));
+        return;
+    }
+
     if (payload_length < 13u) {
         Serial.println("     mainboard ADC payload too short");
         return;
     }
 
+    uint16_t pv_imon_raw = read_u16_le(&payload[1]);
+    uint16_t bat_imon_raw = read_u16_le(&payload[3]);
+    uint16_t outa1_raw = read_u16_le(&payload[5]);
+    uint16_t outa2_raw = read_u16_le(&payload[7]);
+    uint16_t outv1_raw = read_u16_le(&payload[9]);
+    uint16_t outv2_raw = read_u16_le(&payload[11]);
+
     Serial.print("     raw_adc pv_imon=");
-    Serial.print(read_u16_le(&payload[1]));
+    Serial.print(pv_imon_raw);
     Serial.print(" bat_imon=");
-    Serial.print(read_u16_le(&payload[3]));
+    Serial.print(bat_imon_raw);
     Serial.print(" outa1=");
-    Serial.print(read_u16_le(&payload[5]));
+    Serial.print(outa1_raw);
     Serial.print(" outa2=");
-    Serial.print(read_u16_le(&payload[7]));
+    Serial.print(outa2_raw);
     Serial.print(" outv1=");
-    Serial.print(read_u16_le(&payload[9]));
+    Serial.print(outv1_raw);
     Serial.print(" outv2=");
-    Serial.println(read_u16_le(&payload[11]));
+    Serial.println(outv2_raw);
+
+    if (payload_length >= MAINBOARD_ADC_EXTENDED_PAYLOAD_LENGTH) {
+        uint16_t pv_imon_pin_mv = read_u16_le(&payload[13]);
+        uint16_t bat_imon_pin_mv = read_u16_le(&payload[15]);
+        uint16_t outa1_pin_mv = read_u16_le(&payload[17]);
+        uint16_t outa2_pin_mv = read_u16_le(&payload[19]);
+        uint16_t outv1_pin_mv = read_u16_le(&payload[21]);
+        uint16_t outv2_pin_mv = read_u16_le(&payload[23]);
+        uint32_t pv_imon_ma = read_u32_le(&payload[25]);
+        uint32_t bat_imon_ma = read_u32_le(&payload[29]);
+        uint32_t outa1_ma = read_u32_le(&payload[33]);
+        uint32_t outa2_ma = read_u32_le(&payload[37]);
+        uint32_t outv1_mv = read_u32_le(&payload[41]);
+        uint32_t outv2_mv = read_u32_le(&payload[45]);
+        uint8_t flags = payload[49];
+
+        Serial.print("     pin_mv pv_imon=");
+        Serial.print(pv_imon_pin_mv);
+        Serial.print(" bat_imon=");
+        Serial.print(bat_imon_pin_mv);
+        Serial.print(" outa1=");
+        Serial.print(outa1_pin_mv);
+        Serial.print(" outa2=");
+        Serial.print(outa2_pin_mv);
+        Serial.print(" outv1=");
+        Serial.print(outv1_pin_mv);
+        Serial.print(" outv2=");
+        Serial.println(outv2_pin_mv);
+
+        Serial.print("     converted pv_imon_ma=");
+        Serial.print(pv_imon_ma);
+        Serial.print(" bat_imon_ma=");
+        Serial.print(bat_imon_ma);
+        Serial.print(" outa1_ma=");
+        Serial.print(outa1_ma);
+        Serial.print(" outa2_ma=");
+        Serial.print(outa2_ma);
+        Serial.print(" outv1_mv=");
+        Serial.print(outv1_mv);
+        Serial.print(" outv2_mv=");
+        Serial.println(outv2_mv);
+
+        print_mainboard_adc_scaling_flags(flags);
+    } else {
+        Serial.println("     converted values not present in this firmware response");
+    }
 
     Serial.println("     channels: PB04/AIN12 PB05/AIN13 PB06/AIN14 PB07/AIN15 PB08/AIN2 PB09/AIN3");
+}
+
+static void print_mainboard_analog_telemetry_v3(const uint8_t *payload,
+                                                uint16_t payload_length)
+{
+    if (payload_length < TELEMETRY_PAYLOAD_V3_LENGTH) {
+        return;
+    }
+
+    uint8_t flags = payload[75];
+
+    if ((flags & MAINBOARD_ADC_TELEMETRY_FLAG_READINGS_PRESENT) == 0u) {
+        Serial.println("     mainboard_adc not present on this firmware target");
+        return;
+    }
+
+    uint16_t pv_imon_raw = read_u16_le(&payload[76]);
+    uint16_t bat_imon_raw = read_u16_le(&payload[78]);
+    uint16_t outa1_raw = read_u16_le(&payload[80]);
+    uint16_t outa2_raw = read_u16_le(&payload[82]);
+    uint16_t outv1_raw = read_u16_le(&payload[84]);
+    uint16_t outv2_raw = read_u16_le(&payload[86]);
+    uint16_t pv_imon_pin_mv = read_u16_le(&payload[88]);
+    uint16_t bat_imon_pin_mv = read_u16_le(&payload[90]);
+    uint16_t outa1_pin_mv = read_u16_le(&payload[92]);
+    uint16_t outa2_pin_mv = read_u16_le(&payload[94]);
+    uint16_t outv1_pin_mv = read_u16_le(&payload[96]);
+    uint16_t outv2_pin_mv = read_u16_le(&payload[98]);
+    uint32_t pv_imon_ma = read_u32_le(&payload[100]);
+    uint32_t bat_imon_ma = read_u32_le(&payload[104]);
+    uint32_t outa1_ma = read_u32_le(&payload[108]);
+    uint32_t outa2_ma = read_u32_le(&payload[112]);
+    uint32_t outv1_mv = read_u32_le(&payload[116]);
+    uint32_t outv2_mv = read_u32_le(&payload[120]);
+
+    Serial.print("     mainboard raw_adc pv_imon=");
+    Serial.print(pv_imon_raw);
+    Serial.print(" bat_imon=");
+    Serial.print(bat_imon_raw);
+    Serial.print(" outa1=");
+    Serial.print(outa1_raw);
+    Serial.print(" outa2=");
+    Serial.print(outa2_raw);
+    Serial.print(" outv1=");
+    Serial.print(outv1_raw);
+    Serial.print(" outv2=");
+    Serial.println(outv2_raw);
+
+    Serial.print("     mainboard pin_mv pv_imon=");
+    Serial.print(pv_imon_pin_mv);
+    Serial.print(" bat_imon=");
+    Serial.print(bat_imon_pin_mv);
+    Serial.print(" outa1=");
+    Serial.print(outa1_pin_mv);
+    Serial.print(" outa2=");
+    Serial.print(outa2_pin_mv);
+    Serial.print(" outv1=");
+    Serial.print(outv1_pin_mv);
+    Serial.print(" outv2=");
+    Serial.println(outv2_pin_mv);
+
+    Serial.print("     mainboard converted pv_imon_ma=");
+    Serial.print(pv_imon_ma);
+    Serial.print(" bat_imon_ma=");
+    Serial.print(bat_imon_ma);
+    Serial.print(" outa1_ma=");
+    Serial.print(outa1_ma);
+    Serial.print(" outa2_ma=");
+    Serial.print(outa2_ma);
+    Serial.print(" outv1_mv=");
+    Serial.print(outv1_mv);
+    Serial.print(" outv2_mv=");
+    Serial.println(outv2_mv);
+
+    print_mainboard_adc_scaling_flags(flags);
+}
+
+static void print_pwm_safety_telemetry_v4(const uint8_t *payload,
+                                          uint16_t payload_length)
+{
+    if (payload_length < TELEMETRY_PAYLOAD_V4_LENGTH) {
+        return;
+    }
+
+    Serial.print("     pwm_armed=");
+    Serial.println(payload[124]);
+}
+
+static void print_set_pwm_arm_response(const uint8_t *payload,
+                                       uint16_t payload_length)
+{
+    if (payload_length < 2u) {
+        return;
+    }
+
+    Serial.print("     pwm_armed=");
+    Serial.println(payload[1]);
+}
+
+static void print_mainboard_adc_scaling_flags(uint8_t flags)
+{
+    Serial.print("     scaling_flags=0x");
+    Serial.print(flags, HEX);
+    Serial.print(" readings=");
+    Serial.print((flags & MAINBOARD_ADC_TELEMETRY_FLAG_READINGS_PRESENT) != 0u);
+    Serial.print(" nominal=");
+    Serial.print((flags & MAINBOARD_ADC_TELEMETRY_FLAG_CONVERSIONS_NOMINAL) != 0u);
+    Serial.print(" outa_provisional=");
+    Serial.print((flags & MAINBOARD_ADC_TELEMETRY_FLAG_OUTA_SCALING_PROVISIONAL) != 0u);
+    Serial.print(" outv_provisional=");
+    Serial.println((flags & MAINBOARD_ADC_TELEMETRY_FLAG_OUTV_SCALING_PROVISIONAL) != 0u);
 }
 
 static uint16_t build_chips_wire_frame(const chips_frame_type *frame,
@@ -2267,6 +2542,8 @@ static const char *command_name(uint8_t command_id)
         return "SET_DEMO_TIMING";
     case CHIPS_COMMAND_ID_GET_MAINBOARD_ADC:
         return "GET_MAINBOARD_ADC";
+    case CHIPS_COMMAND_ID_SET_PWM_ARM:
+        return "SET_PWM_ARM";
     default:
         return "UNKNOWN";
     }

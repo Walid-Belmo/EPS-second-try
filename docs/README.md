@@ -9,6 +9,10 @@ Start here when looking for project documentation.
 - [Mainboard Analog Scaling](mainboard_analog_scaling.md) - nominal raw ADC to
   volts/amps formulas, including the TPS25940 eFuse IMON scaling for
   `PV_IMON` and `BAT_IMON`.
+- [PCB Design Error For PWM](pcb_design_error_for_pwm.md) - proof that the
+  mainboard routes buck PWM to `PA12/PA13`, which are not a natural TCC0
+  dead-time pair, and the firmware workaround plus PWM arm/disarm gate we will
+  use.
 - [MPPT Test 1: Mainboard MVP](mpptest1.md) - staged real-board bring-up plan:
   ADC dry run, fixed-duty PWM, voltage regulation, then MPPT.
 - [Mainboard Pinout](mainboard_pinout_pcu_v4_1.md) - verified PCU V4.1 pin map.

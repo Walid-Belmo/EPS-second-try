@@ -1299,3 +1299,138 @@ The following work remains important but is not the next blocker:
 - Closed-loop power-stage testing with actual PV/battery inputs.
 
 The firmware should still be designed so all of these can slot in cleanly.
+
+## Real Mainboard Bring-Up Status - 2026-05-12
+
+This section records the current state after the first successful real-board
+bring-up session.
+
+### Confirmed Working
+
+1. **Programming path**
+   - Programmer: Atmel-ICE, SAM port, target `ATSAMD21J17D`.
+   - Software path that worked: Microchip Studio Device Programming.
+   - SWD clock used successfully: `125 kHz`.
+   - Device signature read successfully: `0x10012692`.
+   - The custom adapter does not connect reset, so reset-dependent flows can
+     fail even when SWDIO/SWCLK/VTref are correct.
+
+2. **Basic board execution**
+   - `build/mainboard_blink.hex` flashed and PB22 green LED blinked.
+   - This proved power, SWD programming, startup code, clock setup, and PB22
+     GPIO on the real PCU board.
+
+3. **Full firmware communication**
+   - `build/satellite_firmware.hex` flashed and ran on the real mainboard.
+   - ESP32 bridge on J3 UART successfully exchanged CHIPS frames with the
+     mainboard.
+   - `telemetry`, `state`, `adc`, injected sensor commands, and PWM safety
+     commands all returned valid responses.
+
+4. **Injected-input demo path**
+   - Injected values are accepted and echoed in telemetry.
+   - Mainboard ADC command returns `SUCCESS`; current bench setup has unpowered
+     analog monitor nets, so all raw ADC readings were `0`.
+   - This is acceptable for the current logic-only test because `BUCK_IN` was
+     measured at `0 V` and `BUCK_OUT` at about `0.041 V`.
+
+5. **MPPT closed-loop simulation**
+   - ESP32 `sim-mppt on` drove the real SAMD21 MPPT mode with injected values.
+   - The SAMD21 reported `mode=mppt`, `pwm=1`, `armed=1`, and a moving duty.
+   - Example convergence result: duty around `47856..48184` for target
+     `46666`, error roughly `1190..1518` counts.
+
+6. **State-machine scenarios**
+   - `test-timeouts fast` was accepted.
+   - `sim-fsm run` completed:
+
+```text
+SIM FSM: complete pass=6 fail=0
+```
+
+7. **PWM safety gate**
+   - Boot state and mode changes leave PWM disarmed.
+   - `pwm-disarm` forces:
+
+```text
+applied_duty=0
+pwm=0
+armed=0
+```
+
+   - Injected fault refused/blocked PWM arming as expected.
+   - Safe injected inputs plus fixed mode allowed arming:
+
+```text
+control=fixed
+applied_duty=20000
+pwm=1
+armed=1
+```
+
+8. **PWM waveform**
+   - Scope: Rigol MSO5074.
+   - Probed `PWM_H` and `PWM_L` with only logic power applied.
+   - Initial dead-time constants were `2` GCLK counts, about `42 ns`, and the
+     visual gap was considered too tight.
+   - Dead-time constants were increased to `6` GCLK counts:
+
+```c
+TCC0_DEAD_TIME_LOW_SIDE_IN_GCLK_COUNTS  = 6u
+TCC0_DEAD_TIME_HIGH_SIDE_IN_GCLK_COUNTS = 6u
+```
+
+   - Approximate target dead time is now `6 * 20.8 ns = 125 ns`.
+   - After reflashing, the checked blue-falling/yellow-rising edge showed a
+     visible non-overlap gap with scope cursor `Delta X` around `100 ns`.
+   - PWM was disarmed after the scope check.
+
+### Immediate Next Step
+
+Finish PWM sign-off before energizing any buck power path:
+
+1. Re-arm fixed-duty PWM with `sunny`, `mode fixed`, `duty 20000`, `pwm-arm`.
+2. Check the opposite edge on the oscilloscope:
+   - already checked: blue falling, yellow rising;
+   - still needed: yellow falling, blue rising.
+3. Confirm that both edges have a visible both-low dead time and no overlap.
+4. Repeat a quick duty sweep at low, medium, and high duty:
+
+```text
+duty 10000
+duty 20000
+duty 50000
+```
+
+5. After every PWM test, run:
+
+```text
+pwm-disarm
+state
+```
+
+   and verify:
+
+```text
+applied_duty=0
+pwm=0
+armed=0
+```
+
+Only after that PWM sign-off should the project move toward real power-stage
+tests or real analog-sensor calibration.
+
+### Next Big Step After PWM Sign-Off
+
+Once both PWM edges and a small duty sweep are verified, the next coherent
+project step is **real ADC and bench-input validation**, not more simulated
+logic:
+
+1. Keep PWM disarmed.
+2. Apply known, current-limited bench voltages to the relevant safe monitor
+   inputs or board rails according to the schematic.
+3. Use `adc` / `adc-stream` to verify `OUTV1`, `OUTV2`, `OUTA1`, and `OUTA2`
+   move in the expected direction.
+4. Compare raw ADC counts and converted engineering values against the
+   multimeter.
+5. Only then consider a low-energy closed-loop buck test.

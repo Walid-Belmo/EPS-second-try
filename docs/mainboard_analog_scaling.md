@@ -8,6 +8,14 @@ values. The formulas below are nominal design conversions; final pass/fail
 thresholds still need bench calibration against a multimeter, oscilloscope, or
 known electronic load.
 
+The ESP32 bridge prints these values with:
+
+```text
+adc
+adc-stream 5
+adc-stop
+```
+
 ## ADC Count To Pin Voltage
 
 The mainboard ADC reader currently configures the SAMD21 ADC so the measured
@@ -94,6 +102,11 @@ Recommended firmware behavior:
 - expose nominal converted current for visibility;
 - keep any protection or presentation thresholds conservative until one board is
   checked against real measured current.
+
+The firmware telemetry marks these converted values with
+`CONVERSIONS_NOMINAL`. The `OUTA1`/`OUTA2` and `OUTV1`/`OUTV2` conversions are
+also marked provisional until bench validation confirms the schematic-derived
+ratios.
 
 ## Relation To Other Analog Signals
 

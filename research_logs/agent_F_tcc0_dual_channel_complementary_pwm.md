@@ -261,3 +261,34 @@ Ground rules:
 - **Why I'm recording it:** This gives the exact register-write sequence to adapt for the mainboard. Reuses validated code structure.
 
 ---
+
+## 2026-05-10 correction: implementation uses SWAP2, not INVEN7
+
+The earlier notes correctly identified the PCB constraint and the need to use
+two TCC0 DTI slices, but the first proposed polarity fix used `DRVCTRL.INVEN7`.
+That is not the safest first implementation because `INVENx` is after the DTI
+stage. Inverting after DTI also inverts the DTI-forced low interval, so it can
+remove the intended both-low dead-time at the actual PCB pins.
+
+The better implementation uses the TCC `SWAP` unit, which is part of the TCC
+waveform-extension path for the DTI output pair. The firmware now uses:
+
+```text
+WAVE.WAVEGEN = NPWM
+WAVE.SWAP2 = 1
+WAVE.SWAP3 = 0
+WEXCTRL.DTIEN2 = 1
+WEXCTRL.DTIEN3 = 1
+CC[2] = CC[3]
+CCB[2] = CCB[3] for duty updates
+DRVCTRL.NRE6 = 1
+DRVCTRL.NRE7 = 1
+```
+
+This makes `PA12/WO[6]` receive the LS-shaped output of DTI2 via `SWAP2`, while
+`PA13/WO[7]` receives the HS-shaped output of DTI3. Because both slices use the
+same TCC0 counter, same period, same compare value, and same `DTLS/DTHS`, the
+expected output is complementary PWM with both-off dead time at both transitions.
+
+This still requires oscilloscope validation before energizing the buck power
+stage.

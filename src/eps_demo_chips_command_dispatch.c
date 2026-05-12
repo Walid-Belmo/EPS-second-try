@@ -34,7 +34,7 @@
 #define MINIMUM_DEMO_TIMEOUT_ITERATIONS     1u
 #define MAXIMUM_DEMO_TIMEOUT_ITERATIONS     60000u
 
-#define TELEMETRY_PAYLOAD_PROTOCOL_VERSION  2u
+#define TELEMETRY_PAYLOAD_PROTOCOL_VERSION  4u
 #define CONTROL_LOOP_PERIOD_MS              100u
 #define PANEL_RAW_ADC_TO_MILLIVOLTS_SCALE   5u
 #define PANEL_RAW_ADC_TO_MILLIAMPS_SCALE    2u
@@ -96,6 +96,7 @@ static struct eps_demo_chips_dispatch_state {
     eps_demo_injected_sensor_frame_type injected_inputs;
     uint8_t input_source;
     uint8_t control_mode;
+    uint8_t pwm_output_armed;
     uint16_t fixed_duty_cycle_as_fraction_of_65535;
 
     uint8_t telemetry_stream_enabled;
@@ -120,6 +121,27 @@ static void write_injected_frame_to_payload(uint8_t *buffer,
                                             uint16_t *position);
 static void write_control_snapshot_to_payload(uint8_t *buffer,
                                               uint16_t *position);
+static void write_mainboard_analog_telemetry_block_to_payload(
+    uint8_t *buffer,
+    uint16_t *position);
+#ifdef __SAMD21J17D__
+static void write_mainboard_adc_raw_fields_to_payload(
+    uint8_t *buffer,
+    uint16_t *position,
+    const mainboard_adc_telemetry_type *telemetry);
+static void write_mainboard_adc_pin_mv_fields_to_payload(
+    uint8_t *buffer,
+    uint16_t *position,
+    const mainboard_adc_telemetry_type *telemetry);
+static void write_mainboard_adc_engineering_fields_to_payload(
+    uint8_t *buffer,
+    uint16_t *position,
+    const mainboard_adc_telemetry_type *telemetry);
+#else
+static void write_zero_mainboard_analog_telemetry_fields_to_payload(
+    uint8_t *buffer,
+    uint16_t *position);
+#endif
 static void initialize_default_eps_configuration_thresholds(void);
 static void initialize_demo_control_logic(void);
 static void reset_demo_control_state_for_new_mode(void);
@@ -162,6 +184,9 @@ static void handle_set_demo_timing(
 static void handle_get_mainboard_adc(
     const chips_parsed_frame_type *received_command,
     chips_parsed_frame_type *response_to_build);
+static void handle_set_pwm_arm(
+    const chips_parsed_frame_type *received_command,
+    chips_parsed_frame_type *response_to_build);
 static void build_unknown_command_response(
     chips_parsed_frame_type *response_to_build);
 static void send_response_frame_and_update_cache(
@@ -200,6 +225,7 @@ void eps_demo_chips_command_dispatch_initialize(void)
 
     dispatch_state.input_source = INPUT_SOURCE_INJECTED_VALUES;
     dispatch_state.control_mode = CONTROL_MODE_OFF;
+    dispatch_state.pwm_output_armed = 0u;
     dispatch_state.fixed_duty_cycle_as_fraction_of_65535 = 32768u;
 
     dispatch_state.telemetry_stream_enabled = 0u;
@@ -294,6 +320,10 @@ void eps_demo_chips_dispatch_received_command_and_send_response(
 
     case CHIPS_COMMAND_ID_GET_MAINBOARD_ADC:
         handle_get_mainboard_adc(received_command_frame, &response_frame);
+        break;
+
+    case CHIPS_COMMAND_ID_SET_PWM_ARM:
+        handle_set_pwm_arm(received_command_frame, &response_frame);
         break;
 
     default:
@@ -462,6 +492,83 @@ static void write_control_snapshot_to_payload(uint8_t *buffer,
     write_u8(buffer, position, dispatch_state.control_snapshot.last_control_mode_executed);
 }
 
+static void write_mainboard_analog_telemetry_block_to_payload(
+    uint8_t *buffer,
+    uint16_t *position)
+{
+#ifdef __SAMD21J17D__
+    mainboard_adc_telemetry_type telemetry;
+    mainboard_adc_reader_read_telemetry(&telemetry);
+
+    write_u8(buffer, position, telemetry.scaling_flags);
+    write_mainboard_adc_raw_fields_to_payload(buffer, position, &telemetry);
+    write_mainboard_adc_pin_mv_fields_to_payload(buffer, position, &telemetry);
+    write_mainboard_adc_engineering_fields_to_payload(buffer,
+                                                      position,
+                                                      &telemetry);
+#else
+    write_zero_mainboard_analog_telemetry_fields_to_payload(buffer, position);
+#endif
+}
+
+#ifdef __SAMD21J17D__
+static void write_mainboard_adc_raw_fields_to_payload(
+    uint8_t *buffer,
+    uint16_t *position,
+    const mainboard_adc_telemetry_type *telemetry)
+{
+    write_u16_le(buffer, position, telemetry->raw.pv_imon_raw_adc);
+    write_u16_le(buffer, position, telemetry->raw.bat_imon_raw_adc);
+    write_u16_le(buffer, position, telemetry->raw.outa1_raw_adc);
+    write_u16_le(buffer, position, telemetry->raw.outa2_raw_adc);
+    write_u16_le(buffer, position, telemetry->raw.outv1_raw_adc);
+    write_u16_le(buffer, position, telemetry->raw.outv2_raw_adc);
+}
+
+static void write_mainboard_adc_pin_mv_fields_to_payload(
+    uint8_t *buffer,
+    uint16_t *position,
+    const mainboard_adc_telemetry_type *telemetry)
+{
+    write_u16_le(buffer, position, telemetry->pv_imon_pin_mv);
+    write_u16_le(buffer, position, telemetry->bat_imon_pin_mv);
+    write_u16_le(buffer, position, telemetry->outa1_pin_mv);
+    write_u16_le(buffer, position, telemetry->outa2_pin_mv);
+    write_u16_le(buffer, position, telemetry->outv1_pin_mv);
+    write_u16_le(buffer, position, telemetry->outv2_pin_mv);
+}
+
+static void write_mainboard_adc_engineering_fields_to_payload(
+    uint8_t *buffer,
+    uint16_t *position,
+    const mainboard_adc_telemetry_type *telemetry)
+{
+    write_u32_le(buffer, position, telemetry->pv_imon_ma);
+    write_u32_le(buffer, position, telemetry->bat_imon_ma);
+    write_u32_le(buffer, position, telemetry->outa1_ma);
+    write_u32_le(buffer, position, telemetry->outa2_ma);
+    write_u32_le(buffer, position, telemetry->outv1_mv);
+    write_u32_le(buffer, position, telemetry->outv2_mv);
+}
+#else
+static void write_zero_mainboard_analog_telemetry_fields_to_payload(
+    uint8_t *buffer,
+    uint16_t *position)
+{
+    write_u8(buffer, position, 0u);
+
+    for (uint8_t field_index = 0u; field_index < 12u; field_index += 1u)
+    {
+        write_u16_le(buffer, position, 0u);
+    }
+
+    for (uint8_t field_index = 0u; field_index < 6u; field_index += 1u)
+    {
+        write_u32_le(buffer, position, 0u);
+    }
+}
+#endif
+
 static void initialize_default_eps_configuration_thresholds(void)
 {
     dispatch_state.eps_configuration_thresholds.battery_voltage_maximum_in_millivolts =
@@ -557,6 +664,7 @@ static void reset_demo_control_state_for_new_mode(void)
     dispatch_state.control_snapshot.applied_pwm_duty_cycle_as_fraction_of_65535 =
         0u;
     dispatch_state.control_snapshot.pwm_output_enabled = 0u;
+    dispatch_state.pwm_output_armed = 0u;
     pwm_buck_converter_set_duty_cycle(0u);
 }
 
@@ -664,9 +772,17 @@ static void run_demo_control_loop_once(void)
         applied_duty_cycle_as_fraction_of_65535 = 0u;
         pwm_output_enabled = 0u;
         panel_efuse_enabled = 0u;
+        dispatch_state.pwm_output_armed = 0u;
         safe_mode_active = 1u;
         safe_mode_alert = 1u;
         safe_mode_reason = DEMO_SAFE_REASON_INJECTED_FAULT;
+    }
+
+    if (dispatch_state.pwm_output_armed == 0u)
+    {
+        applied_duty_cycle_as_fraction_of_65535 = 0u;
+        pwm_output_enabled = 0u;
+        panel_efuse_enabled = 0u;
     }
 
     pwm_buck_converter_set_duty_cycle(applied_duty_cycle_as_fraction_of_65535);
@@ -848,6 +964,12 @@ static void build_telemetry_payload(chips_parsed_frame_type *response_to_build,
                                     &position);
     write_control_snapshot_to_payload(response_to_build->payload_bytes,
                                       &position);
+    write_mainboard_analog_telemetry_block_to_payload(
+        response_to_build->payload_bytes,
+        &position);
+    write_u8(response_to_build->payload_bytes,
+             &position,
+             dispatch_state.pwm_output_armed);
 
     response_to_build->payload_length_in_bytes = position;
 }
@@ -935,6 +1057,8 @@ static void handle_get_state(
              dispatch_state.control_snapshot.pwm_output_enabled);
     write_u8(response_to_build->payload_bytes, &position,
              dispatch_state.control_snapshot.load_enable_mask);
+    write_u8(response_to_build->payload_bytes, &position,
+             dispatch_state.pwm_output_armed);
 
     response_to_build->payload_length_in_bytes = position;
 }
@@ -1109,29 +1233,79 @@ static void handle_get_mainboard_adc(
     }
 
 #ifdef __SAMD21J17D__
-    mainboard_adc_readings_type readings;
-    mainboard_adc_reader_read_all_channels(&readings);
+    mainboard_adc_telemetry_type telemetry;
+    mainboard_adc_reader_read_telemetry(&telemetry);
 
     uint16_t position = 0u;
     write_u8(response_to_build->payload_bytes, &position,
              (uint8_t)CHIPS_RESPONSE_STATUS_SUCCESS);
-    write_u16_le(response_to_build->payload_bytes, &position,
-                 readings.pv_imon_raw_adc);
-    write_u16_le(response_to_build->payload_bytes, &position,
-                 readings.bat_imon_raw_adc);
-    write_u16_le(response_to_build->payload_bytes, &position,
-                 readings.outa1_raw_adc);
-    write_u16_le(response_to_build->payload_bytes, &position,
-                 readings.outa2_raw_adc);
-    write_u16_le(response_to_build->payload_bytes, &position,
-                 readings.outv1_raw_adc);
-    write_u16_le(response_to_build->payload_bytes, &position,
-                 readings.outv2_raw_adc);
+    write_mainboard_adc_raw_fields_to_payload(response_to_build->payload_bytes,
+                                              &position,
+                                              &telemetry);
+    write_mainboard_adc_pin_mv_fields_to_payload(
+        response_to_build->payload_bytes,
+        &position,
+        &telemetry);
+    write_mainboard_adc_engineering_fields_to_payload(
+        response_to_build->payload_bytes,
+        &position,
+        &telemetry);
+    write_u8(response_to_build->payload_bytes,
+             &position,
+             telemetry.scaling_flags);
     response_to_build->payload_length_in_bytes = position;
 #else
     build_ack_payload(response_to_build,
                       (uint8_t)CHIPS_RESPONSE_STATUS_COMMAND_NOT_AVAILABLE);
 #endif
+}
+
+static void handle_set_pwm_arm(
+    const chips_parsed_frame_type *received_command,
+    chips_parsed_frame_type *response_to_build)
+{
+    if (received_command->payload_length_in_bytes != 1u)
+    {
+        build_ack_payload(response_to_build,
+            (uint8_t)CHIPS_RESPONSE_STATUS_INVALID_PAYLOAD_LENGTH);
+        return;
+    }
+
+    uint8_t requested_armed_state = received_command->payload_bytes[0];
+    if (requested_armed_state > 1u)
+    {
+        build_ack_payload(response_to_build,
+            (uint8_t)CHIPS_RESPONSE_STATUS_PARAMETER_OUT_OF_RANGE);
+        return;
+    }
+
+    if ((requested_armed_state != 0u)
+        && (dispatch_state.injected_inputs.fault_flags != 0u))
+    {
+        build_ack_payload(response_to_build,
+            (uint8_t)CHIPS_RESPONSE_STATUS_PARAMETER_OUT_OF_RANGE);
+        return;
+    }
+
+    dispatch_state.pwm_output_armed = requested_armed_state;
+
+    if (dispatch_state.pwm_output_armed == 0u)
+    {
+        dispatch_state.control_snapshot.applied_pwm_duty_cycle_as_fraction_of_65535 =
+            0u;
+        dispatch_state.control_snapshot.panel_efuse_enabled = 0u;
+        dispatch_state.control_snapshot.pwm_output_enabled = 0u;
+        pwm_buck_converter_set_duty_cycle(0u);
+    }
+
+    uint16_t position = 0u;
+    write_u8(response_to_build->payload_bytes,
+             &position,
+             (uint8_t)CHIPS_RESPONSE_STATUS_SUCCESS);
+    write_u8(response_to_build->payload_bytes,
+             &position,
+             dispatch_state.pwm_output_armed);
+    response_to_build->payload_length_in_bytes = position;
 }
 
 static void build_unknown_command_response(

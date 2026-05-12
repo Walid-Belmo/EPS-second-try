@@ -28,6 +28,19 @@
 #define PORT_MUX_FUNCTION_B_FOR_ANALOG             1u
 #define MAXIMUM_ADC_WAIT_ITERATIONS           100000u
 #define ADC_RESULT_MASK_12_BITS                  0x0FFFu
+#define ADC_FULL_SCALE_RAW_COUNT                   4095u
+#define ADC_REFERENCE_MILLIVOLTS                   3300u
+
+#define TPS25940_IMON_OFFSET_MICROVOLTS            9680u
+#define TPS25940_IMON_MICROVOLTS_PER_AMP         629200u
+
+#define OUTV1_DIVIDER_TOP_OHMS                   100000u
+#define OUTV1_DIVIDER_BOTTOM_OHMS                  3600u
+#define OUTV2_DIVIDER_TOP_OHMS                   100000u
+#define OUTV2_DIVIDER_BOTTOM_OHMS                 11800u
+
+#define OUTA_CURRENT_MILLIAMPS_NUMERATOR             40u
+#define OUTA_CURRENT_MILLIAMPS_DENOMINATOR            3u
 
 static uint8_t adc_reader_has_been_initialized;
 static uint8_t most_recently_selected_adc_channel = 0xFFu;
@@ -44,6 +57,13 @@ static void select_adc_channel(uint8_t adc_channel_number);
 static uint16_t read_one_adc_conversion(void);
 static uint8_t wait_until_adc_is_synchronized(void);
 static uint8_t wait_until_adc_result_is_ready(void);
+static uint16_t convert_raw_adc_to_pin_millivolts(uint16_t raw_adc);
+static uint32_t convert_tps25940_imon_pin_mv_to_load_ma(uint16_t pin_mv);
+static uint32_t convert_outa_pin_mv_to_load_ma(uint16_t pin_mv);
+static uint32_t convert_divider_pin_mv_to_input_mv(
+    uint16_t pin_mv,
+    uint32_t top_resistor_ohms,
+    uint32_t bottom_resistor_ohms);
 
 void mainboard_adc_reader_initialize(void)
 {
@@ -91,6 +111,68 @@ void mainboard_adc_reader_read_all_channels(
         mainboard_adc_reader_read_raw_channel(MAINBOARD_ADC_CHANNEL_OUTV1);
     readings_output->outv2_raw_adc =
         mainboard_adc_reader_read_raw_channel(MAINBOARD_ADC_CHANNEL_OUTV2);
+}
+
+void mainboard_adc_reader_convert_readings_to_telemetry(
+    const mainboard_adc_readings_type *readings_input,
+    mainboard_adc_telemetry_type *telemetry_output)
+{
+    SATELLITE_ASSERT(readings_input != (void *)0);
+    SATELLITE_ASSERT(telemetry_output != (void *)0);
+
+    telemetry_output->raw = *readings_input;
+
+    telemetry_output->pv_imon_pin_mv =
+        convert_raw_adc_to_pin_millivolts(readings_input->pv_imon_raw_adc);
+    telemetry_output->bat_imon_pin_mv =
+        convert_raw_adc_to_pin_millivolts(readings_input->bat_imon_raw_adc);
+    telemetry_output->outa1_pin_mv =
+        convert_raw_adc_to_pin_millivolts(readings_input->outa1_raw_adc);
+    telemetry_output->outa2_pin_mv =
+        convert_raw_adc_to_pin_millivolts(readings_input->outa2_raw_adc);
+    telemetry_output->outv1_pin_mv =
+        convert_raw_adc_to_pin_millivolts(readings_input->outv1_raw_adc);
+    telemetry_output->outv2_pin_mv =
+        convert_raw_adc_to_pin_millivolts(readings_input->outv2_raw_adc);
+
+    telemetry_output->pv_imon_ma =
+        convert_tps25940_imon_pin_mv_to_load_ma(
+            telemetry_output->pv_imon_pin_mv);
+    telemetry_output->bat_imon_ma =
+        convert_tps25940_imon_pin_mv_to_load_ma(
+            telemetry_output->bat_imon_pin_mv);
+    telemetry_output->outa1_ma =
+        convert_outa_pin_mv_to_load_ma(telemetry_output->outa1_pin_mv);
+    telemetry_output->outa2_ma =
+        convert_outa_pin_mv_to_load_ma(telemetry_output->outa2_pin_mv);
+    telemetry_output->outv1_mv =
+        convert_divider_pin_mv_to_input_mv(
+            telemetry_output->outv1_pin_mv,
+            OUTV1_DIVIDER_TOP_OHMS,
+            OUTV1_DIVIDER_BOTTOM_OHMS);
+    telemetry_output->outv2_mv =
+        convert_divider_pin_mv_to_input_mv(
+            telemetry_output->outv2_pin_mv,
+            OUTV2_DIVIDER_TOP_OHMS,
+            OUTV2_DIVIDER_BOTTOM_OHMS);
+
+    telemetry_output->scaling_flags =
+        MAINBOARD_ADC_TELEMETRY_FLAG_READINGS_PRESENT |
+        MAINBOARD_ADC_TELEMETRY_FLAG_CONVERSIONS_NOMINAL |
+        MAINBOARD_ADC_TELEMETRY_FLAG_OUTA_SCALING_PROVISIONAL |
+        MAINBOARD_ADC_TELEMETRY_FLAG_OUTV_SCALING_PROVISIONAL;
+}
+
+void mainboard_adc_reader_read_telemetry(
+    mainboard_adc_telemetry_type *telemetry_output)
+{
+    SATELLITE_ASSERT(telemetry_output != (void *)0);
+
+    mainboard_adc_readings_type readings;
+    mainboard_adc_reader_read_all_channels(&readings);
+    mainboard_adc_reader_convert_readings_to_telemetry(
+        &readings,
+        telemetry_output);
 }
 
 static void enable_adc_bus_clock_for_register_access(void)
@@ -230,4 +312,45 @@ static uint8_t wait_until_adc_result_is_ready(void)
     }
 
     return 0u;
+}
+
+static uint16_t convert_raw_adc_to_pin_millivolts(uint16_t raw_adc)
+{
+    uint32_t millivolts =
+        ((uint32_t)raw_adc * ADC_REFERENCE_MILLIVOLTS)
+        + (ADC_FULL_SCALE_RAW_COUNT / 2u);
+
+    return (uint16_t)(millivolts / ADC_FULL_SCALE_RAW_COUNT);
+}
+
+static uint32_t convert_tps25940_imon_pin_mv_to_load_ma(uint16_t pin_mv)
+{
+    uint32_t pin_uv = (uint32_t)pin_mv * 1000u;
+
+    if (pin_uv <= TPS25940_IMON_OFFSET_MICROVOLTS)
+    {
+        return 0u;
+    }
+
+    return ((pin_uv - TPS25940_IMON_OFFSET_MICROVOLTS) * 1000u)
+        / TPS25940_IMON_MICROVOLTS_PER_AMP;
+}
+
+static uint32_t convert_outa_pin_mv_to_load_ma(uint16_t pin_mv)
+{
+    return ((uint32_t)pin_mv * OUTA_CURRENT_MILLIAMPS_NUMERATOR)
+        / OUTA_CURRENT_MILLIAMPS_DENOMINATOR;
+}
+
+static uint32_t convert_divider_pin_mv_to_input_mv(
+    uint16_t pin_mv,
+    uint32_t top_resistor_ohms,
+    uint32_t bottom_resistor_ohms)
+{
+    uint32_t divider_sum_ohms = top_resistor_ohms + bottom_resistor_ohms;
+    uint32_t numerator =
+        ((uint32_t)pin_mv * divider_sum_ohms)
+        + (bottom_resistor_ohms / 2u);
+
+    return numerator / bottom_resistor_ohms;
 }
