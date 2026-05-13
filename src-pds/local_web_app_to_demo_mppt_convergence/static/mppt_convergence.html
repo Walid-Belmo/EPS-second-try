@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Source PDS - MPPT Convergence</title>
+  <link rel="stylesheet" href="/static/mppt_convergence.css">
+</head>
+<body>
+  <header class="top-bar">
+    <div>
+      <h1>MPPT Convergence</h1>
+      <p id="connectionStatus">Disconnected</p>
+    </div>
+    <div class="serial-controls">
+      <label for="serialPort">ESP32 port</label>
+      <input id="serialPort" value="COM3" autocomplete="off">
+      <button id="connectButton" type="button">Connect</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="control-panel" aria-label="Curve controls">
+      <div class="section-title">
+        <h2>Curve Parameters</h2>
+        <span id="curveState">Valid curve</span>
+      </div>
+
+      <div class="control-row">
+        <label for="coefficientA">A <span>mA/V^2</span></label>
+        <output id="coefficientAValue">-10.0</output>
+        <input id="coefficientA" type="range" min="-30" max="-1" step="0.1" value="-10">
+      </div>
+
+      <div class="control-row">
+        <label for="coefficientB">B <span>mA/V</span></label>
+        <output id="coefficientBValue">150</output>
+        <input id="coefficientB" type="range" min="0" max="400" step="1" value="150">
+      </div>
+
+      <div class="control-row">
+        <label for="coefficientC">C <span>mA</span></label>
+        <output id="coefficientCValue">720</output>
+        <input id="coefficientC" type="range" min="0" max="3000" step="10" value="720">
+      </div>
+
+      <div class="control-row">
+        <label for="minimumPanelVoltage">Vmin <span>V</span></label>
+        <output id="minimumPanelVoltageValue">0.0</output>
+        <input id="minimumPanelVoltage" type="range" min="0" max="8" step="0.1" value="0">
+      </div>
+
+      <div class="control-row">
+        <label for="maximumPanelVoltage">Vmax <span>V</span></label>
+        <output id="maximumPanelVoltageValue">18.0</output>
+        <input id="maximumPanelVoltage" type="range" min="12" max="25" step="0.1" value="18">
+      </div>
+
+      <div class="control-row">
+        <label for="batteryVoltage">Battery <span>V</span></label>
+        <output id="batteryVoltageValue">7.4</output>
+        <input id="batteryVoltage" type="range" min="6.5" max="8.4" step="0.1" value="7.4">
+      </div>
+
+      <div class="button-row">
+        <button id="offButton" type="button" class="danger">Off</button>
+        <button id="startButton" type="button" class="primary">Start MPPT Test</button>
+      </div>
+
+      <div class="command-box">
+        <div class="command-label">Command sent on Start</div>
+        <code id="commandPreview"></code>
+      </div>
+    </section>
+
+    <section class="graph-panel" aria-label="MPPT graphs">
+      <div class="graph-header">
+        <h2>I-V Curve</h2>
+        <div class="legend">
+          <span><i class="line current"></i>Current</span>
+          <span><i class="point trail"></i>Board path</span>
+          <span><i class="point board"></i>Latest point</span>
+        </div>
+      </div>
+      <canvas id="ivGraph" width="900" height="330"></canvas>
+
+      <div class="graph-header second">
+        <h2>P-V Curve</h2>
+        <div class="legend">
+          <span><i class="line power"></i>Power</span>
+          <span><i class="point mpp"></i>MPP</span>
+          <span><i class="point trail"></i>Board path</span>
+          <span><i class="point board"></i>Latest point</span>
+        </div>
+      </div>
+      <canvas id="pvGraph" width="900" height="330"></canvas>
+    </section>
+
+    <aside class="status-panel" aria-label="Board status">
+      <h2>Board Values</h2>
+      <div class="metric-grid">
+        <div class="metric"><span>Mode</span><strong id="modeValue">-</strong></div>
+        <div class="metric"><span>Duty</span><strong id="dutyValue">-</strong></div>
+        <div class="metric"><span>Panel V</span><strong id="panelVoltageValue">-</strong></div>
+        <div class="metric"><span>Panel I</span><strong id="panelCurrentValue">-</strong></div>
+        <div class="metric"><span>Panel P</span><strong id="panelPowerValue">-</strong></div>
+        <div class="metric"><span>MPP</span><strong id="mppValue">-</strong></div>
+      </div>
+
+      <h2 class="log-title">Command Log</h2>
+      <pre id="commandLog"></pre>
+    </aside>
+  </main>
+
+  <script src="/static/mppt_convergence.js"></script>
+</body>
+</html>

@@ -199,11 +199,98 @@ Reference first:
 - `src/drivers/mainboard_adc_reader.c`
 - `src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.c`
 
+## Local Web Demo Pages
+
+Goal: create local pages that make the important Source PDS behaviors visible
+to someone who is not already inside the project.
+
+These pages are served by Python on the computer.
+The computer sends readable text commands to the ESP32.
+The ESP32 translates those text commands into CHIPS packets for the SAMD21.
+
+### 1. MPPT Convergence Page
+
+Folder:
+
+```text
+src-pds/local_web_app_to_demo_mppt_convergence/
+```
+
+Purpose:
+
+- Let the user choose a simulated solar-panel I-V curve with `A`, `B`, and `C`
+  values.
+- Show the I-V curve.
+- Show the P-V curve.
+- Show the theoretical maximum power point.
+- Send `start_mppt_demo` to the ESP32 bridge.
+- Plot the board-reported voltage, current, power, and duty cycle while the
+  MPPT algorithm runs.
+
+Status:
+
+- First version exists.
+- User tested it and reported that it does not work correctly.
+- This page must be debugged before it can be treated as a working demo.
+
+Debugging to do:
+
+- Verify the browser sends the expected commands to the Python server.
+- Verify the Python server sends the expected text commands to the ESP32.
+- Verify the ESP32 returns live board values after `start_mppt_demo`.
+- Verify the page updates from those returned values.
+- Verify the graph path matches the board telemetry, not only the simulated
+  curve drawn in the browser.
+
+### 2. State Transition Page
+
+Purpose:
+
+- Let the user inject the values that drive the PCU state machine.
+- Show transitions between `MPPT_CHARGE`, `CV_FLOAT`, `SA_LOAD_FOLLOW`, and
+  `BATTERY_DISCHARGE`.
+- Show which injected value caused the transition.
+- Show the outputs chosen by the board, such as panel eFuse state, load state,
+  heater state, safe alert, and PWM request.
+
+Status:
+
+- Not implemented yet.
+
+### 3. Manual PWM And Board Control Page
+
+Purpose:
+
+- Let the user send one direct PWM value with `run_pwm`.
+- Show requested PWM, applied PWM, and whether PWM output is enabled.
+- Provide a clear `off` button that stops the board output.
+- Make simple real-life board checks possible without running MPPT or the state
+  machine demo.
+
+Status:
+
+- Not implemented yet.
+
+### 4. Communication And Status Page
+
+Purpose:
+
+- Demonstrate the computer -> ESP32 -> SAMD21 command path.
+- Show command replies from the board.
+- Show `get_values` and `stream_values`.
+- Show packet counters, last command, last command status, and visible serial
+  traffic.
+
+Status:
+
+- Not implemented yet.
+
 ## Current Blocking Items
 
-- `src-pds` is not yet wired into the Makefile.
-- The ESP32 text command parser is not yet written in this folder.
-- The board command handlers are not implemented yet.
-- The MPPT curve simulator is not implemented yet.
-- The state-transition demo is not connected to `eps_state_machine` yet.
-- Status field names and payload format still need to be finalized.
+- The MPPT convergence webpage exists, but user testing shows it needs
+  debugging before it can be used for a presentation.
+- The state transition webpage is not implemented yet.
+- The manual PWM and board control webpage is not implemented yet.
+- The communication and status webpage is not implemented yet.
+- The old root-level `server.py` should not be used as the reference for the
+  new Source PDS web app.
