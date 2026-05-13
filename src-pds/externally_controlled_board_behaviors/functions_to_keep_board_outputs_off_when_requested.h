@@ -1,0 +1,7 @@
+#ifndef FUNCTIONS_TO_KEEP_BOARD_OUTPUTS_OFF_WHEN_REQUESTED_H
+#define FUNCTIONS_TO_KEEP_BOARD_OUTPUTS_OFF_WHEN_REQUESTED_H
+
+void run_off_mode(void);
+void run_full_satellite_logic(void);
+
+#endif /* FUNCTIONS_TO_KEEP_BOARD_OUTPUTS_OFF_WHEN_REQUESTED_H */

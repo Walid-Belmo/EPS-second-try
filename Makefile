@@ -9,6 +9,7 @@
 #   make BOARD=mainboard        -> EPS PCU testing board V4.1
 #                                  (SAMD21J17D-MUT, 64-pin QFN)
 #   make BOARD=mainboard flash  -> ditto, then flash
+#   make BOARD=mainboard-pds    -> Source PDS firmware skeleton on mainboard
 #   make clean                  -> wipes build/ regardless of BOARD
 #
 # IMPORTANT: ALWAYS run `make clean` when switching the BOARD variable.
@@ -74,8 +75,41 @@ There is no default. See docs/build_targets_and_file_map.md for the file map.)
                         src/eps_state_machine.c \
                         src/eps_demo_chips_command_dispatch.c
     EXTRA_DEFINES    :=
+  else ifeq ($(BOARD),mainboard-pds)
+    # Source Project Sylvester: cleaned firmware architecture for the same
+    # CHESS EPS PCU testing board V4.1 hardware.
+    CHIP_NAME_DEFINE := -D__SAMD21J17D__
+    STARTUP_SRCS     := startup/startup_samd21j17d.c startup/system_samd21j17d.c
+    LINKER_SCRIPT    := samd21j17d_flash.ld
+    APP_SRCS         := src-pds/app/main.c \
+                        src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.c \
+                        src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.c \
+                        src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.c \
+                        src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.c \
+                        src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.c \
+                        src-pds/command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.c \
+                        src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.c \
+                        src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.c \
+                        src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_simulated_solar_panel_curve.c \
+                        src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.c \
+                        src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.c \
+                        src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.c \
+                        src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.c \
+                        src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.c \
+                        src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.c \
+                        src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.c \
+                        src/drivers/clock_configure_48mhz_dfll_open_loop.c \
+                        src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.c \
+                        src/drivers/mainboard_adc_reader.c \
+                        src/drivers/millisecond_tick_timer_using_arm_systick.c \
+                        src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.c \
+                        src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.c \
+                        src/assertion_handler.c \
+                        src/mppt_algorithm.c \
+                        src/eps_state_machine.c
+    EXTRA_DEFINES    :=
   else
-    $(error BOARD must be 'devboard' or 'mainboard' (got '$(BOARD)'))
+    $(error BOARD must be 'devboard', 'mainboard', or 'mainboard-pds' (got '$(BOARD)'))
   endif
 endif
 
@@ -83,10 +117,10 @@ endif
 
 SRCS := $(APP_SRCS) $(STARTUP_SRCS) syscalls_min.c
 
-OBJS := $(addprefix $(BUILD), $(addsuffix .o, $(basename $(notdir $(SRCS)))))
+OBJS := $(addprefix $(BUILD), $(patsubst %.c,%.o,$(SRCS)))
 
 # Include paths — use -isystem for vendor headers to suppress their warnings
-INC := -I src -I src/drivers
+INC := -I src -I src/drivers -I src-pds
 VENDOR_INC := -isystem lib/cmsis -isystem lib/samd21-dfp -isystem startup
 
 # ── CPU flags — same Cortex-M0+ silicon on both boards ───────────────────────
@@ -109,7 +143,7 @@ all: $(BUILD)$(TARGET).bin
 	@$(SIZE) $(BUILD)$(TARGET).elf
 
 $(BUILD):
-	mkdir -p $(BUILD)
+	if not exist "$(BUILD)" mkdir "$(BUILD)"
 
 $(BUILD)$(TARGET).elf: $(OBJS) | $(BUILD)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS)
@@ -118,15 +152,23 @@ $(BUILD)$(TARGET).bin: $(BUILD)$(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
 $(BUILD)%.o: src/%.c | $(BUILD)
+	if not exist "$(dir $@)" mkdir "$(dir $@)"
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)%.o: src-pds/%.c | $(BUILD)
+	if not exist "$(dir $@)" mkdir "$(dir $@)"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)%.o: src/drivers/%.c | $(BUILD)
+	if not exist "$(dir $@)" mkdir "$(dir $@)"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)%.o: startup/%.c | $(BUILD)
+	if not exist "$(dir $@)" mkdir "$(dir $@)"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD)%.o: %.c | $(BUILD)
+	if not exist "$(dir $@)" mkdir "$(dir $@)"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 flash: all

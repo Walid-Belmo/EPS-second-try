@@ -1,8 +1,11 @@
-#include "esp32_commands.h"
+#include "communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.h"
 
 #include <stdint.h>
 
 #include "chips_protocol_encode_decode_frames_with_crc16_kermit.h"
+#include "communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.h"
+#include "communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.h"
+#include "command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.h"
 #include "uart_obc.h"
 
 static chips_frame_parser_state_type chips_message_reader;
@@ -16,10 +19,7 @@ static void react_to_chips_message_reader_result(
     chips_parser_result_type parser_result);
 
 static void wait_for_more_uart_bytes_before_doing_anything_else(void);
-static void record_broken_chips_message_without_changing_mode_or_outputs(
-    chips_parser_result_type parser_result);
-static void apply_valid_chips_command_to_ram_values(void);
-static void send_reply_for_current_chips_command(void);
+static void execute_valid_chips_command_and_send_reply(void);
 
 void start_esp32_command_reader_with_empty_message_state(void)
 {
@@ -86,12 +86,12 @@ static void react_to_chips_message_reader_result(
 
     if (parser_result == CHIPS_PARSER_RESULT_FRAME_READY)
     {
-        apply_valid_chips_command_to_ram_values();
-        send_reply_for_current_chips_command();
+        record_valid_chips_frame_from_esp32();
+        execute_valid_chips_command_and_send_reply();
         return;
     }
 
-    record_broken_chips_message_without_changing_mode_or_outputs(parser_result);
+    record_broken_chips_message_without_changing_outputs(parser_result);
 }
 
 static void wait_for_more_uart_bytes_before_doing_anything_else(void)
@@ -102,23 +102,9 @@ static void wait_for_more_uart_bytes_before_doing_anything_else(void)
     // checks while the rest of the CHIPS message arrives.
 }
 
-static void record_broken_chips_message_without_changing_mode_or_outputs(
-    chips_parser_result_type parser_result)
+static void execute_valid_chips_command_and_send_reply(void)
 {
-    // Next layer: count CRC errors and oversized-message errors for telemetry.
-    // This must not change the requested mode or any requested board output.
-    (void)parser_result;
-}
-
-static void apply_valid_chips_command_to_ram_values(void)
-{
-    // Next layer: inspect received_chips_message.command_id and payload.
-    // Valid commands update RAM values such as requested mode, fake sensor
-    // inputs, telemetry streaming, fixed PWM request, or PWM arm permission.
-}
-
-static void send_reply_for_current_chips_command(void)
-{
-    // Next layer: build a CHIPS response using the same sequence number and
-    // command ID, then write the encoded bytes to the UART link to the ESP32.
+    chips_parsed_frame_type reply;
+    execute_command_from_esp32_and_build_reply(&received_chips_message, &reply);
+    send_chips_frame_to_esp32(&reply);
 }
