@@ -8,8 +8,8 @@
 #include "communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.h"
 #include "shared_helpers/functions_to_read_and_write_little_endian_values.h"
 #include "board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.h"
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
-#include "command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
+#include "runtime_state/functions_to_access_pds_runtime_state.h"
 #include "status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.h"
 
 static void prepare_reply_header(
@@ -56,7 +56,7 @@ void execute_command_from_esp32_and_build_reply(
     SATELLITE_ASSERT(reply_to_send != (void *)0);
 
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
     prepare_reply_header(received_command, reply_to_send);
 
     if (received_command->response_flag != 0u)
@@ -119,6 +119,10 @@ static void handle_off_command(
 {
     runtime_state->requested_mode = (uint8_t)PDS_REQUESTED_MODE_OFF;
     runtime_state->fixed_pwm_duty_cycle_as_fraction_of_65535 = 0u;
+    runtime_state->snapshot.mppt_input_sample_is_valid = 0u;
+    runtime_state->snapshot.panel_voltage_in_millivolts = 0u;
+    runtime_state->snapshot.panel_current_in_milliamps = 0u;
+    runtime_state->snapshot.panel_power_in_milliwatts = 0u;
     request_no_pwm_output_in_runtime_state(runtime_state);
     build_ack_reply_to_esp32(
         reply_to_send,
@@ -163,20 +167,10 @@ static void handle_start_mppt_demo_command(
         return;
     }
 
-    pds_mppt_demo_curve_type curve =
-        read_mppt_demo_curve_from_command_payload(
-            received_command->payload_bytes);
-    if (mppt_demo_curve_is_valid(&curve) == 0u)
-    {
-        build_ack_reply_to_esp32(
-            reply_to_send,
-            (uint8_t)CHIPS_RESPONSE_STATUS_PARAMETER_OUT_OF_RANGE);
-        return;
-    }
-
-    runtime_state->mppt_curve = curve;
+    runtime_state->mppt_input_source =
+        (uint8_t)PDS_MPPT_INPUT_SOURCE_ESP32_MODEL;
     runtime_state->requested_mode = (uint8_t)PDS_REQUESTED_MODE_MPPT_TEST;
-    reset_mppt_demo_ram_values_after_new_curve();
+    reset_mppt_control_loop_state();
     build_values_reply_with_current_time(
         reply_to_send,
         runtime_state,
@@ -211,7 +205,7 @@ static void handle_start_state_demo_command(
 
     runtime_state->injected_state_inputs = inputs;
     runtime_state->requested_mode = (uint8_t)PDS_REQUESTED_MODE_STATE_TEST;
-    reset_state_demo_ram_values_after_new_inputs();
+    reset_state_demo_runtime_state_after_new_inputs();
     build_values_reply_with_current_time(
         reply_to_send,
         runtime_state,

@@ -10,10 +10,10 @@
 #include "board_outputs/functions_to_block_outputs_when_faults_are_injected.h"
 #include "board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.h"
 #include "communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.h"
-#include "command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.h"
+#include "runtime_state/functions_to_access_pds_runtime_state.h"
 #include "externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.h"
 #include "externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.h"
-#include "externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_simulated_solar_panel_curve.h"
+#include "externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.h"
 #include "externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.h"
 #include "status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.h"
 
@@ -31,7 +31,7 @@ int main(void)
 
     // Start command parsing and all command-controlled RAM from safe values.
     start_esp32_command_reader_with_empty_message_state();
-    set_starting_ram_values_to_safe_defaults();
+    set_starting_runtime_state_to_safe_defaults();
 
     while (1) /* @non-terminating@ */
     {

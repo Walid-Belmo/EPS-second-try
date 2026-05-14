@@ -74,11 +74,14 @@ There is no default. See docs/build_targets_and_file_map.md for the file map.)
                         src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.c \
                         src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.c \
                         src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.c \
-                        src-pds/command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.c \
+                        src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.c \
+                        src-pds/runtime_state/functions_to_access_pds_runtime_state.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.c \
-                        src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_simulated_solar_panel_curve.c \
+                        src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.c \
+                        src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.c \
+                        src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.c \
                         src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.c \
                         src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.c \
                         src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.c \
@@ -124,11 +127,14 @@ There is no default. See docs/build_targets_and_file_map.md for the file map.)
                         src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.c \
                         src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.c \
                         src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.c \
-                        src-pds/command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.c \
+                        src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.c \
+                        src-pds/runtime_state/functions_to_access_pds_runtime_state.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.c \
-                        src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_simulated_solar_panel_curve.c \
+                        src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.c \
+                        src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.c \
+                        src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.c \
                         src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.c \
                         src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.c \
                         src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.c \

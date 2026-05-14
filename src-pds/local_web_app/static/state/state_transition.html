@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Source PDS - State Transitions</title>
+  <link rel="stylesheet" href="/static/state/state_transition.css">
+</head>
+<body>
+  <header class="top-bar">
+    <div>
+      <h1>State Transitions</h1>
+      <p id="connectionStatus">Disconnected</p>
+    </div>
+    <div class="serial-controls">
+      <label for="serialPort">ESP32 port</label>
+      <input id="serialPort" value="COM3" autocomplete="off">
+      <button id="connectButton" type="button">Connect</button>
+      <button id="offButton" type="button" class="danger">Off</button>
+      <button id="enterTestButton" type="button" class="primary" disabled>Enter State Test Mode</button>
+    </div>
+  </header>
+
+  <div id="offGateBanner" class="off-gate-banner">
+    Press <strong>Off</strong> before starting work on this page.
+  </div>
+
+  <main class="page">
+    <section class="control-panel" aria-label="Scenarios">
+      <div class="section-title">
+        <h2>Scenarios</h2>
+        <button id="runAllButton" type="button" class="primary small" disabled>Run all</button>
+      </div>
+
+      <div id="scenarioList" class="scenario-list">
+        Loading scenarios...
+      </div>
+
+      <div class="command-box">
+        <div class="command-label">Last command sent</div>
+        <code id="commandPreview">—</code>
+      </div>
+    </section>
+
+    <section class="graph-panel" aria-label="Diagram and last result">
+      <div class="graph-header">
+        <h2>PCU State</h2>
+        <div class="legend">
+          <span><i class="diagram-dot current"></i>Observed mode</span>
+          <span><i class="diagram-dot safe"></i>Safe mode active</span>
+        </div>
+      </div>
+
+      <svg id="stateDiagram" viewBox="0 0 720 280" class="state-diagram" aria-label="PCU state diagram"></svg>
+
+      <div class="graph-header second">
+        <h2>Last scenario — expected vs observed</h2>
+      </div>
+
+      <table class="diff-table">
+        <thead>
+          <tr><th>Field</th><th>Expected</th><th>Observed</th><th></th></tr>
+        </thead>
+        <tbody id="diffTableBody">
+          <tr><td colspan="4" class="empty">No scenario run yet.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <aside class="status-panel" aria-label="Live telemetry">
+      <h2>Live Telemetry</h2>
+      <div class="metric-grid">
+        <div class="metric"><span>PCU mode</span><strong id="liveModeValue">—</strong></div>
+        <div class="metric"><span>Safe alert</span><strong id="liveSafeAlertValue">—</strong></div>
+        <div class="metric"><span>Safe reason</span><strong id="liveSafeReasonValue">—</strong></div>
+        <div class="metric"><span>Panel eFuse</span><strong id="livePanelEfuseValue">—</strong></div>
+        <div class="metric"><span>Heater</span><strong id="liveHeaterValue">—</strong></div>
+        <div class="metric"><span>Load mask</span><strong id="liveLoadMaskValue">—</strong></div>
+        <div class="metric"><span>State duty</span><strong id="liveStateDutyValue">—</strong></div>
+        <div class="metric"><span>PWM enabled</span><strong id="livePwmEnabledValue">—</strong></div>
+      </div>
+
+      <h2 class="log-title">Command Log</h2>
+      <pre id="commandLog"></pre>
+    </aside>
+  </main>
+
+  <script src="/static/state/state_transition.js?v=2"></script>
+</body>
+</html>

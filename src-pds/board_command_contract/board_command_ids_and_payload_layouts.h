@@ -18,6 +18,7 @@
 #define PDS_BOARD_COMMAND_INJECT_STATE_INPUTS 0x34u
 #define PDS_BOARD_COMMAND_GET_VALUES          0x35u
 #define PDS_BOARD_COMMAND_STREAM_VALUES       0x36u
+#define PDS_LINK_COMMAND_READ_MPPT_INPUT_SAMPLE 0x37u
 
 /*
  * Fixed byte lengths let the board reject broken commands before any RAM value
@@ -26,10 +27,12 @@
  */
 
 #define PDS_RUN_PWM_PAYLOAD_LENGTH_IN_BYTES          2u
-#define PDS_MPPT_DEMO_PAYLOAD_LENGTH_IN_BYTES       17u
+#define PDS_MPPT_DEMO_PAYLOAD_LENGTH_IN_BYTES        0u
 #define PDS_STATE_INPUT_PAYLOAD_LENGTH_IN_BYTES      17u
 #define PDS_GET_VALUES_PAYLOAD_LENGTH_IN_BYTES        4u
 #define PDS_STREAM_VALUES_PAYLOAD_LENGTH_IN_BYTES     7u
+#define PDS_MPPT_INPUT_SAMPLE_REQUEST_LENGTH_IN_BYTES 2u
+#define PDS_MPPT_INPUT_SAMPLE_REPLY_LENGTH_IN_BYTES   9u
 
 #define PDS_CURVE_TYPE_QUADRATIC 0u
 
@@ -49,17 +52,6 @@
 #define PDS_VALUE_FIELD_COMMANDS      (1u << 7)
 #define PDS_VALUE_FIELD_ALL           0xFFFFFFFFu
 
-/*
- * Coefficients for the quadratic MPPT demo use this scale:
- *
- *   current_mA = A * voltage_V^2 + B * voltage_V + C
- *
- * The ESP32 sends A and B multiplied by 1000, so the SAMD21 can compute the
- * curve with integer arithmetic and no floating point dependency.
- */
-
-#define PDS_QUADRATIC_COEFFICIENT_SCALE 1000l
-
 typedef enum {
     PDS_REQUESTED_MODE_OFF = 0,
     PDS_REQUESTED_MODE_FLIGHT = 1,
@@ -67,6 +59,11 @@ typedef enum {
     PDS_REQUESTED_MODE_STATE_TEST = 3,
     PDS_REQUESTED_MODE_FIXED_PWM_TEST = 4
 } pds_requested_mode_type;
+
+typedef enum {
+    PDS_MPPT_INPUT_SOURCE_ESP32_MODEL = 0,
+    PDS_MPPT_INPUT_SOURCE_BOARD_SENSORS = 1
+} pds_mppt_input_source_type;
 
 typedef struct {
     uint16_t battery_voltage_in_millivolts;
@@ -82,13 +79,10 @@ typedef struct {
 } pds_state_demo_inputs_type;
 
 typedef struct {
-    uint8_t curve_type;
-    int32_t coefficient_a_scaled;
-    int32_t coefficient_b_scaled;
-    int16_t coefficient_c_in_milliamps;
-    uint16_t minimum_panel_voltage_in_millivolts;
-    uint16_t maximum_panel_voltage_in_millivolts;
-    uint16_t battery_voltage_in_millivolts;
-} pds_mppt_demo_curve_type;
+    uint16_t panel_voltage_in_millivolts;
+    uint16_t panel_current_in_milliamps;
+    uint16_t panel_voltage_raw_adc_reading;
+    uint16_t panel_current_raw_adc_reading;
+} pds_mppt_input_sample_type;
 
 #endif /* PDS_BOARD_COMMANDS_H */

@@ -5,7 +5,7 @@
 #include "chips_protocol_encode_decode_frames_with_crc16_kermit.h"
 #include "communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.h"
 #include "communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.h"
-#include "command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.h"
+#include "runtime_state/functions_to_access_pds_runtime_state.h"
 #include "uart_obc.h"
 
 static chips_frame_parser_state_type chips_message_reader;
@@ -47,7 +47,7 @@ void read_and_execute_commands_from_esp32(void)
         chips_parser_result_type parser_result =
             update_chips_message_reader_with_received_byte(received_byte);
 
-        // Requirement: valid commands may update RAM values, but broken
+        // Requirement: valid commands may update runtime state, but broken
         // commands must not change mode, PWM requests, load requests, or
         // heater requests.
         react_to_chips_message_reader_result(parser_result);

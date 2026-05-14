@@ -4,11 +4,11 @@
 #include <stdint.h>
 
 #include "chips_protocol_encode_decode_frames_with_crc16_kermit.h"
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
 
-void set_starting_ram_values_to_safe_defaults(void);
+void set_starting_runtime_state_to_safe_defaults(void);
 
-pds_runtime_state_type *get_pointer_to_pds_runtime_ram_values(void);
+pds_runtime_state_type *get_pointer_to_pds_runtime_state(void);
 
 uint8_t requested_mode_is_off(void);
 uint8_t requested_mode_is_flight(void);
@@ -17,8 +17,8 @@ uint8_t requested_mode_is_state_test(void);
 uint8_t requested_mode_is_fixed_pwm_test(void);
 
 uint8_t pds_control_loop_period_has_elapsed(void);
-void reset_mppt_demo_ram_values_after_new_curve(void);
-void reset_state_demo_ram_values_after_new_inputs(void);
+void reset_mppt_control_loop_state(void);
+void reset_state_demo_runtime_state_after_new_inputs(void);
 
 void record_valid_chips_frame_from_esp32(void);
 void record_broken_chips_message_without_changing_outputs(

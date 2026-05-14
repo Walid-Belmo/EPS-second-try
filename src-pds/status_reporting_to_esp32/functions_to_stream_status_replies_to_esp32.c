@@ -4,15 +4,15 @@
 #include "millisecond_tick_timer_using_arm_systick.h"
 #include "board_command_contract/board_command_ids_and_payload_layouts.h"
 #include "communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.h"
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
-#include "command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
+#include "runtime_state/functions_to_access_pds_runtime_state.h"
 #include "status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.h"
 #include "status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.h"
 
 void send_status_if_needed(void)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
 
     if (runtime_state->telemetry_stream_is_enabled == 0u)
     {

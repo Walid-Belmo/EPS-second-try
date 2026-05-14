@@ -3,7 +3,7 @@
 #include "assertion_handler.h"
 #include "chips_protocol_encode_decode_frames_with_crc16_kermit.h"
 #include "shared_helpers/functions_to_read_and_write_little_endian_values.h"
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
 #include "status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.h"
 
 static void append_reply_header(
@@ -28,7 +28,7 @@ static void append_state_demo_inputs(
     chips_parsed_frame_type *reply_to_send,
     uint16_t *position,
     const pds_runtime_state_type *runtime_state);
-static void append_mppt_curve_values(
+static void append_mppt_input_status(
     chips_parsed_frame_type *reply_to_send,
     uint16_t *position,
     const pds_runtime_state_type *runtime_state);
@@ -68,7 +68,7 @@ void build_values_reply_to_esp32(
     append_mode_and_stream_values(reply_to_send, &position, runtime_state);
     append_pwm_values(reply_to_send, &position, runtime_state);
     append_state_demo_inputs(reply_to_send, &position, runtime_state);
-    append_mppt_curve_values(reply_to_send, &position, runtime_state);
+    append_mppt_input_status(reply_to_send, &position, runtime_state);
     append_runtime_snapshot_values(reply_to_send, &position, runtime_state);
     reply_to_send->payload_length_in_bytes = position;
 }
@@ -222,38 +222,15 @@ static void append_state_demo_inputs(
         inputs->fault_flags);
 }
 
-static void append_mppt_curve_values(
+static void append_mppt_input_status(
     chips_parsed_frame_type *reply_to_send,
     uint16_t *position,
     const pds_runtime_state_type *runtime_state)
 {
-    const pds_mppt_demo_curve_type *curve = &runtime_state->mppt_curve;
-
-    write_uint8_to_payload(reply_to_send->payload_bytes, position, curve->curve_type);
-    write_int32_to_little_endian_payload(
+    write_uint8_to_payload(
         reply_to_send->payload_bytes,
         position,
-        curve->coefficient_a_scaled);
-    write_int32_to_little_endian_payload(
-        reply_to_send->payload_bytes,
-        position,
-        curve->coefficient_b_scaled);
-    write_int16_to_little_endian_payload(
-        reply_to_send->payload_bytes,
-        position,
-        curve->coefficient_c_in_milliamps);
-    write_uint16_to_little_endian_payload(
-        reply_to_send->payload_bytes,
-        position,
-        curve->minimum_panel_voltage_in_millivolts);
-    write_uint16_to_little_endian_payload(
-        reply_to_send->payload_bytes,
-        position,
-        curve->maximum_panel_voltage_in_millivolts);
-    write_uint16_to_little_endian_payload(
-        reply_to_send->payload_bytes,
-        position,
-        curve->battery_voltage_in_millivolts);
+        runtime_state->snapshot.mppt_input_sample_is_valid);
 }
 
 static void append_runtime_snapshot_values(

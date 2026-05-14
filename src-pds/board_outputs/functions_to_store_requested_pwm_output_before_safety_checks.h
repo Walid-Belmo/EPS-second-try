@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
 
 void request_pwm_output_in_runtime_state(
     pds_runtime_state_type *runtime_state,

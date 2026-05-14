@@ -204,93 +204,64 @@ Reference first:
 Goal: create local pages that make the important Source PDS behaviors visible
 to someone who is not already inside the project.
 
-These pages are served by Python on the computer.
-The computer sends readable text commands to the ESP32.
-The ESP32 translates those text commands into CHIPS packets for the SAMD21.
-
-### 1. MPPT Convergence Page
-
-Folder:
+All pages live in one unified Python web app:
 
 ```text
-src-pds/local_web_app_to_demo_mppt_convergence/
+src-pds/local_web_app/
 ```
 
-Purpose:
+Run it with:
 
-- Let the user choose a simulated solar-panel I-V curve with `A`, `B`, and `C`
-  values.
-- Show the I-V curve.
-- Show the P-V curve.
-- Show the theoretical maximum power point.
-- Send `start_mppt_demo` to the ESP32 bridge.
-- Plot the board-reported voltage, current, power, and duty cycle while the
-  MPPT algorithm runs.
+```bash
+python src-pds/local_web_app/run_local_web_app.py
+```
 
-Status:
+One Python process owns the ESP32 USB serial link and routes each page by
+URL path. Adding a new page is a new actions module + a new `static/<page>/`
+folder, no new process.
 
-- First version exists.
-- User tested it and reported that it does not work correctly.
-- This page must be debugged before it can be treated as a working demo.
+See `src-pds/local_web_app/README.md` for the route table and architecture.
 
-Debugging to do:
+### 1. MPPT Convergence Page — `/mppt`
 
-- Verify the browser sends the expected commands to the Python server.
-- Verify the Python server sends the expected text commands to the ESP32.
-- Verify the ESP32 returns live board values after `start_mppt_demo`.
-- Verify the page updates from those returned values.
-- Verify the graph path matches the board telemetry, not only the simulated
-  curve drawn in the browser.
+Lets the user choose a simulated solar-panel I-V curve, plots the I-V and
+P-V curves, sends `start_mppt_demo`, and tracks the board-reported voltage,
+current, power, and duty cycle while the MPPT algorithm runs.
 
-### 2. State Transition Page
+Status: working.
 
-Purpose:
+### 2. State Transition Page — `/state`
 
-- Let the user inject the values that drive the PCU state machine.
-- Show transitions between `MPPT_CHARGE`, `CV_FLOAT`, `SA_LOAD_FOLLOW`, and
-  `BATTERY_DISCHARGE`.
-- Show which injected value caused the transition.
-- Show the outputs chosen by the board, such as panel eFuse state, load state,
-  heater state, safe alert, and PWM request.
+Runs 12 preset scenarios that exercise the PCU state machine (all four
+normal PCU modes, all three safe-mode entry reasons, all four safe-mode
+sub-state load masks). Each scenario injects sensor values, waits for
+steady-state, and compares the firmware's observed snapshot against
+expected outputs.
 
-Status:
+Status: working. Backed by the pure-dispatcher firmware in
+`src-pds/state_machine_pure_logic/`. The flight-grade target lives in
+`src-pds/state-transitions.md`.
 
-- Not implemented yet.
+### 3. Manual PWM And Board Control Page — `/pwm`
 
-### 3. Manual PWM And Board Control Page
+Lets the user send one direct PWM value with `run_pwm`. Shows requested
+PWM, applied PWM, and whether PWM output is enabled. Off button stops the
+board.
 
-Purpose:
+Status: not implemented yet.
 
-- Let the user send one direct PWM value with `run_pwm`.
-- Show requested PWM, applied PWM, and whether PWM output is enabled.
-- Provide a clear `off` button that stops the board output.
-- Make simple real-life board checks possible without running MPPT or the state
-  machine demo.
+### 4. Communication And Status Page — `/comm`
 
-Status:
+Demonstrates the computer → ESP32 → SAMD21 command path. Shows
+`get_values` and `stream_values`, packet counters, last command, last
+command status, and visible serial traffic.
 
-- Not implemented yet.
-
-### 4. Communication And Status Page
-
-Purpose:
-
-- Demonstrate the computer -> ESP32 -> SAMD21 command path.
-- Show command replies from the board.
-- Show `get_values` and `stream_values`.
-- Show packet counters, last command, last command status, and visible serial
-  traffic.
-
-Status:
-
-- Not implemented yet.
+Status: not implemented yet.
 
 ## Current Blocking Items
 
-- The MPPT convergence webpage exists, but user testing shows it needs
-  debugging before it can be used for a presentation.
-- The state transition webpage is not implemented yet.
-- The manual PWM and board control webpage is not implemented yet.
-- The communication and status webpage is not implemented yet.
-- The old root-level `server.py` should not be used as the reference for the
-  new Source PDS web app.
+- The manual PWM page and the communication/status page are not
+  implemented yet. The unified server architecture is in place so adding
+  them is a new actions module + a new static folder each.
+- The old root-level `server.py` should not be used as the reference for
+  the new Source PDS web app.

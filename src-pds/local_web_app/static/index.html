@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Source PDS - Local Web App</title>
+  <style>
+    :root {
+      --ink: #1c252e;
+      --muted: #637083;
+      --line: #cfd8e3;
+      --panel: #ffffff;
+      --page: #eef2f4;
+      --blue: #1264a3;
+      --blue-dark: #0b4f83;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--page);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    header {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      color: #ffffff;
+      background: #17212b;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 760;
+    }
+    main {
+      max-width: 760px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    p {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .card {
+      display: block;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .card:hover {
+      border-color: var(--blue);
+      background: #f5fafe;
+    }
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 17px;
+      color: var(--blue);
+    }
+    .card p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .note {
+      margin-top: 26px;
+      padding: 12px 14px;
+      border: 1px solid #f1c45c;
+      border-radius: 7px;
+      background: #fff5d6;
+      color: #7a5400;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Source PDS — Local Web App</h1>
+  </header>
+  <main>
+    <p>
+      One Python process owns the ESP32 USB serial link. Each demo page
+      below sends commands through that shared link.
+    </p>
+
+    <div class="card-grid">
+      <a class="card" href="/mppt">
+        <h2>MPPT Convergence</h2>
+        <p>Pick a simulated panel I-V curve and watch the board's MPPT
+          algorithm converge.</p>
+      </a>
+      <a class="card" href="/state">
+        <h2>State Transitions</h2>
+        <p>Inject sensor scenarios and verify each one lands the firmware
+          in the expected PCU mode and outputs.</p>
+      </a>
+    </div>
+
+    <div class="note">
+      Press <strong>Off</strong> on whichever page you open before starting
+      work, especially when switching pages. The firmware can only be in
+      one mode at a time.
+    </div>
+  </main>
+</body>
+</html>

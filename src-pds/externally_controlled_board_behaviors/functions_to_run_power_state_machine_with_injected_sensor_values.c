@@ -2,8 +2,9 @@
 
 #include "eps_state_machine.h"
 #include "board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.h"
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
-#include "command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
+#include "runtime_state/functions_to_access_pds_runtime_state.h"
+#include "state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.h"
 #include "externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.h"
 
 static void build_state_machine_inputs_from_injected_values(
@@ -29,14 +30,14 @@ void run_state_transition_test_only(void)
     }
 
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
     struct eps_sensor_readings_this_iteration sensor_readings;
     struct eps_actuator_output_commands actuator_commands;
 
     build_state_machine_inputs_from_injected_values(
         runtime_state,
         &sensor_readings);
-    eps_state_machine_run_one_iteration(
+    compute_next_pcu_state_and_actuator_commands_from_inputs_and_current_state(
         &runtime_state->state_machine_state,
         &sensor_readings,
         &runtime_state->thresholds,

@@ -1,13 +1,13 @@
 #include "functions_to_block_outputs_when_faults_are_injected.h"
 
-#include "command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.h"
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
+#include "runtime_state/functions_to_access_pds_runtime_state.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
 #include "functions_to_store_requested_pwm_output_before_safety_checks.h"
 
 void block_dangerous_outputs(void)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
 
     if (runtime_state->injected_state_inputs.fault_flags == 0u)
     {

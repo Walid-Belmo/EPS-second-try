@@ -30,6 +30,10 @@ let latestSnapshot = {
   debug_events: [],
 };
 
+// Off-before-switch UX gate: blocks Start until the user clicks Off once on
+// this page load. Switching pages (full page navigation) resets the flag.
+let offClickedSinceLoad = false;
+
 const fixedGraphScale = {
   voltageMaxV: 18,
   currentMaxMa: 5000,
@@ -172,7 +176,7 @@ function updateCurveState() {
     ? (boardPoint ? "Running" : (latestSnapshot.active_curve ? "Waiting" : "Starting"))
     : (error || "Valid curve");
   state.classList.toggle("invalid", Boolean(error) && !running);
-  startButton.disabled = running || Boolean(error);
+  startButton.disabled = running || Boolean(error) || !offClickedSinceLoad;
   document.getElementById("commandPreview").textContent = startCommandText(controlCurve);
   document.getElementById("mppValue").textContent = boardPoint ? "valid" : "-";
 }
@@ -428,6 +432,8 @@ async function sendOff() {
   setButtonBusy("offButton", true);
   try {
     await api("/api/off", {});
+    offClickedSinceLoad = true;
+    updateOffGateBanner();
     await refreshStatus();
   } catch (error) {
     showConnectionError(error);
@@ -436,11 +442,17 @@ async function sendOff() {
   }
 }
 
+function updateOffGateBanner() {
+  const banner = document.getElementById("offGateBanner");
+  if (!banner) return;
+  banner.classList.toggle("hidden", offClickedSinceLoad);
+}
+
 async function startMpptTest() {
   const curve = readCurveFromControls();
   setButtonBusy("startButton", true);
   try {
-    await api("/api/start_mppt", curve);
+    await api("/api/mppt/start_mppt", curve);
     await refreshStatus();
   } catch (error) {
     showConnectionError(error);
@@ -501,8 +513,12 @@ function renderControlLockState() {
   Object.values(controls).forEach(control => {
     control.disabled = running;
   });
-  document.getElementById("startButton").disabled = running || document.getElementById("curveState").classList.contains("invalid");
+  document.getElementById("startButton").disabled =
+    running
+    || document.getElementById("curveState").classList.contains("invalid")
+    || !offClickedSinceLoad;
   document.getElementById("offButton").disabled = false;
+  updateOffGateBanner();
 }
 
 function renderCommandLog() {

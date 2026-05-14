@@ -976,10 +976,10 @@ status.c
 Correct file names:
 
 ```text
-functions_to_run_mppt_algorithm_with_simulated_solar_panel_curve.c
+functions_to_run_mppt_algorithm_with_selected_input_source.c
 functions_to_run_power_state_machine_with_injected_sensor_values.c
 functions_to_apply_manually_requested_pwm_to_buck_converter.c
-functions_to_store_values_changed_by_esp32_commands.c
+functions_to_access_pds_runtime_state.c
 functions_to_build_status_replies_sent_to_esp32.c
 functions_to_read_chips_commands_received_from_esp32.c
 functions_to_parse_payloads_inside_board_commands.c
@@ -1019,11 +1019,11 @@ src-pds/
   board_command_contract/
     board_command_ids_and_payload_layouts.h
 
-  command_controlled_ram_values/
-    functions_to_store_values_changed_by_esp32_commands.c
+  runtime_state/
+    functions_to_access_pds_runtime_state.c
 
   externally_controlled_board_behaviors/
-    functions_to_run_mppt_algorithm_with_simulated_solar_panel_curve.c
+    functions_to_run_mppt_algorithm_with_selected_input_source.c
     functions_to_run_power_state_machine_with_injected_sensor_values.c
     functions_to_apply_manually_requested_pwm_to_buck_converter.c
 
@@ -1058,7 +1058,7 @@ Allowed dependency direction:
 main
   -> communication_with_esp32
   -> externally_controlled_board_behaviors
-  -> command_controlled_ram_values
+  -> runtime_state
   -> board_outputs
   -> shared_helpers
 ```
@@ -1116,9 +1116,9 @@ pds_mppt_demo.c
 Better:
 
 ```text
-command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.c
+runtime_state/functions_to_access_pds_runtime_state.c
 status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.c
-externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_simulated_solar_panel_curve.c
+externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.c
 ```
 
 The folder already gives context.

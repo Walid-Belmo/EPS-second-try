@@ -6,8 +6,8 @@
 #include "millisecond_tick_timer_using_arm_systick.h"
 #include "mppt_algorithm.h"
 #include "board_command_contract/board_command_ids_and_payload_layouts.h"
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
-#include "command_controlled_ram_values/functions_to_store_values_changed_by_esp32_commands.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
+#include "runtime_state/functions_to_access_pds_runtime_state.h"
 
 static struct pds_runtime_state_storage {
     pds_runtime_state_type values;
@@ -16,19 +16,19 @@ static struct pds_runtime_state_storage {
 static void set_default_threshold_values(pds_runtime_state_type *runtime_state);
 static void set_default_injected_state_values(
     pds_runtime_state_type *runtime_state);
-static void set_default_mppt_curve_values(pds_runtime_state_type *runtime_state);
 static void set_default_snapshot_values(pds_runtime_state_type *runtime_state);
 static uint8_t requested_mode_matches(uint8_t requested_mode_to_check);
 
-void set_starting_ram_values_to_safe_defaults(void)
+void set_starting_runtime_state_to_safe_defaults(void)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
 
     runtime_state->requested_mode = (uint8_t)PDS_REQUESTED_MODE_OFF;
+    runtime_state->mppt_input_source =
+        (uint8_t)PDS_MPPT_INPUT_SOURCE_ESP32_MODEL;
     runtime_state->fixed_pwm_duty_cycle_as_fraction_of_65535 = 0u;
     set_default_injected_state_values(runtime_state);
-    set_default_mppt_curve_values(runtime_state);
     set_default_threshold_values(runtime_state);
     set_default_snapshot_values(runtime_state);
 
@@ -45,11 +45,11 @@ void set_starting_ram_values_to_safe_defaults(void)
     runtime_state->last_command_id = 0u;
     runtime_state->last_command_status = (uint8_t)CHIPS_RESPONSE_STATUS_SUCCESS;
 
-    reset_mppt_demo_ram_values_after_new_curve();
-    reset_state_demo_ram_values_after_new_inputs();
+    reset_mppt_control_loop_state();
+    reset_state_demo_runtime_state_after_new_inputs();
 }
 
-pds_runtime_state_type *get_pointer_to_pds_runtime_ram_values(void)
+pds_runtime_state_type *get_pointer_to_pds_runtime_state(void)
 {
     return &pds_runtime_state_storage.values;
 }
@@ -82,7 +82,7 @@ uint8_t requested_mode_is_fixed_pwm_test(void)
 uint8_t pds_control_loop_period_has_elapsed(void)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
     uint32_t now_ms = millisecond_tick_timer_get_milliseconds_since_boot();
     uint32_t elapsed_ms = now_ms - runtime_state->last_control_loop_timestamp_ms;
 
@@ -95,21 +95,25 @@ uint8_t pds_control_loop_period_has_elapsed(void)
     return 1u;
 }
 
-void reset_mppt_demo_ram_values_after_new_curve(void)
+void reset_mppt_control_loop_state(void)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
 
     mppt_algorithm_initialize(&runtime_state->mppt_algorithm_state);
+    runtime_state->snapshot.mppt_input_sample_is_valid = 0u;
+    runtime_state->snapshot.panel_voltage_in_millivolts = 0u;
+    runtime_state->snapshot.panel_current_in_milliamps = 0u;
+    runtime_state->snapshot.panel_power_in_milliwatts = 0u;
     runtime_state->snapshot.mppt_duty_cycle_as_fraction_of_65535 = 32768u;
     runtime_state->last_control_loop_timestamp_ms =
         millisecond_tick_timer_get_milliseconds_since_boot();
 }
 
-void reset_state_demo_ram_values_after_new_inputs(void)
+void reset_state_demo_runtime_state_after_new_inputs(void)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
 
     eps_state_machine_initialize(
         &runtime_state->state_machine_state,
@@ -124,7 +128,7 @@ void reset_state_demo_ram_values_after_new_inputs(void)
 void record_valid_chips_frame_from_esp32(void)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
 
     runtime_state->valid_chips_frame_count += 1u;
 }
@@ -133,7 +137,7 @@ void record_broken_chips_message_without_changing_outputs(
     chips_parser_result_type parser_result)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
 
     if (parser_result == CHIPS_PARSER_RESULT_ERROR_CRC_MISMATCH)
     {
@@ -153,7 +157,7 @@ void remember_result_of_command_from_esp32(
     SATELLITE_ASSERT(reply_to_send != (void *)0);
 
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
     runtime_state->executed_command_count += 1u;
     runtime_state->last_command_id = received_command->command_id;
 
@@ -219,32 +223,15 @@ static void set_default_injected_state_values(
     runtime_state->injected_state_inputs.fault_flags = 0u;
 }
 
-static void set_default_mppt_curve_values(pds_runtime_state_type *runtime_state)
-{
-    SATELLITE_ASSERT(runtime_state != (void *)0);
-
-    runtime_state->mppt_curve.curve_type = PDS_CURVE_TYPE_QUADRATIC;
-    runtime_state->mppt_curve.coefficient_a_scaled = -12000;
-    runtime_state->mppt_curve.coefficient_b_scaled = 300000;
-    runtime_state->mppt_curve.coefficient_c_in_milliamps = 2500;
-    runtime_state->mppt_curve.minimum_panel_voltage_in_millivolts = 0u;
-    runtime_state->mppt_curve.maximum_panel_voltage_in_millivolts = 18000u;
-    runtime_state->mppt_curve.battery_voltage_in_millivolts = 7400u;
-}
-
 static void set_default_snapshot_values(pds_runtime_state_type *runtime_state)
 {
     SATELLITE_ASSERT(runtime_state != (void *)0);
 
     runtime_state->snapshot.loop_count = 0u;
-    runtime_state->snapshot.panel_voltage_in_millivolts =
-        runtime_state->injected_state_inputs.panel_voltage_in_millivolts;
-    runtime_state->snapshot.panel_current_in_milliamps =
-        runtime_state->injected_state_inputs.panel_current_in_milliamps;
-    runtime_state->snapshot.panel_power_in_milliwatts =
-        ((uint32_t)runtime_state->snapshot.panel_voltage_in_millivolts
-         * (uint32_t)runtime_state->snapshot.panel_current_in_milliamps)
-        / 1000u;
+    runtime_state->snapshot.panel_voltage_in_millivolts = 0u;
+    runtime_state->snapshot.panel_current_in_milliamps = 0u;
+    runtime_state->snapshot.panel_power_in_milliwatts = 0u;
+    runtime_state->snapshot.mppt_input_sample_is_valid = 0u;
     runtime_state->snapshot.mppt_duty_cycle_as_fraction_of_65535 = 32768u;
     runtime_state->snapshot.state_machine_duty_cycle_as_fraction_of_65535 =
         32768u;
@@ -263,7 +250,7 @@ static void set_default_snapshot_values(pds_runtime_state_type *runtime_state)
 static uint8_t requested_mode_matches(uint8_t requested_mode_to_check)
 {
     pds_runtime_state_type *runtime_state =
-        get_pointer_to_pds_runtime_ram_values();
+        get_pointer_to_pds_runtime_state();
 
     return (runtime_state->requested_mode == requested_mode_to_check) ? 1u : 0u;
 }

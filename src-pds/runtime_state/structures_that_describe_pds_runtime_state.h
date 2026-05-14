@@ -11,7 +11,7 @@
 #define PDS_CONTROL_LOOP_PERIOD_MS 100u
 #define PDS_MINIMUM_STREAM_PERIOD_MS 100u
 #define PDS_MAXIMUM_STREAM_PERIOD_MS 10000u
-#define PDS_STATUS_PAYLOAD_VERSION 1u
+#define PDS_STATUS_PAYLOAD_VERSION 2u
 
 #define PDS_PANEL_RAW_ADC_TO_MILLIVOLTS_SCALE 5u
 #define PDS_PANEL_RAW_ADC_TO_MILLIAMPS_SCALE 2u
@@ -23,6 +23,7 @@ typedef struct {
     uint16_t panel_voltage_in_millivolts;
     uint16_t panel_current_in_milliamps;
     uint32_t panel_power_in_milliwatts;
+    uint8_t mppt_input_sample_is_valid;
     uint16_t mppt_duty_cycle_as_fraction_of_65535;
     uint16_t state_machine_duty_cycle_as_fraction_of_65535;
     uint16_t requested_pwm_duty_cycle_as_fraction_of_65535;
@@ -39,10 +40,10 @@ typedef struct {
 
 typedef struct {
     uint8_t requested_mode;
+    uint8_t mppt_input_source;
     uint16_t fixed_pwm_duty_cycle_as_fraction_of_65535;
 
     pds_state_demo_inputs_type injected_state_inputs;
-    pds_mppt_demo_curve_type mppt_curve;
 
     uint8_t telemetry_stream_is_enabled;
     uint16_t telemetry_stream_period_ms;

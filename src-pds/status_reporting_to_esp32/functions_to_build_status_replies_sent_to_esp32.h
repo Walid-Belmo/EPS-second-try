@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "chips_protocol_encode_decode_frames_with_crc16_kermit.h"
-#include "command_controlled_ram_values/structures_that_describe_values_changed_by_esp32_commands.h"
+#include "runtime_state/structures_that_describe_pds_runtime_state.h"
 
 void build_ack_reply_to_esp32(
     chips_parsed_frame_type *reply_to_send,
