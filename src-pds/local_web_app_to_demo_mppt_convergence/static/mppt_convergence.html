@@ -27,21 +27,21 @@
       </div>
 
       <div class="control-row">
-        <label for="coefficientA">A <span>mA/V^2</span></label>
-        <output id="coefficientAValue">-10.0</output>
-        <input id="coefficientA" type="range" min="-30" max="-1" step="0.1" value="-10">
+        <label for="shortCircuitCurrent">Isc <span>mA</span></label>
+        <output id="shortCircuitCurrentValue">720</output>
+        <input id="shortCircuitCurrent" type="range" min="200" max="3000" step="10" value="720">
       </div>
 
       <div class="control-row">
-        <label for="coefficientB">B <span>mA/V</span></label>
-        <output id="coefficientBValue">150</output>
-        <input id="coefficientB" type="range" min="0" max="400" step="1" value="150">
+        <label for="openCircuitVoltage">Voc <span>V</span></label>
+        <output id="openCircuitVoltageValue">18.8</output>
+        <input id="openCircuitVoltage" type="range" min="12" max="25" step="0.1" value="18.8">
       </div>
 
       <div class="control-row">
-        <label for="coefficientC">C <span>mA</span></label>
-        <output id="coefficientCValue">720</output>
-        <input id="coefficientC" type="range" min="0" max="3000" step="10" value="720">
+        <label for="peakPowerVoltage">V_mpp <span>V</span></label>
+        <output id="peakPowerVoltageValue">12.0</output>
+        <input id="peakPowerVoltage" type="range" min="6" max="16" step="0.1" value="12">
       </div>
 
       <div class="control-row">
@@ -77,7 +77,7 @@
       <div class="graph-header">
         <h2>I-V Curve</h2>
         <div class="legend">
-          <span><i class="line current"></i>Current</span>
+          <span><i class="line current"></i>Curve</span>
           <span><i class="point trail"></i>Board path</span>
           <span><i class="point board"></i>Latest point</span>
         </div>
@@ -87,8 +87,7 @@
       <div class="graph-header second">
         <h2>P-V Curve</h2>
         <div class="legend">
-          <span><i class="line power"></i>Power</span>
-          <span><i class="point mpp"></i>MPP</span>
+          <span><i class="line power"></i>Curve</span>
           <span><i class="point trail"></i>Board path</span>
           <span><i class="point board"></i>Latest point</span>
         </div>
@@ -104,7 +103,7 @@
         <div class="metric"><span>Panel V</span><strong id="panelVoltageValue">-</strong></div>
         <div class="metric"><span>Panel I</span><strong id="panelCurrentValue">-</strong></div>
         <div class="metric"><span>Panel P</span><strong id="panelPowerValue">-</strong></div>
-        <div class="metric"><span>MPP</span><strong id="mppValue">-</strong></div>
+        <div class="metric"><span>Sample</span><strong id="mppValue">-</strong></div>
       </div>
 
       <h2 class="log-title">Command Log</h2>
@@ -112,6 +111,6 @@
     </aside>
   </main>
 
-  <script src="/static/mppt_convergence.js"></script>
+  <script src="/static/mppt_convergence.js?v=9"></script>
 </body>
 </html>

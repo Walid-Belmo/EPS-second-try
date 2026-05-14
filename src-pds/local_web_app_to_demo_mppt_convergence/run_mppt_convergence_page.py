@@ -40,6 +40,7 @@ DEFAULT_SERIAL_PORT = "COM3"
 DEFAULT_SERVER_HOST = "127.0.0.1"
 DEFAULT_SERVER_PORT = 8001
 BAUD_RATE = 115200
+ESP32_RESET_SETTLE_SECONDS = 1.2
 
 
 def requested_mode_name(mode: str) -> str:
@@ -64,8 +65,11 @@ class PageState:
         self.last_ack = ""
         self.last_command = ""
         self.telemetry: dict[str, Any] = {}
+        self.active_curve: dict[str, Any] | None = None
+        self.requested_curve: dict[str, Any] | None = None
         self.commands: deque[dict[str, Any]] = deque(maxlen=120)
         self.lines: deque[str] = deque(maxlen=250)
+        self.debug_events: deque[dict[str, Any]] = deque(maxlen=120)
         self.history: deque[dict[str, Any]] = deque(maxlen=600)
         self.last_history_loop: int | None = None
 
@@ -79,8 +83,13 @@ class PageState:
                 "last_ack": self.last_ack,
                 "last_command": self.last_command,
                 "telemetry": dict(self.telemetry),
+                "active_curve": dict(self.active_curve) if self.active_curve else None,
+                "requested_curve": (
+                    dict(self.requested_curve) if self.requested_curve else None
+                ),
                 "commands": list(self.commands),
                 "lines": list(self.lines),
+                "debug_events": list(self.debug_events),
                 "history": list(self.history),
             }
 
@@ -98,6 +107,10 @@ class PageState:
                 {"time": time.time(), "direction": "ESP32 -> PC", "text": line}
             )
             parse_esp32_line_into_state(line, self)
+
+    def record_debug(self, text: str) -> None:
+        with self.lock:
+            self.debug_events.append({"time": time.time(), "text": text})
 
 
 STATE = PageState()
@@ -138,6 +151,8 @@ class SourcePdsSerialBridge:
                 daemon=True,
             )
             self.reader_thread.start()
+            self.state.record_debug("Serial opened; waiting for ESP32 bridge reset")
+            time.sleep(ESP32_RESET_SETTLE_SECONDS)
 
             with self.state.lock:
                 self.state.serial_port = port_name
@@ -187,8 +202,31 @@ class SourcePdsSerialBridge:
 BRIDGE = SourcePdsSerialBridge(STATE)
 
 
+def curves_match(first: dict[str, Any], second: dict[str, Any]) -> bool:
+    return (
+        abs(float(first.get("a", 0.0)) - float(second.get("a", 0.0))) < 0.02
+        and abs(float(first.get("b", 0.0)) - float(second.get("b", 0.0))) < 0.02
+        and int(round(float(first.get("c", 0)))) == int(round(float(second.get("c", 0))))
+        and abs(float(first.get("v_min", 0.0)) - float(second.get("v_min", 0.0))) < 0.002
+        and abs(float(first.get("v_max", 0.0)) - float(second.get("v_max", 0.0))) < 0.002
+        and abs(
+            float(first.get("battery_voltage", 0.0))
+            - float(second.get("battery_voltage", 0.0))
+        )
+        < 0.002
+    )
+
+
+def format_curve_for_log(curve: dict[str, Any]) -> str:
+    return (
+        f"a={float(curve['a']):g} b={float(curve['b']):g} c={int(curve['c'])} "
+        f"v={float(curve['v_min']):g}..{float(curve['v_max']):g}V "
+        f"battery={float(curve['battery_voltage']):g}V"
+    )
+
+
 def parse_esp32_line_into_state(line: str, state: PageState) -> None:
-    if line.startswith("status="):
+    if line.startswith("status=") or line.startswith("[BOARD] status="):
         state.last_ack = line
         return
 
@@ -208,7 +246,8 @@ def parse_esp32_line_into_state(line: str, state: PageState) -> None:
         return
 
     match = re.search(
-        r"pwm: fixed=(\d+) requested=(\d+) applied=(\d+) enabled=(\d+)", line
+        r"pwm:?\s+fixed=(\d+) requested=(\d+) applied=(\d+) enabled=(\d+)",
+        line,
     )
     if match:
         state.telemetry.update(
@@ -222,22 +261,70 @@ def parse_esp32_line_into_state(line: str, state: PageState) -> None:
         return
 
     match = re.search(
-        r"mppt: curve=(\d+) a_scaled=(-?\d+) b_scaled=(-?\d+) c=(-?\d+) "
+        r"\[ESP32\]\s+mppt_model\s+curve=quadratic\s+"
+        r"a_scaled=(-?\d+) b_scaled=(-?\d+) c=(-?\d+) "
         r"v_range=(\d+)\.\.(\d+) battery=(\d+)",
         line,
     )
     if match:
+        curve = curve_from_scaled_values(match, first_scaled_group=1)
         state.telemetry.update(
             {
-                "curve_type": int(match.group(1)),
-                "a": int(match.group(2)) / 1000.0,
-                "b": int(match.group(3)) / 1000.0,
-                "c": int(match.group(4)),
-                "v_min_mv": int(match.group(5)),
-                "v_max_mv": int(match.group(6)),
-                "battery_mv": int(match.group(7)),
+                "curve_source": "esp32_model",
+                "curve_type": "quadratic",
+                "a": curve["a"],
+                "b": curve["b"],
+                "c": curve["c"],
+                "v_min_mv": round(curve["v_min"] * 1000.0),
+                "v_max_mv": round(curve["v_max"] * 1000.0),
+                "battery_mv": round(curve["battery_voltage"] * 1000.0),
             }
         )
+        if state.active_curve is None or not curves_match(state.active_curve, curve):
+            state.record_debug(f"ESP32 model confirmed: {format_curve_for_log(curve)}")
+        state.active_curve = dict(curve)
+        return
+
+    match = re.search(
+        r"mppt(?:_curve)?:?\s+curve=(\d+) a_scaled=(-?\d+) b_scaled=(-?\d+) c=(-?\d+) "
+        r"v_range=(\d+)\.\.(\d+) battery=(\d+)",
+        line,
+    )
+    if match:
+        curve = curve_from_scaled_values(match, first_scaled_group=2)
+        state.telemetry.update(
+            {
+                "curve_source": "board_status",
+                "curve_type": int(match.group(1)),
+                "a": curve["a"],
+                "b": curve["b"],
+                "c": curve["c"],
+                "v_min_mv": round(curve["v_min"] * 1000.0),
+                "v_max_mv": round(curve["v_max"] * 1000.0),
+                "battery_mv": round(curve["battery_voltage"] * 1000.0),
+            }
+        )
+        if state.active_curve is None or not curves_match(state.active_curve, curve):
+            state.record_debug(f"Board curve confirmed: {format_curve_for_log(curve)}")
+        state.active_curve = dict(curve)
+        return
+
+    match = re.search(
+        r"mppt_live loops=(\d+) panel=(\d+)mV (\d+)mA power=(\d+)mW duty=(\d+)",
+        line,
+    )
+    if match:
+        update_mppt_live_telemetry(match, state)
+        return
+
+    if re.search(r"mppt_live\s+valid=0", line):
+        state.telemetry.update({"mppt_sample_valid": 0})
+        for key in (
+            "panel_voltage_mv",
+            "panel_current_ma",
+            "panel_power_mw",
+        ):
+            state.telemetry.pop(key, None)
         return
 
     match = re.search(
@@ -267,6 +354,24 @@ def parse_esp32_line_into_state(line: str, state: PageState) -> None:
         )
 
 
+def update_mppt_live_telemetry(match: re.Match[str], state: PageState) -> None:
+    loop_count = int(match.group(1))
+    point = {
+        "time": time.time(),
+        "loop_count": loop_count,
+        "panel_voltage_mv": int(match.group(2)),
+        "panel_current_ma": int(match.group(3)),
+        "panel_power_mw": int(match.group(4)),
+        "mppt_duty": int(match.group(5)),
+        "mppt_sample_valid": 1,
+    }
+
+    state.telemetry.update(point)
+    if state.last_history_loop != loop_count:
+        state.history.append(point)
+        state.last_history_loop = loop_count
+
+
 def update_snapshot_telemetry(match: re.Match[str], state: PageState) -> None:
     loop_count = int(match.group(1))
     point = {
@@ -278,12 +383,28 @@ def update_snapshot_telemetry(match: re.Match[str], state: PageState) -> None:
         "mppt_duty": int(match.group(5)),
         "state_duty": int(match.group(6)),
         "pcu_mode": match.group(7),
+        "mppt_sample_valid": 1,
     }
 
     state.telemetry.update(point)
     if state.last_history_loop != loop_count:
         state.history.append(point)
         state.last_history_loop = loop_count
+
+
+def curve_from_scaled_values(
+    match: re.Match[str],
+    *,
+    first_scaled_group: int,
+) -> dict[str, Any]:
+    return {
+        "a": int(match.group(first_scaled_group)) / 1000.0,
+        "b": int(match.group(first_scaled_group + 1)) / 1000.0,
+        "c": int(match.group(first_scaled_group + 2)),
+        "v_min": int(match.group(first_scaled_group + 3)) / 1000.0,
+        "v_max": int(match.group(first_scaled_group + 4)) / 1000.0,
+        "battery_voltage": int(match.group(first_scaled_group + 5)) / 1000.0,
+    }
 
 
 def connect_to_serial_port(port_name: str) -> None:
@@ -298,6 +419,7 @@ def connect_to_serial_port(port_name: str) -> None:
 
 
 def send_off_command() -> None:
+    STATE.record_debug("Off requested: stopping stream and switching board off")
     BRIDGE.send("stream_values off")
     time.sleep(0.03)
     BRIDGE.send("off")
@@ -305,28 +427,54 @@ def send_off_command() -> None:
     BRIDGE.send("get_values fields=all")
     with STATE.lock:
         STATE.mppt_running = False
+        STATE.active_curve = None
+        STATE.requested_curve = None
+        STATE.telemetry = {}
+        STATE.history.clear()
+        STATE.last_history_loop = None
+        STATE.record_debug("Off sequence sent")
 
 
 def send_start_mppt_command(payload: dict[str, Any]) -> str:
-    command = build_start_mppt_command(payload)
+    curve = read_validated_mppt_curve_from_payload(payload)
+    command = build_start_mppt_command_from_curve(curve)
     with STATE.lock:
+        STATE.telemetry = {}
         STATE.history.clear()
         STATE.last_history_loop = None
-
-    BRIDGE.send("stream_values off")
-    time.sleep(0.03)
-    BRIDGE.send(command)
-    time.sleep(0.03)
-    BRIDGE.send("stream_values on period=250 fields=all")
-    time.sleep(0.03)
-    BRIDGE.send("get_values fields=all")
-
-    with STATE.lock:
+        STATE.active_curve = None
+        STATE.requested_curve = dict(curve)
         STATE.mppt_running = True
+        STATE.record_debug(f"Start requested: {format_curve_for_log(curve)}")
+
+    try:
+        BRIDGE.send("stream_values off")
+        time.sleep(0.05)
+        BRIDGE.send("off")
+        time.sleep(0.05)
+        BRIDGE.send(command)
+        time.sleep(0.08)
+        BRIDGE.send("get_values fields=all")
+        time.sleep(0.08)
+        BRIDGE.send("stream_values on period=1000 fields=mode,pwm,mppt")
+        time.sleep(0.05)
+        BRIDGE.send("get_values fields=mode,pwm,mppt")
+        STATE.record_debug("Start sequence sent; waiting for live board points")
+    except Exception as exc:
+        with STATE.lock:
+            STATE.mppt_running = False
+            STATE.record_debug(f"Start failed: {exc}")
+        raise
     return command
 
 
 def build_start_mppt_command(payload: dict[str, Any]) -> str:
+    return build_start_mppt_command_from_curve(
+        read_validated_mppt_curve_from_payload(payload)
+    )
+
+
+def read_validated_mppt_curve_from_payload(payload: dict[str, Any]) -> dict[str, Any]:
     a = read_float(payload, "a")
     b = read_float(payload, "b")
     c = read_int(payload, "c")
@@ -335,11 +483,23 @@ def build_start_mppt_command(payload: dict[str, Any]) -> str:
     battery_mv = round(read_float(payload, "battery_voltage") * 1000.0)
     validate_mppt_request(a, b, c, v_min_mv, v_max_mv, battery_mv)
 
+    return {
+        "a": a,
+        "b": b,
+        "c": c,
+        "v_min": v_min_mv / 1000.0,
+        "v_max": v_max_mv / 1000.0,
+        "battery_voltage": battery_mv / 1000.0,
+    }
+
+
+def build_start_mppt_command_from_curve(curve: dict[str, Any]) -> str:
     return (
         "start_mppt_demo curve=quadratic "
-        f"a={a:g} b={b:g} c={c} "
-        f"v_min={v_min_mv} v_max={v_max_mv} "
-        f"battery_voltage={battery_mv}"
+        f"a={curve['a']:g} b={curve['b']:g} c={curve['c']} "
+        f"v_min={round(curve['v_min'] * 1000.0)} "
+        f"v_max={round(curve['v_max'] * 1000.0)} "
+        f"battery_voltage={round(curve['battery_voltage'] * 1000.0)}"
     )
 
 
@@ -351,10 +511,10 @@ def validate_mppt_request(
     v_max_mv: int,
     battery_mv: int,
 ) -> None:
-    if not (-30.0 <= a <= -1.0):
-        raise ValueError("A must be between -30 and -1 mA/V^2")
-    if not (0.0 <= b <= 400.0):
-        raise ValueError("B must be between 0 and 400 mA/V")
+    if not (-1000.0 <= a < 0.0):
+        raise ValueError("A must be negative and finite (|A| <= 1000)")
+    if not (-2000.0 <= b <= 5000.0):
+        raise ValueError("B must be between -2000 and 5000 mA/V")
     if not (0 <= c <= 3000):
         raise ValueError("C must be between 0 and 3000 mA")
     if not (0 <= v_min_mv <= 8000):
@@ -365,6 +525,25 @@ def validate_mppt_request(
         raise ValueError("Vmin must be lower than Vmax")
     if not (6500 <= battery_mv <= 8400):
         raise ValueError("Battery voltage must be between 6.5 and 8.4 V")
+
+    curve = {
+        "a": a,
+        "b": b,
+        "c": c,
+        "v_min": v_min_mv / 1000.0,
+        "v_max": v_max_mv / 1000.0,
+        "battery_voltage": battery_mv / 1000.0,
+    }
+    starting_panel_voltage = curve["battery_voltage"] / 0.5
+    starting_current = (
+        curve["a"] * starting_panel_voltage * starting_panel_voltage
+        + curve["b"] * starting_panel_voltage
+        + curve["c"]
+    )
+    if starting_current <= 100.0:
+        raise ValueError(
+            "Curve gives almost no current at the MPPT starting voltage"
+        )
 
 
 def read_float(payload: dict[str, Any], key: str) -> float:

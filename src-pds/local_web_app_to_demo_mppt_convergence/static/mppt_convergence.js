@@ -1,38 +1,77 @@
 const controls = {
-  a: document.getElementById("coefficientA"),
-  b: document.getElementById("coefficientB"),
-  c: document.getElementById("coefficientC"),
+  isc: document.getElementById("shortCircuitCurrent"),
+  voc: document.getElementById("openCircuitVoltage"),
+  vMpp: document.getElementById("peakPowerVoltage"),
   vMin: document.getElementById("minimumPanelVoltage"),
   vMax: document.getElementById("maximumPanelVoltage"),
   battery: document.getElementById("batteryVoltage"),
 };
 
 const outputs = {
-  a: document.getElementById("coefficientAValue"),
-  b: document.getElementById("coefficientBValue"),
-  c: document.getElementById("coefficientCValue"),
+  isc: document.getElementById("shortCircuitCurrentValue"),
+  voc: document.getElementById("openCircuitVoltageValue"),
+  vMpp: document.getElementById("peakPowerVoltageValue"),
   vMin: document.getElementById("minimumPanelVoltageValue"),
   vMax: document.getElementById("maximumPanelVoltageValue"),
   battery: document.getElementById("batteryVoltageValue"),
 };
 
+const vMppFractionMin = 0.52;
+const vMppFractionMax = 0.65;
+
 let latestSnapshot = {
   connected: false,
   connection_error: "",
   telemetry: {},
+  active_curve: null,
+  requested_curve: null,
   history: [],
   commands: [],
+  debug_events: [],
+};
+
+const fixedGraphScale = {
+  voltageMaxV: 18,
+  currentMaxMa: 5000,
+  powerMaxW: 125,
 };
 
 function readCurveFromControls() {
+  const isc = Number(controls.isc.value);
+  const voc = Number(controls.voc.value);
+  const vMpp = Number(controls.vMpp.value);
+  const { a, b, c } = quadraticFromPhysicalParameters(isc, voc, vMpp);
   return {
-    a: Number(controls.a.value),
-    b: Number(controls.b.value),
-    c: Number(controls.c.value),
+    a,
+    b,
+    c,
     v_min: Number(controls.vMin.value),
     v_max: Number(controls.vMax.value),
     battery_voltage: Number(controls.battery.value),
   };
+}
+
+function quadraticFromPhysicalParameters(isc, voc, vMpp) {
+  const denominator = vMpp * (3 * vMpp - 2 * voc) * voc;
+  const a = (isc * (2 * vMpp - voc)) / denominator;
+  const b = -a * voc - isc / voc;
+  const c = isc;
+  return { a, b, c };
+}
+
+function physicalFromQuadratic(curve) {
+  const a = Number(curve.a);
+  const b = Number(curve.b);
+  const c = Number(curve.c);
+  const discriminantVoc = b * b - 4 * a * c;
+  const voc = discriminantVoc >= 0
+    ? (-b - Math.sqrt(discriminantVoc)) / (2 * a)
+    : NaN;
+  const discriminantMpp = 4 * b * b - 12 * a * c;
+  const vMpp = discriminantMpp >= 0
+    ? (-2 * b - Math.sqrt(discriminantMpp)) / (6 * a)
+    : NaN;
+  return { isc: c, voc, v_mpp: vMpp };
 }
 
 function currentForVoltage(voltage, curve) {
@@ -60,12 +99,25 @@ function findMaximumPowerPoint(samples) {
 }
 
 function validateCurve(curve, samples, mpp) {
+  const voc = Number(controls.voc.value);
+  const vMpp = Number(controls.vMpp.value);
+  if (vMpp <= voc / 2 || vMpp >= (2 * voc) / 3) {
+    return "V_mpp must be between Voc/2 and 2*Voc/3";
+  }
   if (curve.v_min >= curve.v_max) return "Vmin must be lower than Vmax";
   if (mpp.power <= 0) return "The curve has no positive power";
   if (Math.max(...samples.map(point => point.current)) > 5000) return "Current exceeds 5 A";
   const lowestReachablePanelVoltage = curve.battery_voltage / 0.95;
   if (mpp.voltage < lowestReachablePanelVoltage) {
     return "MPP is below the panel voltage reachable by the buck converter";
+  }
+  const startingPanelVoltage = curve.battery_voltage / 0.5;
+  const startingCurrent = currentForVoltage(startingPanelVoltage, curve);
+  if (startingCurrent <= 100) {
+    return "Curve has almost no current at the MPPT starting voltage";
+  }
+  if (Math.abs(mpp.voltage - curve.v_min) < 0.25 || Math.abs(mpp.voltage - curve.v_max) < 0.25) {
+    return "MPP is too close to a voltage limit";
   }
   return "";
 }
@@ -87,29 +139,42 @@ function formatNumber(value, decimals) {
 }
 
 function updateControlText() {
-  const curve = readCurveFromControls();
-  outputs.a.textContent = formatNumber(curve.a, 1);
-  outputs.b.textContent = formatNumber(curve.b, 0);
-  outputs.c.textContent = formatNumber(curve.c, 0);
-  outputs.vMin.textContent = formatNumber(curve.v_min, 1);
-  outputs.vMax.textContent = formatNumber(curve.v_max, 1);
-  outputs.battery.textContent = formatNumber(curve.battery_voltage, 1);
+  outputs.isc.textContent = formatNumber(Number(controls.isc.value), 0);
+  outputs.voc.textContent = formatNumber(Number(controls.voc.value), 1);
+  outputs.vMpp.textContent = formatNumber(Number(controls.vMpp.value), 1);
+  outputs.vMin.textContent = formatNumber(Number(controls.vMin.value), 1);
+  outputs.vMax.textContent = formatNumber(Number(controls.vMax.value), 1);
+  outputs.battery.textContent = formatNumber(Number(controls.battery.value), 1);
+}
+
+function clampVMppToVocRange() {
+  const voc = Number(controls.voc.value);
+  const newMin = voc * vMppFractionMin;
+  const newMax = voc * vMppFractionMax;
+  controls.vMpp.min = newMin.toFixed(2);
+  controls.vMpp.max = newMax.toFixed(2);
+  const current = Number(controls.vMpp.value);
+  if (current < newMin) controls.vMpp.value = newMin.toFixed(2);
+  else if (current > newMax) controls.vMpp.value = newMax.toFixed(2);
 }
 
 function updateCurveState() {
-  const curve = readCurveFromControls();
-  const samples = buildCurveSamples(curve);
-  const mpp = findMaximumPowerPoint(samples);
-  const error = validateCurve(curve, samples, mpp);
+  const controlCurve = readCurveFromControls();
+  const controlSamples = buildCurveSamples(controlCurve);
+  const controlMpp = findMaximumPowerPoint(controlSamples);
+  const error = validateCurve(controlCurve, controlSamples, controlMpp);
   const state = document.getElementById("curveState");
   const startButton = document.getElementById("startButton");
+  const running = Boolean(latestSnapshot.mppt_running);
+  const boardPoint = latestBoardPoint();
 
-  state.textContent = error || "Valid curve";
-  state.classList.toggle("invalid", Boolean(error));
-  startButton.disabled = Boolean(error);
-  document.getElementById("commandPreview").textContent = startCommandText(curve);
-  document.getElementById("mppValue").textContent =
-    `${formatNumber(mpp.voltage, 2)} V / ${formatNumber(mpp.power / 1000, 2)} W`;
+  state.textContent = running
+    ? (boardPoint ? "Running" : (latestSnapshot.active_curve ? "Waiting" : "Starting"))
+    : (error || "Valid curve");
+  state.classList.toggle("invalid", Boolean(error) && !running);
+  startButton.disabled = running || Boolean(error);
+  document.getElementById("commandPreview").textContent = startCommandText(controlCurve);
+  document.getElementById("mppValue").textContent = boardPoint ? "valid" : "-";
 }
 
 function canvasContext(id) {
@@ -124,50 +189,74 @@ function canvasContext(id) {
 }
 
 function drawBothGraphs() {
-  const curve = readCurveFromControls();
-  const samples = buildCurveSamples(curve);
-  const mpp = findMaximumPowerPoint(samples);
   const boardPoint = latestBoardPoint();
-  drawIvGraph(curve, samples, boardPoint);
-  drawPvGraph(curve, samples, mpp, boardPoint);
+  const sliderCurve = readCurveFromControls();
+  const modelSamples = buildCurveSamples(sliderCurve);
+  drawIvGraph(boardPoint, sliderCurve, modelSamples);
+  drawPvGraph(boardPoint, sliderCurve, modelSamples);
 }
 
-function drawIvGraph(curve, samples, boardPoint) {
+function curvesMatch(first, second) {
+  return (
+    Math.abs(Number(first.a) - Number(second.a)) < 0.02 &&
+    Math.abs(Number(first.b) - Number(second.b)) < 0.02 &&
+    Math.round(Number(first.c)) === Math.round(Number(second.c)) &&
+    Math.abs(Number(first.v_min) - Number(second.v_min)) < 0.002 &&
+    Math.abs(Number(first.v_max) - Number(second.v_max)) < 0.002 &&
+    Math.abs(Number(first.battery_voltage) - Number(second.battery_voltage)) < 0.002
+  );
+}
+
+function drawIvGraph(boardPoint, modelCurve, modelSamples) {
   const graph = canvasContext("ivGraph");
   const axes = plotAxes(graph, "Panel voltage (V)", "Panel current (mA)");
-  const maxCurrent = Math.max(100, ...samples.map(point => point.current));
+  const maxVoltage = graphVoltageMax(modelCurve, boardPoint);
+  const maxCurrent = fixedGraphScale.currentMaxMa;
 
   drawGrid(graph, axes);
-  drawLine(graph, axes, samples, point => point.voltage, point => point.current, {
-    xMax: curve.v_max,
-    yMax: maxCurrent,
-    color: "#1264a3",
-  });
-  drawAxisLabels(graph, axes, curve.v_max, maxCurrent, "V", "mA");
-  drawBoardPath(graph, axes, curve.v_max, maxCurrent, point => point.current);
+  drawLine(
+    graph,
+    axes,
+    modelSamples,
+    point => point.voltage,
+    point => point.current,
+    { color: "#1264a3", xMax: maxVoltage, yMax: maxCurrent },
+  );
+  drawBoardPath(graph, axes, maxVoltage, maxCurrent, point => point.current);
 
   if (boardPoint) {
-    drawPoint(graph, axes, boardPoint.voltage, boardPoint.current, curve.v_max, maxCurrent, "#b42318", "board");
+    drawPoint(graph, axes, boardPoint.voltage, boardPoint.current, maxVoltage, maxCurrent, "#b42318", "board");
   }
+  drawAxisLabels(graph, axes, maxVoltage, maxCurrent, "V", "mA");
 }
 
-function drawPvGraph(curve, samples, mpp, boardPoint) {
+function drawPvGraph(boardPoint, modelCurve, modelSamples) {
   const graph = canvasContext("pvGraph");
   const axes = plotAxes(graph, "Panel voltage (V)", "Panel power (W)");
-  const maxPower = Math.max(100, ...samples.map(point => point.power));
+  const maxVoltage = graphVoltageMax(modelCurve, boardPoint);
+  const maxPower = fixedGraphScale.powerMaxW;
 
   drawGrid(graph, axes);
-  drawLine(graph, axes, samples, point => point.voltage, point => point.power, {
-    xMax: curve.v_max,
-    yMax: maxPower,
-    color: "#b7791f",
-  });
-  drawBoardPath(graph, axes, curve.v_max, maxPower, point => point.power);
-  drawPoint(graph, axes, mpp.voltage, mpp.power, curve.v_max, maxPower, "#20845c", "MPP");
+  drawLine(
+    graph,
+    axes,
+    modelSamples,
+    point => point.voltage,
+    point => point.power / 1000,
+    { color: "#b7791f", xMax: maxVoltage, yMax: maxPower },
+  );
+  drawBoardPath(graph, axes, maxVoltage, maxPower, point => point.power / 1000);
   if (boardPoint) {
-    drawPoint(graph, axes, boardPoint.voltage, boardPoint.power, curve.v_max, maxPower, "#b42318", "board");
+    drawPoint(graph, axes, boardPoint.voltage, boardPoint.power / 1000, maxVoltage, maxPower, "#b42318", "board");
   }
-  drawAxisLabels(graph, axes, curve.v_max, maxPower, "V", "mW");
+  drawAxisLabels(graph, axes, maxVoltage, maxPower, "V", "W");
+}
+
+function graphVoltageMax(modelCurve, boardPoint) {
+  const values = [fixedGraphScale.voltageMaxV];
+  if (modelCurve) values.push(Number(modelCurve.v_max || 0));
+  if (boardPoint) values.push(Number(boardPoint.voltage || 0));
+  return Math.max(...values);
 }
 
 function plotAxes(graph, xLabel, yLabel) {
@@ -209,6 +298,7 @@ function drawGrid(graph, axes) {
 }
 
 function drawLine(graph, axes, samples, xValue, yValue, style) {
+  if (samples.length === 0) return;
   const context = graph.context;
   context.strokeStyle = style.color;
   context.lineWidth = 2;
@@ -288,21 +378,25 @@ function plotHeight(graph, axes) {
 
 function latestBoardPoint() {
   const telemetry = latestSnapshot.telemetry || {};
-  if (!telemetry.panel_voltage_mv) return null;
+  if (telemetry.mppt_sample_valid === 0) return null;
+  if (telemetry.panel_voltage_mv === undefined) return null;
   return {
     voltage: Number(telemetry.panel_voltage_mv) / 1000,
     current: Number(telemetry.panel_current_ma || 0),
     power: Number(telemetry.panel_power_mw || 0),
+    duty: telemetry.mppt_duty ?? telemetry.applied_pwm ?? null,
   };
 }
 
 function boardHistoryPoints() {
   const history = latestSnapshot.history || [];
-  return history.map(item => ({
-    voltage: Number(item.panel_voltage_mv || 0) / 1000,
-    current: Number(item.panel_current_ma || 0),
-    power: Number(item.panel_power_mw || 0),
-  }));
+  return history
+    .filter(item => item.panel_voltage_mv !== undefined)
+    .map(item => ({
+      voltage: Number(item.panel_voltage_mv || 0) / 1000,
+      current: Number(item.panel_current_ma || 0),
+      power: Number(item.panel_power_mw || 0),
+    }));
 }
 
 async function api(path, body) {
@@ -373,8 +467,10 @@ async function refreshStatus() {
 
 function renderStatus() {
   renderConnectionStatus();
+  updateCurveState();
   renderBoardValues();
   renderCommandLog();
+  renderControlLockState();
 }
 
 function renderConnectionStatus() {
@@ -389,14 +485,24 @@ function renderConnectionStatus() {
 
 function renderBoardValues() {
   const telemetry = latestSnapshot.telemetry || {};
+  const hasSample = latestBoardPoint() !== null;
   document.getElementById("modeValue").textContent = telemetry.mode || "-";
   document.getElementById("dutyValue").textContent = telemetry.mppt_duty ?? telemetry.applied_pwm ?? "-";
   document.getElementById("panelVoltageValue").textContent =
-    telemetry.panel_voltage_mv ? `${(telemetry.panel_voltage_mv / 1000).toFixed(2)} V` : "-";
+    hasSample ? `${(telemetry.panel_voltage_mv / 1000).toFixed(2)} V` : "-";
   document.getElementById("panelCurrentValue").textContent =
-    telemetry.panel_current_ma ? `${telemetry.panel_current_ma} mA` : "-";
+    hasSample ? `${telemetry.panel_current_ma} mA` : "-";
   document.getElementById("panelPowerValue").textContent =
-    telemetry.panel_power_mw ? `${(telemetry.panel_power_mw / 1000).toFixed(2)} W` : "-";
+    hasSample ? `${(telemetry.panel_power_mw / 1000).toFixed(2)} W` : "-";
+}
+
+function renderControlLockState() {
+  const running = Boolean(latestSnapshot.mppt_running);
+  Object.values(controls).forEach(control => {
+    control.disabled = running;
+  });
+  document.getElementById("startButton").disabled = running || document.getElementById("curveState").classList.contains("invalid");
+  document.getElementById("offButton").disabled = false;
 }
 
 function renderCommandLog() {
@@ -408,8 +514,17 @@ function renderCommandLog() {
   const latest = commands
     .slice(-24)
     .map(item => `${item.direction}: ${item.text}`);
+  const debugEvents = (latestSnapshot.debug_events || [])
+    .slice(-8)
+    .map(formatDebugEvent);
   const log = document.getElementById("commandLog");
   log.textContent = [
+    "Run diagnostics:",
+    ...runDiagnosticsLines(),
+    "",
+    "Server events:",
+    ...(debugEvents.length ? debugEvents : ["-"]),
+    "",
     "Recent serial lines:",
     ...latest,
     "",
@@ -419,9 +534,64 @@ function renderCommandLog() {
   log.scrollTop = log.scrollHeight;
 }
 
+function runDiagnosticsLines() {
+  const boardPoint = latestBoardPoint();
+  const sliderCurve = readCurveFromControls();
+  const requestedCurve = latestSnapshot.requested_curve || null;
+  const activeCurve = latestSnapshot.active_curve || null;
+  const lines = [];
+
+  if (!requestedCurve) {
+    lines.push("Graph source: slider curve (Start not pressed)");
+  } else if (!activeCurve) {
+    lines.push("Graph source: slider curve (ESP32 not yet confirmed)");
+  } else if (curvesMatch(activeCurve, sliderCurve)) {
+    lines.push("Graph source: slider curve (ESP32 confirmed)");
+  } else {
+    const echoed = physicalFromQuadratic(activeCurve);
+    lines.push(
+      `Graph source: slider curve (ESP32 confirmed DIFFERENT curve - board is simulating Isc=${formatNumber(echoed.isc, 0)} mA Voc=${formatNumber(echoed.voc, 1)} V V_mpp=${formatNumber(echoed.v_mpp, 1)} V)`,
+    );
+  }
+
+  lines.push(
+    `Slider curve: Isc=${formatNumber(Number(controls.isc.value), 0)} mA Voc=${formatNumber(Number(controls.voc.value), 1)} V V_mpp=${formatNumber(Number(controls.vMpp.value), 1)} V`,
+  );
+
+  if (activeCurve) {
+    const echoed = physicalFromQuadratic(activeCurve);
+    lines.push(
+      `ESP32 model: Isc=${formatNumber(echoed.isc, 0)} mA Voc=${formatNumber(echoed.voc, 1)} V V_mpp=${formatNumber(echoed.v_mpp, 1)} V (a=${formatNumber(activeCurve.a, 1)} b=${formatNumber(activeCurve.b, 0)} c=${formatNumber(activeCurve.c, 0)} battery=${formatNumber(activeCurve.battery_voltage, 1)} V)`,
+    );
+  } else if (requestedCurve) {
+    lines.push("ESP32 model: not confirmed yet");
+  }
+
+  if (boardPoint) {
+    const boardPowerW = boardPoint.power / 1000;
+    const dutyText = boardPoint.duty === null ? "-" : String(boardPoint.duty);
+    lines.push(
+      `Board point: ${formatNumber(boardPoint.voltage, 2)} V / ${boardPoint.current} mA / ${formatNumber(boardPowerW, 2)} W / duty ${dutyText}`,
+    );
+  } else {
+    lines.push("Board point: none yet");
+  }
+
+  return lines;
+}
+
+function formatDebugEvent(event) {
+  const timeText = new Date(Number(event.time) * 1000).toLocaleTimeString();
+  return `${timeText}: ${event.text}`;
+}
+
 function handleControlChange() {
+  clampVMppToVocRange();
   updateControlText();
   updateCurveState();
+  if (!latestSnapshot.active_curve) {
+    latestSnapshot.history = [];
+  }
   drawBothGraphs();
 }
 
