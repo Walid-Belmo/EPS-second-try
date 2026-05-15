@@ -1,9 +1,24 @@
 // =============================================================================
 // functions_to_compute_dispatcher_reference_pcu_mode_for_verification.c
 //
-// Implementation of the steady-state dispatcher oracle. Mirrors the decision
-// tree in Fig 3.4.6 of the CHESS mission doc plus the three safety overrides
-// listed in section §B of src-pds/state-transitions.md.
+// VERIFICATION ORACLE — a SECOND, independent implementation of the PCU mode
+// decision tree, written in the simplest possible single-function shape. Used
+// only as a cross-check against the main state machine in
+// functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.c.
+//
+// The idea: when a State-page scenario runs, both this oracle and the real
+// state machine see the same sensor inputs. If they ever disagree on the
+// PCU mode, that means either the oracle is wrong (fix this file) or the
+// real state machine is wrong (fix the other file). Either way, a regression
+// gets caught visibly instead of slipping in.
+//
+// Mirrors the decision tree in Fig 3.4.6 of the CHESS mission doc plus the
+// three safety overrides listed in section §B of src-pds/state-transitions.md.
+// Pure logic — no hardware, no globals, no side effects beyond the two
+// output pointers.
+//
+// NOT called from the main loop. Currently unused at runtime; kept around
+// for future per-scenario assertion in the State page's test harness.
 // =============================================================================
 
 #include <stdint.h>

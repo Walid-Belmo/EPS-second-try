@@ -1,12 +1,25 @@
 /* =============================================================================
  * uart_obc_sercom0_pa10_pa11_on_devboard.c
- * Non-blocking bidirectional UART driver for the ESP32/OBC link.
  *
- * BUILD TARGET: devboard only
+ * Non-blocking bidirectional UART driver for the ESP32/OBC link, dev-board
+ * variant. Functionally byte-for-byte identical to the mainboard version
+ * (uart_obc_sercom0_pa10_pa11_on_mainboard.c) — same SERCOM, same pads,
+ * same baud, same ring-buffer architecture, same ISR. The only difference
+ * is the chip-header include (`samd21g17d.h` here vs `samd21j17d.h` on
+ * mainboard) which the SAMD21 family-pack uses to pick the right register
+ * definitions for each chip variant. The two chips have identical SERCOM
+ * silicon, so the actual code does not change.
  *
- * Uses SERCOM0 on PA10/PA11 to match the mainboard's SERCOM0 pad layout:
- *   PA10 = SERCOM0 PAD[2], mux C, TXPO=1
- *   PA11 = SERCOM0 PAD[3], mux C, RXPO=3
+ * For the full WHY-each-register-write commentary, read the mainboard
+ * file — it is the canonical commented version. Anything explained
+ * there applies here unchanged.
+ *
+ * BUILD TARGET: devboard only.
+ *
+ * Pinout (matches the mainboard so the same ESP32 cable works in both
+ * setups):
+ *   PA10 = SERCOM0 PAD[2], peripheral mux C, TXPO = 1
+ *   PA11 = SERCOM0 PAD[3], peripheral mux C, RXPO = 3
  * =============================================================================
  */
 

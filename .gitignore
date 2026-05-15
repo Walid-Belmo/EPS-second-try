@@ -1,0 +1,13 @@
+# COM3 test-bridge scratch (see src-pds/context.md, testing_history.md)
+com3.log
+cmds.txt
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Build outputs that should not be versioned
+build/satellite_firmware.hex
+build/src/
+build/src-pds/
+build/startup/

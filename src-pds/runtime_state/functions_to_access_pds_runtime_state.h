@@ -15,6 +15,7 @@ uint8_t requested_mode_is_flight(void);
 uint8_t requested_mode_is_mppt_test(void);
 uint8_t requested_mode_is_state_test(void);
 uint8_t requested_mode_is_fixed_pwm_test(void);
+uint8_t requested_mode_is_manual(void);
 
 uint8_t pds_control_loop_period_has_elapsed(void);
 void reset_mppt_control_loop_state(void);

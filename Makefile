@@ -76,8 +76,11 @@ There is no default. See docs/build_targets_and_file_map.md for the file map.)
                         src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.c \
                         src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.c \
                         src-pds/runtime_state/functions_to_access_pds_runtime_state.c \
+                        src-pds/sensor_inputs/sensor_readings.c \
+                        src-pds/sensor_inputs/ina226_register_protocol.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.c \
+                        src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.c \
                         src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.c \
@@ -129,8 +132,11 @@ There is no default. See docs/build_targets_and_file_map.md for the file map.)
                         src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.c \
                         src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.c \
                         src-pds/runtime_state/functions_to_access_pds_runtime_state.c \
+                        src-pds/sensor_inputs/sensor_readings.c \
+                        src-pds/sensor_inputs/ina226_register_protocol.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.c \
+                        src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.c \
                         src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.c \
                         src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.c \
@@ -142,6 +148,18 @@ There is no default. See docs/build_targets_and_file_map.md for the file map.)
                         src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.c \
                         src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.c \
                         src/drivers/clock_configure_48mhz_dfll_open_loop.c \
+                        src/drivers/led_status_pb22_active_high_on_mainboard.c \
+                        src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.c \
+                        src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.c \
+                        src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.c \
+                        src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.c \
+                        src/drivers/ina226_battery_on_mainboard.c \
+                        src/drivers/ina226_panel_on_mainboard.c \
+                        src/drivers/voltage_divider_rails_on_mainboard.c \
+                        src/drivers/lt6108_battery_outa2_on_mainboard.c \
+                        src/drivers/lt6108_panel_outa1_on_mainboard.c \
+                        src/drivers/tps25940_imon_battery_on_mainboard.c \
+                        src/drivers/tps25940_imon_panel_on_mainboard.c \
                         src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.c \
                         src/drivers/mainboard_adc_reader.c \
                         src/drivers/millisecond_tick_timer_using_arm_systick.c \

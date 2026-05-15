@@ -65,6 +65,12 @@ class PageState:
         self.scenario_results: dict[str, dict[str, Any]] = {}
         self.last_scenario_run: dict[str, Any] | None = None
 
+        # Manual-control page flag. The page disables its toggles until this
+        # is True so the user can't fire set_manual_* commands while the
+        # firmware is still in another mode (those commands would be rejected
+        # by the firmware anyway, but disabling them up front is friendlier).
+        self.in_manual_mode = False
+
         # Shared command/log buffers.
         self.last_command = ""
         self.last_ack = ""
@@ -90,6 +96,7 @@ class PageState:
                 "mppt_running": self.mppt_running,
                 "history": list(self.history),
                 "in_state_test_mode": self.in_state_test_mode,
+                "in_manual_mode": self.in_manual_mode,
                 "scenario_results": dict(self.scenario_results),
                 "last_scenario_run": (
                     dict(self.last_scenario_run)
@@ -382,6 +389,117 @@ def parse_esp32_line_into_state(line: str, state: PageState) -> None:
     match = re.search(r"status=(\w+) version=(\d+) timestamp_ms=(\d+)", line)
     if match:
         state.telemetry["timestamp_ms"] = int(match.group(3))
+        return
+
+    match = re.search(
+        r"manual\s+pwm=(\d+) pv_req=(\d+) bat_req=(\d+) led_req=(\d+) led_is_on=(\d+)",
+        line,
+    )
+    if match:
+        state.telemetry.update(
+            {
+                "manual_pwm": int(match.group(1)),
+                "manual_pv_requested": int(match.group(2)),
+                "manual_bat_requested": int(match.group(3)),
+                "manual_led_requested": int(match.group(4)),
+                "manual_led_is_on": int(match.group(5)),
+            }
+        )
+        return
+
+    match = re.search(
+        r"efuse\s+pv_pgood=(\d+) pv_flt=(\d+) bat_pgood=(\d+) bat_flt=(\d+)",
+        line,
+    )
+    if match:
+        state.telemetry.update(
+            {
+                "pv_pgood": int(match.group(1)),
+                "pv_flt": int(match.group(2)),
+                "bat_pgood": int(match.group(3)),
+                "bat_flt": int(match.group(4)),
+            }
+        )
+        return
+
+    # Sensor reads block (always streamed by firmware version 4 onward).
+    # Each line carries one measurement's per-sensor readings plus what
+    # Layer 1 chose. The Sensor Reads page renders these directly.
+
+    match = re.search(r"sensor source=(\w+)", line)
+    if match:
+        state.telemetry["sensor_source"] = match.group(1)
+        return
+
+    match = re.search(
+        r"sensor_battery_v ina226=(-?\d+) divider=(-?\d+) layer1=(-?\d+)",
+        line,
+    )
+    if match:
+        state.telemetry.update(
+            {
+                "battery_v_ina226": int(match.group(1)),
+                "battery_v_divider": int(match.group(2)),
+                "battery_v_layer1": int(match.group(3)),
+            }
+        )
+        return
+
+    match = re.search(
+        r"sensor_battery_i ina226=(-?\d+) lt6108=(-?\d+) "
+        r"tps25940=(-?\d+) layer1=(-?\d+)",
+        line,
+    )
+    if match:
+        state.telemetry.update(
+            {
+                "battery_i_ina226": int(match.group(1)),
+                "battery_i_lt6108": int(match.group(2)),
+                "battery_i_tps25940": int(match.group(3)),
+                "battery_i_layer1": int(match.group(4)),
+            }
+        )
+        return
+
+    match = re.search(
+        r"sensor_panel_v ina226=(-?\d+) divider=(-?\d+) layer1=(-?\d+)",
+        line,
+    )
+    if match:
+        state.telemetry.update(
+            {
+                "panel_v_ina226": int(match.group(1)),
+                "panel_v_divider": int(match.group(2)),
+                "panel_v_layer1": int(match.group(3)),
+            }
+        )
+        return
+
+    match = re.search(
+        r"sensor_panel_i ina226=(-?\d+) lt6108=(-?\d+) "
+        r"tps25940=(-?\d+) layer1=(-?\d+)",
+        line,
+    )
+    if match:
+        state.telemetry.update(
+            {
+                "panel_i_ina226": int(match.group(1)),
+                "panel_i_lt6108": int(match.group(2)),
+                "panel_i_tps25940": int(match.group(3)),
+                "panel_i_layer1": int(match.group(4)),
+            }
+        )
+        return
+
+    match = re.search(r"sensor_rail_v divider=(-?\d+) layer1=(-?\d+)", line)
+    if match:
+        state.telemetry.update(
+            {
+                "rail_v_divider": int(match.group(1)),
+                "rail_v_layer1": int(match.group(2)),
+            }
+        )
+        return
 
 
 def _update_mppt_live_telemetry(match: re.Match[str], state: PageState) -> None:
@@ -459,6 +577,28 @@ def connect_to_serial_port(port_name: str) -> None:
         raise
 
 
+def disconnect_from_serial_port() -> None:
+    """Releases the COM port so other tools (PuTTY, the Arduino monitor,
+    etc.) can take it back without restarting this server. Best-effort: tries
+    to send `off` first so the board parks in a known state, but a missing
+    or already-closed port is not treated as an error."""
+    try:
+        BRIDGE.send("stream_values off")
+        time.sleep(0.05)
+        BRIDGE.send("off")
+        time.sleep(0.05)
+    except Exception:
+        pass
+    BRIDGE.close()
+    with STATE.lock:
+        STATE.mppt_running = False
+        STATE.in_state_test_mode = False
+        STATE.in_manual_mode = False
+        STATE.telemetry = {}
+        STATE.connection_error = ""
+        STATE.record_debug("Serial port released")
+
+
 def send_off_command() -> None:
     STATE.record_debug("Off requested: stopping stream and switching board off")
     BRIDGE.send("stream_values off")
@@ -469,6 +609,7 @@ def send_off_command() -> None:
     with STATE.lock:
         STATE.mppt_running = False
         STATE.in_state_test_mode = False
+        STATE.in_manual_mode = False
         STATE.active_curve = None
         STATE.requested_curve = None
         STATE.telemetry = {}

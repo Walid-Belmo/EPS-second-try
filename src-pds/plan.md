@@ -1,5 +1,30 @@
 # Source PDS Implementation Plan
 
+> **⚠️ STATUS DISCLAIMER (added 2026-05-16) — read before trusting this file.**
+>
+> This is a **historical design record, not a live plan**. The build phase
+> it describes is finished; the project is now in hardware testing.
+>
+> - **Trust** the design sections: "Rule For Every Coding Step", "Main
+>   Reference Files In `src`", and "Big Implementation Steps 1–8". They
+>   accurately explain *why* `src-pds` is structured the way it is and how
+>   each module maps back to `src/`.
+> - **Do NOT trust** any status / "Current Blocking Items" / page-status
+>   line at face value — some are stale (corrected inline below with
+>   dated `[UPDATE]` notes; others may still be wrong).
+> - **The Step-1 command list is the *initial* small set, not the shipped
+>   contract.** The firmware actually ships 14 commands (incl. the manual-
+>   control set `0x38–0x3D` and `READ_MPPT_INPUT_SAMPLE 0x37`). The
+>   authoritative list is
+>   `src-pds/board_command_contract/board_command_ids_and_payload_layouts.h`.
+>   Manual-control mode (a whole firmware mode + 5 commands + a web page)
+>   was delivered but is **not** among the eight "Big Implementation Steps".
+> - For the **real current state** use, in this order:
+>   `src-pds/context.md`, `src-pds/defects_to_correct.md`,
+>   `src-pds/What's TP for what test.md`. Unlike `notes/plan.md` (pure
+>   historical noise — disregard entirely), this file still has design
+>   value, which is why it is kept rather than deleted.
+
 This file is the working plan for `src-pds`.
 The goal is to rebuild the EPS firmware with clearer names, clearer files, and
 the same proven behavior as the working code in `src`.
@@ -242,13 +267,28 @@ Status: working. Backed by the pure-dispatcher firmware in
 `src-pds/state_machine_pure_logic/`. The flight-grade target lives in
 `src-pds/state-transitions.md`.
 
-### 3. Manual PWM And Board Control Page — `/pwm`
+### 3. Manual Control Page — `/manual`
 
-Lets the user send one direct PWM value with `run_pwm`. Shows requested
-PWM, applied PWM, and whether PWM output is enabled. Off button stops the
-board.
+Lets the operator drive each of the four user-facing board outputs
+independently — PWM duty, PV-side eFuse switch, battery-side eFuse switch,
+and the green status LED — through a new firmware mode
+(`PDS_REQUESTED_MODE_MANUAL = 5`). Off-first convention is enforced in the
+UI; the four `set_manual_*` commands are rejected by the firmware unless
+the chip is already in manual mode.
 
-Status: not implemented yet.
+Status: working on `BOARD=devboard-pds` (PWM physically moves; PV / BAT /
+LED commands round-trip and the readbacks mirror the requested values
+because the corresponding pins are not wired on the dev board). Not yet
+verified on the real PCU board V4.1. See `src-pds/manual_control_mode.md`
+for full details.
+
+> **[UPDATE 2026-05-16]** Now PARTIALLY verified on the real PCU board
+> V4.1: `enter_manual` works, `set_manual_pwm` drives real PA12/PA13
+> (scoped at ~20 % and ~50 %), `set_manual_led` drives PB22 (green LED2
+> confirmed on/off, no heartbeat blink-fight). Still unverified: the
+> PV/BAT eFuse *rails* (the rails were unpowered — a bench-setup gap,
+> not a firmware gap). See `src-pds/defects_to_correct.md` (bench log)
+> and `src-pds/What's TP for what test.md`.
 
 ### 4. Communication And Status Page — `/comm`
 
@@ -260,8 +300,20 @@ Status: not implemented yet.
 
 ## Current Blocking Items
 
-- The manual PWM page and the communication/status page are not
-  implemented yet. The unified server architecture is in place so adding
-  them is a new actions module + a new static folder each.
+- The communication/status page (page 4) is not implemented yet. The
+  unified server architecture is in place so adding it is a new actions
+  module plus a new static folder.
+- Manual control mode has not yet been verified on the real PCU board
+  V4.1 — only on the Curiosity Nano dev board, where the PV / BAT / LED
+  pins are not physically present (`src-pds/manual_control_mode.md`
+  explains the mirror behaviour that keeps the demo meaningful anyway).
+  > **[UPDATE 2026-05-16] — partially resolved.** Manual mode IS now
+  > verified on the real PCU V4.1 for PWM (PA12/PA13, scoped) and the
+  > status LED (PB22). Only the PV/BAT eFuse rails remain unverified
+  > (rails unpowered — bench-setup gap, not firmware). New testing-phase
+  > blockers (not build-phase) are tracked in `defects_to_correct.md`:
+  > F1 INA226 telemetry garbage, F6 telemetry one-iteration lag, and the
+  > wrong TP assignments in `how_to_test.md` (corrected in
+  > `What's TP for what test.md`).
 - The old root-level `server.py` should not be used as the reference for
   the new Source PDS web app.

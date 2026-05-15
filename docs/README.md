@@ -4,6 +4,9 @@ Start here when looking for project documentation.
 
 ## Current Bring-Up Work
 
+- [EPS Requirements](requirements.md) - consolidated mission and firmware
+  requirements for the PCU, PDU, MCU, modes, telemetry, CHIPS, safety, and
+  current mainboard interpretation.
 - [Mainboard ADC Reader Test](mainboard_adc_reader_test.md) - raw ADC reader
   for the six mainboard analog monitor nets and how to test it later.
 - [Mainboard Analog Scaling](mainboard_analog_scaling.md) - nominal raw ADC to

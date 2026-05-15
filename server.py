@@ -23,6 +23,7 @@ import threading
 import time
 from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
@@ -39,12 +40,20 @@ DEFAULT_PORT = "COM3"
 BAUD_RATE = 115200
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 8000
+DASHBOARD_HTML_PATH = Path(__file__).with_name("static").joinpath("mppt_demo.html")
 
 PANEL_ADC_TO_MILLIVOLTS = 5
 PANEL_ADC_TO_MILLIAMPS = 2
 
 SATELLITE_MODE_CHARGING = 1
 SAFE_SUBSTATE_CHARGING = 1
+
+MPPT_TEST_MODE_COMMANDS = (
+    "pwm-disarm",
+    "source injected",
+    "stream off",
+    "mode mppt",
+)
 
 
 FSM_SCENARIOS = [
@@ -104,6 +113,18 @@ class DemoState:
             "target_vmp_mv": int(18000 / math.sqrt(3)),
             "target_duty": int((7400 * 65535) / (18000 / math.sqrt(3))),
         }
+        self.environment: dict[str, Any] = {
+            "panel_mv": 13000,
+            "panel_ma": 1800,
+            "battery_mv": 7400,
+            "battery_ma": 250,
+            "rail_mv": 7600,
+            "temperature_decic": 220,
+            "heartbeat": 1,
+            "satellite_mode": SATELLITE_MODE_CHARGING,
+            "safe_substate": SAFE_SUBSTATE_CHARGING,
+            "faults": 0,
+        }
         self.fsm: dict[str, Any] = {
             "running": False,
             "complete": False,
@@ -131,6 +152,7 @@ class DemoState:
                 "mppt_running": self.mppt_running,
                 "fsm_running": self.fsm_running,
                 "simulation": dict(self.simulation),
+                "environment": dict(self.environment),
                 "telemetry": dict(self.telemetry),
                 "history": list(self.history),
                 "commands": list(self.command_history),
@@ -140,6 +162,10 @@ class DemoState:
 
 
 STATE = DemoState()
+
+
+def load_dashboard_html() -> str:
+    return DASHBOARD_HTML_PATH.read_text(encoding="utf-8")
 
 
 class SerialBridge:
@@ -305,6 +331,23 @@ def parse_telemetry_line(line: str) -> None:
             )
 
         match = re.search(
+            r"injected rail_mv=(\d+) temp_decic=(-?\d+) heartbeat=(\d+) "
+            r"sat=(\d+) safe=(\d+) faults=0x([0-9A-Fa-f]+)",
+            line,
+        )
+        if match:
+            telemetry.update(
+                {
+                    "rail_mv": int(match.group(1)),
+                    "temperature_decic": int(match.group(2)),
+                    "heartbeat": int(match.group(3)),
+                    "satellite_mode": int(match.group(4)),
+                    "safe_substate": int(match.group(5)),
+                    "faults": int(match.group(6), 16),
+                }
+            )
+
+        match = re.search(
             r"control iter=(\d+) panel_mv=(\d+) panel_ma=(\d+) input_mw=(\d+)",
             line,
         )
@@ -344,6 +387,21 @@ def parse_telemetry_line(line: str) -> None:
                     "safe_active": int(match.group(2)),
                     "safe_reason": int(match.group(3)),
                     "safe_alert": int(match.group(4)),
+                }
+            )
+
+        match = re.search(
+            r"panel_efuse=(\d+) heater=(\d+) loads=0x([0-9A-Fa-f]+) "
+            r"last_control=(\w+)",
+            line,
+        )
+        if match:
+            telemetry.update(
+                {
+                    "panel_efuse": int(match.group(1)),
+                    "heater": int(match.group(2)),
+                    "loads": int(match.group(3), 16),
+                    "last_control": match.group(4),
                 }
             )
 
@@ -481,6 +539,55 @@ def update_simulation_config(payload: dict[str, Any]) -> None:
             )
 
 
+def clamp_int(value: Any, minimum: int, maximum: int) -> int:
+    integer_value = int(value)
+    return max(minimum, min(maximum, integer_value))
+
+
+def update_environment_config(payload: dict[str, Any]) -> None:
+    with STATE.lock:
+        env = STATE.environment
+        for key, minimum, maximum in (
+            ("panel_mv", 0, 50000),
+            ("panel_ma", 0, 20000),
+            ("battery_mv", 1000, 20000),
+            ("battery_ma", -32768, 32767),
+            ("rail_mv", 0, 20000),
+            ("temperature_decic", -400, 800),
+            ("heartbeat", 0, 1),
+            ("satellite_mode", 0, 3),
+            ("safe_substate", 0, 3),
+            ("faults", 0, 65535),
+        ):
+            if key in payload:
+                env[key] = clamp_int(payload[key], minimum, maximum)
+
+
+def build_injection_command_from_environment(environment: dict[str, Any]) -> str:
+    panel_mv = int(environment["panel_mv"])
+    panel_ma = int(environment["panel_ma"])
+    pv_adc = max(0, min(4095, int(round(panel_mv / PANEL_ADC_TO_MILLIVOLTS))))
+    pi_adc = max(0, min(4095, int(round(panel_ma / PANEL_ADC_TO_MILLIAMPS))))
+    return (
+        f"inject {pv_adc} {pi_adc} {int(environment['battery_mv'])} "
+        f"{int(environment['battery_ma'])} {int(environment['rail_mv'])} "
+        f"{int(environment['temperature_decic'])} {int(environment['heartbeat'])} "
+        f"{int(environment['satellite_mode'])} {int(environment['safe_substate'])} "
+        f"{int(environment['faults'])}"
+    )
+
+
+def send_environment_injection() -> None:
+    with STATE.lock:
+        environment = dict(STATE.environment)
+    BRIDGE.open(STATE.serial_port_name)
+    BRIDGE.send("source injected")
+    time.sleep(0.08)
+    BRIDGE.send(build_injection_command_from_environment(environment))
+    time.sleep(0.08)
+    BRIDGE.send("telemetry")
+
+
 def send_injection_from_duty(duty: int) -> None:
     with STATE.lock:
         sim = dict(STATE.simulation)
@@ -506,7 +613,7 @@ def send_injection_from_duty(duty: int) -> None:
 def mppt_loop() -> None:
     try:
         BRIDGE.open(STATE.serial_port_name)
-        for command in ("pwm-disarm", "source injected", "stream off", "mode mppt"):
+        for command in MPPT_TEST_MODE_COMMANDS:
             BRIDGE.send(command)
             time.sleep(0.25)
 
@@ -577,9 +684,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 - stdlib method name
         path = urlparse(self.path).path
         if path == "/":
-            body = HTML.encode("utf-8")
+            body = load_dashboard_html().encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
@@ -603,7 +711,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 BRIDGE.send(str(payload.get("command", "")))
                 make_response(self, 200, {"ok": True})
                 return
-            if path == "/api/mppt/start":
+            if path == "/api/environment/apply":
+                update_environment_config(payload)
+                send_environment_injection()
+                make_response(self, 200, {"ok": True})
+                return
+            if path == "/api/mppt/config":
+                update_simulation_config(payload)
+                make_response(self, 200, {"ok": True})
+                return
+            if path in ("/api/mppt/start", "/api/mppt/test-mode"):
                 update_simulation_config(payload)
                 with STATE.lock:
                     STATE.history.clear()
@@ -611,7 +728,20 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     STATE.fsm_running = False
                 thread = threading.Thread(target=mppt_loop, daemon=True)
                 thread.start()
-                make_response(self, 200, {"ok": True})
+                make_response(
+                    self,
+                    200,
+                    {
+                        "ok": True,
+                        "test_mode": "mppt",
+                        "sequence": [
+                            *MPPT_TEST_MODE_COMMANDS,
+                            "inject <point IV simule>",
+                            "pwm-arm",
+                            "boucle: telemetry puis inject <point IV depuis duty>",
+                        ],
+                    },
+                )
                 return
             if path == "/api/mppt/stop":
                 with STATE.lock:
@@ -1114,6 +1244,668 @@ HTML = r"""<!doctype html>
         const pmax = (sim.target_vmp_mv || 0) * currentMa(sim.target_vmp_mv || 0, sim) / 1000;
         drawHistory('powerPlot', 'input_power_mw', '#b7791f', pmax * 1.25, 'Puissance mesurée par la carte');
         drawHistory('dutyPlot', 'applied_duty', '#0b6fcb', 65535, 'Duty appliqué');
+      } catch (err) {
+        document.getElementById('connection').textContent = 'Erreur: ' + err;
+      }
+    }
+
+    setInterval(refresh, 500);
+    refresh();
+  </script>
+</body>
+</html>
+"""
+
+
+# Presentation dashboard. This intentionally overrides the earlier engineering
+# dashboard layout above; the backend/API remains the same.
+HTML = r"""<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EPS - Vue systeme</title>
+  <style>
+    :root {
+      --bg: #eef2f5;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #657282;
+      --line: #cfd8e3;
+      --soft: #f7f9fb;
+      --blue: #0b6fcb;
+      --green: #1f7a4d;
+      --red: #b42318;
+      --amber: #b7791f;
+      --dark: #18212c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    header {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      color: #fff;
+      background: var(--dark);
+    }
+    h1 { margin: 0; font-size: 19px; font-weight: 700; }
+    h2 { margin: 0 0 10px; font-size: 15px; }
+    h3 { margin: 10px 0 7px; font-size: 13px; color: #344054; }
+    .status { font-size: 13px; color: #d8e2ec; }
+    .page {
+      display: grid;
+      grid-template-columns: 310px minmax(420px, 1fr) 360px;
+      gap: 10px;
+      padding: 10px;
+      height: calc(100vh - 56px);
+      min-height: 720px;
+    }
+    section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    input, select {
+      width: 100%;
+      height: 32px;
+      margin-top: 3px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 5px 7px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--ink);
+    }
+    button {
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 10px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+    button.safe { background: var(--green); color: #fff; border-color: var(--green); }
+    button.danger { background: var(--red); color: #fff; border-color: var(--red); }
+    .button-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
+    .button-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .active-card {
+      min-height: 154px;
+      padding: 14px;
+      border: 2px solid var(--blue);
+      border-radius: 8px;
+      background: #f8fbff;
+    }
+    .active-label { font-size: 12px; color: var(--muted); text-transform: uppercase; }
+    .active-mode { margin-top: 5px; font-size: 29px; font-weight: 800; letter-spacing: 0; }
+    .active-sub { margin-top: 8px; color: #3b4754; line-height: 1.35; }
+    .mini-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .metric {
+      min-height: 72px;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--soft);
+    }
+    .metric .label { font-size: 12px; color: var(--muted); }
+    .metric .value { margin-top: 5px; font-size: 19px; font-weight: 800; }
+    .mode-map {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .mode-card {
+      min-height: 74px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .mode-card strong { display: block; font-size: 13px; line-height: 1.15; }
+    .mode-card span { display: block; margin-top: 5px; font-size: 11px; color: var(--muted); line-height: 1.2; }
+    .mode-card.active {
+      border-color: var(--green);
+      background: #ecfdf3;
+      box-shadow: inset 0 0 0 1px var(--green);
+    }
+    .mode-card.selected {
+      border-color: var(--blue);
+      box-shadow: inset 0 0 0 1px var(--blue);
+    }
+    .safe-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .safe-card {
+      min-height: 48px;
+      padding: 7px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .safe-card.active { border-color: var(--amber); background: #fff8e6; }
+    canvas {
+      width: 100%;
+      height: 210px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+    }
+    .effect-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .effect {
+      min-height: 69px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px;
+      background: var(--soft);
+    }
+    .effect .name { font-size: 12px; color: var(--muted); }
+    .effect .state { margin-top: 4px; font-size: 18px; font-weight: 800; }
+    .on { color: var(--green); }
+    .off { color: var(--red); }
+    .warn { color: var(--amber); }
+    .loads {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-top: 7px;
+    }
+    .load {
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      padding: 5px 3px;
+      text-align: center;
+      font-size: 11px;
+      background: #fff;
+    }
+    .load.on { border-color: #a7d8bd; background: #edfdf3; }
+    .load.off { border-color: #f2b8b5; background: #fff1f0; }
+    .details {
+      min-height: 184px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      line-height: 1.35;
+      font-size: 13px;
+    }
+    .details b { display: block; margin-bottom: 4px; font-size: 15px; }
+    .log {
+      min-height: 120px;
+      max-height: 160px;
+      overflow: auto;
+      background: #0f1720;
+      color: #d9e7f2;
+      padding: 9px;
+      border-radius: 7px;
+      font: 12px/1.35 Consolas, monospace;
+      white-space: pre-wrap;
+    }
+    .small { font-size: 12px; color: var(--muted); line-height: 1.3; }
+    @media (max-width: 1180px) {
+      .page { grid-template-columns: 1fr; height: auto; }
+      .hero { grid-template-columns: 1fr; }
+      .mode-map, .safe-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>EPS - vue systeme en une page</h1>
+    <div class="status" id="connection">Connexion: inconnue</div>
+  </header>
+
+  <main class="page">
+    <div class="column">
+      <section>
+        <h2>Entrees qui pilotent l'etat</h2>
+        <label>Port ESP32</label>
+        <input id="port" value="COM3">
+        <div class="button-row">
+          <button onclick="openSerial()">Connecter</button>
+          <button onclick="sendTelemetry()">Lire carte</button>
+        </div>
+
+        <h3>Environnement injecte</h3>
+        <div class="field-grid">
+          <label>Soleil: tension panneau mV<input id="panelMv" type="number" value="13000"></label>
+          <label>Soleil: courant panneau mA<input id="panelMa" type="number" value="1800"></label>
+          <label>Batterie mV<input id="batteryMv" type="number" value="7400"></label>
+          <label>Batterie mA<input id="batteryMa" type="number" value="250"></label>
+          <label>Rail charge mV<input id="railMv" type="number" value="7600"></label>
+          <label>Temperature batterie dC<input id="tempDc" type="number" value="220"></label>
+          <label>Heartbeat OBC<select id="heartbeat"><option value="1">present</option><option value="0">perdu</option></select></label>
+          <label>Defaut injecte<select id="faults"><option value="0">aucun</option><option value="1">defaut actif</option></select></label>
+          <label>Mode satellite<select id="satMode"><option value="1">charge</option><option value="0">mesure</option><option value="2">radio UHF</option><option value="3">safe</option></select></label>
+          <label>Sous-etat safe<select id="safeSub"><option value="1">charge</option><option value="0">detumbling</option><option value="2">communication</option><option value="3">reboot</option></select></label>
+        </div>
+        <div class="button-row">
+          <button class="primary" onclick="applyEnvironment()">Injecter valeurs</button>
+          <button class="safe" onclick="activateFsm()">Mode FSM reel</button>
+        </div>
+        <div class="button-row">
+          <button class="danger" onclick="stopMppt()">Stop PWM</button>
+          <button onclick="startFsmTests()">Tests auto</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Mode MPPT avec courbe I-V</h2>
+        <div class="field-grid">
+          <label>Voc panneau mV<input id="voc" type="number" value="18000"></label>
+          <label>Isc panneau mA<input id="isc" type="number" value="3000"></label>
+          <label>Irradiance<input id="irr" type="number" step="0.05" value="1.0"></label>
+          <label>Periode ms<input id="period" type="number" value="250"></label>
+        </div>
+        <div class="button-row">
+          <button class="primary" onclick="startMppt()">Boucle MPPT</button>
+          <button onclick="stopMppt()">Arreter</button>
+        </div>
+        <p class="small">Ici le PC calcule une courbe panneau. La vraie carte recoit V/I, calcule le duty, puis le point rouge se deplace.</p>
+      </section>
+    </div>
+
+    <div class="column">
+      <section>
+        <div class="hero">
+          <div class="active-card">
+            <div class="active-label">Etat choisi par la carte</div>
+            <div class="active-mode" id="activeMode">-</div>
+            <div class="active-sub" id="activeSentence">En attente de telemetrie.</div>
+          </div>
+          <div class="mini-metrics">
+            <div class="metric"><div class="label">Puissance panneau</div><div class="value" id="power">0 W</div></div>
+            <div class="metric"><div class="label">Duty applique</div><div class="value" id="appliedDuty">0</div></div>
+            <div class="metric"><div class="label">PWM</div><div class="value" id="pwmState">OFF</div></div>
+            <div class="metric"><div class="label">Securite</div><div class="value" id="safeState">OK</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Carte des modes PCU</h2>
+        <div class="mode-map" id="modeMap"></div>
+        <h3>Sous-etats du mode safe</h3>
+        <div class="safe-row" id="safeMap"></div>
+      </section>
+
+      <section>
+        <h2>Convergence MPPT visible</h2>
+        <canvas id="pvPlot"></canvas>
+        <div class="small" id="mppText">Point vert: maximum theorique. Point rouge: point impose par le duty calcule par la carte.</div>
+      </section>
+
+      <section>
+        <h2>Tests automatiques FSM</h2>
+        <div id="fsmSummary" class="small">Non lance.</div>
+      </section>
+    </div>
+
+    <div class="column">
+      <section>
+        <h2>Commandes effectives vers la carte</h2>
+        <div class="effect-grid" id="effects"></div>
+        <div class="loads" id="loads"></div>
+      </section>
+
+      <section>
+        <h2>Details du mode selectionne</h2>
+        <div class="details" id="modeDetails"></div>
+      </section>
+
+      <section>
+        <h2>Commande manuelle</h2>
+        <div class="button-row" style="grid-template-columns: 1fr 86px;">
+          <input id="manual" value="state" onkeydown="if(event.key==='Enter') sendManual()">
+          <button onclick="sendManual()">Envoyer</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Journal minimal</h2>
+        <div class="log" id="log"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    let snapshot = {};
+    let selectedMode = 'MPPT_CHARGE';
+
+    const pcuModes = [
+      ['MPPT_CHARGE', 'MPPT charge', 'Soleil disponible, batterie pas pleine.'],
+      ['CV_FLOAT', 'CV float', 'Batterie proche du plein, regulation tension.'],
+      ['SA_LOAD_FOLLOW', 'Suivi charge', 'Batterie pleine, panneau suit les charges.'],
+      ['BATTERY_DISCHARGE', 'Decharge', 'Pas assez de soleil, batterie alimente le satellite.'],
+    ];
+    const safeModes = [
+      [0, 'Detumbling'], [1, 'Charge'], [2, 'Communication'], [3, 'Reboot']
+    ];
+    const loadNames = ['SPAD', 'GNSS', 'UHF', 'ADCS', 'OBC'];
+    const safeReasons = ['aucune', 'batterie basse', 'temperature', 'heartbeat OBC', 'defaut injecte'];
+
+    async function api(path, body = undefined) {
+      const opts = body === undefined ? {} : {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body),
+      };
+      const res = await fetch(path, opts);
+      if (!res.ok) throw new Error(await res.text());
+      return await res.json();
+    }
+
+    function num(id) { return Number(document.getElementById(id).value); }
+    function environmentPayload() {
+      return {
+        panel_mv: num('panelMv'),
+        panel_ma: num('panelMa'),
+        battery_mv: num('batteryMv'),
+        battery_ma: num('batteryMa'),
+        rail_mv: num('railMv'),
+        temperature_decic: num('tempDc'),
+        heartbeat: num('heartbeat'),
+        satellite_mode: num('satMode'),
+        safe_substate: num('safeSub'),
+        faults: num('faults'),
+      };
+    }
+    function mpptPayload() {
+      return {
+        port: document.getElementById('port').value,
+        voc_mv: num('voc'),
+        isc_ma: num('isc'),
+        battery_mv: num('batteryMv'),
+        irradiance: num('irr'),
+        period_ms: num('period'),
+        temperature_decic: num('tempDc'),
+      };
+    }
+
+    async function openSerial() {
+      await api('/api/serial/open', {port: document.getElementById('port').value});
+    }
+    async function applyEnvironment() {
+      await api('/api/environment/apply', environmentPayload());
+    }
+    async function sendTelemetry() { await api('/api/command', {command: 'telemetry'}); }
+    async function startMppt() { await api('/api/mppt/start', mpptPayload()); }
+    async function stopMppt() { await api('/api/mppt/stop', {}); }
+    async function startFsmTests() { await api('/api/fsm/start', {}); }
+    async function activateFsm() {
+      await api('/api/command', {command: 'pwm-disarm'});
+      await applyEnvironment();
+      await api('/api/command', {command: 'mode fsm'});
+      await api('/api/command', {command: 'pwm-arm'});
+      await api('/api/command', {command: 'telemetry'});
+    }
+    async function sendManual() {
+      await api('/api/command', {command: document.getElementById('manual').value});
+    }
+
+    function telemetry() { return snapshot.telemetry || {}; }
+    function simulation() { return snapshot.simulation || {}; }
+
+    function currentMa(v, sim) {
+      if (!sim || v >= sim.voc_mv) return 0;
+      const isc = (sim.isc_ma || 3000) * (sim.irradiance || 1);
+      const r = v / (sim.voc_mv || 1);
+      return Math.max(0, isc * (1 - r * r));
+    }
+    function powerMw(v, i) { return v * i / 1000; }
+    function onOff(value) { return Number(value || 0) ? 'ON' : 'OFF'; }
+    function onOffClass(value) { return Number(value || 0) ? 'on' : 'off'; }
+
+    function renderHeader() {
+      const error = snapshot.connection_error ? ' - ' + snapshot.connection_error : '';
+      document.getElementById('connection').textContent =
+        snapshot.connected ? `Connecte a ${snapshot.serial_port}` : `Deconnecte${error}`;
+    }
+
+    function renderHero() {
+      const t = telemetry();
+      const mode = t.pcu_mode || '-';
+      const control = t.control || '-';
+      const power = Number(t.input_power_mw || 0) / 1000;
+      document.getElementById('activeMode').textContent = mode;
+      document.getElementById('activeSentence').textContent =
+        `Controle firmware: ${control}. Entree: ${t.source || '-'}. ` +
+        `La carte decide les actionneurs a partir des valeurs injectees a gauche.`;
+      document.getElementById('power').textContent = `${power.toFixed(2)} W`;
+      document.getElementById('appliedDuty').textContent = String(t.applied_duty || 0);
+      const pwmOn = Number(t.pwm || 0) && Number(t.pwm_armed || 0);
+      document.getElementById('pwmState').textContent = pwmOn ? 'ON' : 'OFF';
+      document.getElementById('pwmState').className = 'value ' + (pwmOn ? 'on' : 'off');
+      const safe = Number(t.safe_active || 0) || Number(t.safe_alert || 0);
+      document.getElementById('safeState').textContent = safe ? 'SAFE' : 'OK';
+      document.getElementById('safeState').className = 'value ' + (safe ? 'warn' : 'on');
+    }
+
+    function renderModes() {
+      const t = telemetry();
+      const active = t.pcu_mode || '';
+      const map = document.getElementById('modeMap');
+      map.innerHTML = '';
+      pcuModes.forEach(([id, title, desc]) => {
+        const div = document.createElement('div');
+        div.className = 'mode-card' +
+          (active === id ? ' active' : '') +
+          (selectedMode === id ? ' selected' : '');
+        div.innerHTML = `<strong>${title}</strong><span>${desc}</span>`;
+        div.onclick = () => { selectedMode = id; renderModeDetails(); renderModes(); };
+        map.appendChild(div);
+      });
+
+      const safeMap = document.getElementById('safeMap');
+      safeMap.innerHTML = '';
+      safeModes.forEach(([id, title]) => {
+        const div = document.createElement('div');
+        const activeSafe = Number(t.safe_active || 0) && Number(t.safe_substate || 0) === Number(id);
+        div.className = 'safe-card' + (activeSafe ? ' active' : '') +
+          (selectedMode === 'SAFE_' + id ? ' selected' : '');
+        div.textContent = title;
+        div.onclick = () => { selectedMode = 'SAFE_' + id; renderModeDetails(); renderModes(); };
+        safeMap.appendChild(div);
+      });
+    }
+
+    function renderEffects() {
+      const t = telemetry();
+      const effects = [
+        ['MPPT', mpptRequested(t) ? 'actif' : 'inactif', mpptRequested(t)],
+        ['PWM arme', onOff(t.pwm_armed), Number(t.pwm_armed || 0)],
+        ['PWM applique', `${onOff(t.pwm)} / ${t.applied_duty || 0}`, Number(t.pwm || 0)],
+        ['eFuse panneau', onOff(t.panel_efuse), Number(t.panel_efuse || 0)],
+        ['Chauffage', onOff(t.heater), Number(t.heater || 0)],
+        ['Alerte safe', safeReasons[Number(t.safe_reason || 0)] || 'inconnue',
+          !(Number(t.safe_alert || 0) || Number(t.safe_active || 0))],
+      ];
+      const root = document.getElementById('effects');
+      root.innerHTML = '';
+      effects.forEach(([name, state, ok]) => {
+        const div = document.createElement('div');
+        const cls = ok ? 'on' : (name === 'Alerte safe' ? 'warn' : 'off');
+        div.className = 'effect';
+        div.innerHTML = `<div class="name">${name}</div><div class="state ${cls}">${state}</div>`;
+        root.appendChild(div);
+      });
+
+      const mask = Number(t.loads ?? 31);
+      const loads = document.getElementById('loads');
+      loads.innerHTML = '';
+      loadNames.forEach((name, idx) => {
+        const enabled = (mask & (1 << idx)) !== 0;
+        const div = document.createElement('div');
+        div.className = 'load ' + (enabled ? 'on' : 'off');
+        div.textContent = name;
+        loads.appendChild(div);
+      });
+    }
+
+    function mpptRequested(t) {
+      if (t.control === 'mppt') return true;
+      if (t.control !== 'fsm') return false;
+      return t.pcu_mode === 'MPPT_CHARGE' || t.pcu_mode === 'SA_LOAD_FOLLOW';
+    }
+
+    function renderModeDetails() {
+      const t = telemetry();
+      const details = {
+        MPPT_CHARGE: [
+          'MPPT charge',
+          'But: extraire la puissance maximale du panneau tant que la batterie n est pas pleine.',
+          `Effet actuel: MPPT ${mpptRequested(t) ? 'actif' : 'inactif'}, eFuse panneau ${onOff(t.panel_efuse)}, duty applique ${t.applied_duty || 0}.`
+        ],
+        CV_FLOAT: [
+          'CV float',
+          'But: garder le rail/batterie proche de la tension maximale sans continuer une charge agressive.',
+          `Effet actuel: regulation tension, duty FSM ${t.fsm_duty || 0}, rail injecte ${t.rail_mv || 0} mV.`
+        ],
+        SA_LOAD_FOLLOW: [
+          'Suivi de charge solaire',
+          'But: batterie pleine, le panneau fournit surtout les charges au lieu de charger davantage.',
+          `Effet actuel: panneau connecte ${onOff(t.panel_efuse)}, PWM ${onOff(t.pwm)}.`
+        ],
+        BATTERY_DISCHARGE: [
+          'Decharge batterie',
+          'But: pas assez de soleil, le convertisseur solaire est coupe et la batterie alimente le systeme.',
+          `Effet actuel: eFuse panneau ${onOff(t.panel_efuse)}, PWM ${onOff(t.pwm)}, charges mask 0x${Number(t.loads ?? 31).toString(16).toUpperCase()}.`
+        ],
+        SAFE_0: ['Safe detumbling', 'But: garder ADCS/UHF utiles pour recuperer l attitude.', 'Charges faibles priorite coupees.'],
+        SAFE_1: ['Safe charge', 'But: economiser au maximum et prioriser la recharge batterie.', 'SPAD/GNSS/ADCS coupes, OBC et UHF gardes.'],
+        SAFE_2: ['Safe communication', 'But: garder une capacite radio pour revenir au contact.', 'UHF et ADCS gardes.'],
+        SAFE_3: ['Safe reboot', 'But: permettre des cycles de redemarrage de sous-systemes.', 'La logique EPS garde le minimum vital.'],
+      };
+      const item = details[selectedMode] || details.MPPT_CHARGE;
+      document.getElementById('modeDetails').innerHTML =
+        `<b>${item[0]}</b><div>${item[1]}</div><br><div>${item[2]}</div>`;
+    }
+
+    function renderFsmSummary() {
+      const fsm = snapshot.fsm || {};
+      const scenarios = fsm.scenarios || [];
+      const compact = scenarios.map(s => `${s.name}: ${s.status}`).join(' | ');
+      document.getElementById('fsmSummary').textContent =
+        fsm.complete ? `Termine: ${fsm.pass} PASS, ${fsm.fail} FAIL. ${compact}` :
+        (fsm.running ? `En cours. ${compact}` : 'Non lance.');
+    }
+
+    function drawPvPlot() {
+      const canvas = document.getElementById('pvPlot');
+      const rect = canvas.getBoundingClientRect();
+      const ctx = canvas.getContext('2d');
+      canvas.width = rect.width * devicePixelRatio;
+      canvas.height = rect.height * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+      const w = rect.width, h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = '#d6dde5';
+      ctx.strokeRect(42, 15, w - 62, h - 44);
+
+      const sim = simulation();
+      const voc = Number(sim.voc_mv || 18000);
+      const vmp = Number(sim.target_vmp_mv || voc / Math.sqrt(3));
+      const pmax = powerMw(vmp, currentMa(vmp, sim));
+      const xOf = v => 42 + (v / voc) * (w - 62);
+      const yOf = p => (h - 29) - (p / Math.max(1, pmax)) * (h - 44);
+
+      ctx.strokeStyle = '#b7791f';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let n = 0; n <= 160; n++) {
+        const v = voc * n / 160;
+        const p = powerMw(v, currentMa(v, sim));
+        if (n === 0) ctx.moveTo(xOf(v), yOf(p)); else ctx.lineTo(xOf(v), yOf(p));
+      }
+      ctx.stroke();
+
+      drawPoint(ctx, xOf(vmp), yOf(pmax), '#1f7a4d', 'MPP');
+      const t = telemetry();
+      drawPoint(ctx, xOf(Number(t.panel_voltage_mv || 0)),
+        yOf(Number(t.input_power_mw || 0)), '#b42318', 'carte');
+      document.getElementById('mppText').textContent =
+        `MPP theorique: ${Math.round(vmp)} mV, ${Math.round(pmax)} mW. ` +
+        `Carte: ${t.panel_voltage_mv || 0} mV, ${t.input_power_mw || 0} mW.`;
+    }
+
+    function drawPoint(ctx, x, y, color, label) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = '12px system-ui';
+      ctx.fillText(label, x + 7, y - 7);
+    }
+
+    function renderLog() {
+      const commands = snapshot.commands || [];
+      const lines = snapshot.lines || [];
+      const text = [
+        ...commands.slice(-18).map(c => `${c.direction}: ${c.text}`),
+        '',
+        ...lines.slice(-18),
+      ].join('\n');
+      const log = document.getElementById('log');
+      log.textContent = text;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function refresh() {
+      try {
+        snapshot = await api('/api/status');
+        renderHeader();
+        renderHero();
+        renderModes();
+        renderEffects();
+        renderModeDetails();
+        renderFsmSummary();
+        drawPvPlot();
+        renderLog();
       } catch (err) {
         document.getElementById('connection').textContent = 'Erreur: ' + err;
       }

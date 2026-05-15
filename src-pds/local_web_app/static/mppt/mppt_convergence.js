@@ -428,6 +428,18 @@ async function connectToEsp32() {
   }
 }
 
+async function disconnectFromEsp32() {
+  setButtonBusy("disconnectButton", true);
+  try {
+    await api("/api/disconnect", {});
+    await refreshStatus();
+  } catch (error) {
+    showConnectionError(error);
+  } finally {
+    setButtonBusy("disconnectButton", false);
+  }
+}
+
 async function sendOff() {
   setButtonBusy("offButton", true);
   try {
@@ -616,6 +628,7 @@ function installHandlers() {
     control.addEventListener("input", handleControlChange);
   });
   document.getElementById("connectButton").addEventListener("click", connectToEsp32);
+  document.getElementById("disconnectButton").addEventListener("click", disconnectFromEsp32);
   document.getElementById("offButton").addEventListener("click", sendOff);
   document.getElementById("startButton").addEventListener("click", startMpptTest);
   window.addEventListener("resize", drawBothGraphs);

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "functions_to_print_source_pds_replies.h"
+#include "functions_to_own_simulated_mppt_model_on_esp32.h"
 #include "functions_to_send_and_receive_chips_frames.h"
 #include "functions_to_translate_serial_text_into_source_pds_commands.h"
 #include "source_pds_command_contract.h"
@@ -28,9 +29,9 @@ void setup()
     delay(300);
 
     Serial.println();
-    Serial.println("Source PDS ESP32 bridge ready");
-    Serial.println("USB serial: 115200 baud");
-    Serial.println("SAMD21 UART: ESP32 RX=GPIO16, TX=GPIO17, 115200 baud");
+    Serial.println("[ESP32] Source PDS bridge ready");
+    Serial.println("[ESP32] USB serial: 115200 baud");
+    Serial.println("[ESP32] SAMD21 UART: ESP32 RX=GPIO16, TX=GPIO17, 115200 baud");
     print_source_pds_bridge_help(Serial);
 }
 
@@ -78,15 +79,26 @@ static void read_board_uart_replies(void)
 
         if (result == CHIPS_PARSE_FRAME_READY)
         {
-            print_reply_received_from_source_pds_board(&reply, Serial);
+            if ((reply.response_flag == 0u)
+                && (reply.command_id == PDS_LINK_COMMAND_READ_MPPT_INPUT_SAMPLE))
+            {
+                respond_to_mppt_input_sample_request_from_board(
+                    &reply,
+                    Serial2,
+                    Serial);
+            }
+            else
+            {
+                print_reply_received_from_source_pds_board(&reply, Serial);
+            }
         }
         else if (result == CHIPS_PARSE_CRC_MISMATCH)
         {
-            Serial.println("RX error: CHIPS CRC mismatch");
+            Serial.println("[ESP32] Board reply error: CHIPS CRC mismatch");
         }
         else if (result == CHIPS_PARSE_FRAME_TOO_LONG)
         {
-            Serial.println("RX error: CHIPS frame too long");
+            Serial.println("[ESP32] Board reply error: CHIPS frame too long");
         }
     }
 }

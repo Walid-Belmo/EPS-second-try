@@ -102,6 +102,7 @@ function renderScenarioList() {
 
 function bindHeaderButtons() {
   el("connectButton").addEventListener("click", onClickConnect);
+  el("disconnectButton").addEventListener("click", onClickDisconnect);
   el("offButton").addEventListener("click", onClickOff);
   el("enterTestButton").addEventListener("click", onClickEnterStateTestMode);
   el("runAllButton").addEventListener("click", onClickRunAll);
@@ -115,6 +116,15 @@ async function onClickConnect() {
     await postJson("/api/connect", { port });
   } catch (exc) {
     alert("Connect failed: " + exc.message);
+  }
+}
+
+async function onClickDisconnect() {
+  try {
+    await postJson("/api/disconnect", {});
+    offClickedSinceLoad = false;
+  } catch (exc) {
+    alert("Disconnect failed: " + exc.message);
   }
 }
 

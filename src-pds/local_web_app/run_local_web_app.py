@@ -42,10 +42,13 @@ from serial_bridge_shared_by_pages import (  # noqa: E402
     DEFAULT_SERIAL_PORT,
     STATE,
     connect_to_serial_port,
+    disconnect_from_serial_port,
     send_get_values,
     send_off_command,
 )
+import manual_control_page_actions as manual_actions  # noqa: E402
 import mppt_convergence_page_actions as mppt_actions  # noqa: E402
+import sensor_reads_page_actions as sensor_actions  # noqa: E402
 import state_transition_page_actions as state_actions  # noqa: E402
 
 
@@ -76,6 +79,16 @@ class LocalWebAppHandler(BaseHTTPRequestHandler):
                 STATIC_DIR / "state" / "state_transition.html"
             )
             return
+        if path == "/manual":
+            self.send_static_file(
+                STATIC_DIR / "manual" / "manual_control.html"
+            )
+            return
+        if path == "/sensor-reads":
+            self.send_static_file(
+                STATIC_DIR / "sensor-reads" / "sensor_reads.html"
+            )
+            return
         if path == "/api/status":
             self.send_json(STATE.snapshot())
             return
@@ -103,6 +116,9 @@ class LocalWebAppHandler(BaseHTTPRequestHandler):
             port = str(payload.get("port", STATE.serial_port)).strip()
             connect_to_serial_port(port or DEFAULT_SERIAL_PORT)
             return {"status": "connected"}
+        if path == "/api/disconnect":
+            disconnect_from_serial_port()
+            return {"status": "disconnected"}
         if path == "/api/off":
             send_off_command()
             return {"status": "off_command_sent"}
@@ -129,6 +145,30 @@ class LocalWebAppHandler(BaseHTTPRequestHandler):
         if path == "/api/state/run_all_scenarios":
             summary = state_actions.run_all_scenarios()
             return {"status": "all_scenarios_complete", "summary": summary}
+
+        if path == "/api/manual/enter_manual_mode":
+            command = manual_actions.enter_manual_control_mode()
+            return {"status": "manual_mode_entered", "command": command}
+        if path == "/api/manual/set_pwm":
+            command = manual_actions.send_set_manual_pwm(payload.get("duty", 0))
+            return {"status": "manual_pwm_sent", "command": command}
+        if path == "/api/manual/set_pv":
+            command = manual_actions.send_set_manual_pv(bool(payload.get("on", False)))
+            return {"status": "manual_pv_sent", "command": command}
+        if path == "/api/manual/set_bat":
+            command = manual_actions.send_set_manual_bat(bool(payload.get("on", False)))
+            return {"status": "manual_bat_sent", "command": command}
+        if path == "/api/manual/set_led":
+            command = manual_actions.send_set_manual_led(bool(payload.get("on", False)))
+            return {"status": "manual_led_sent", "command": command}
+
+        if path == "/api/sensor-reads/enter":
+            result = sensor_actions.enter_sensor_reads_view()
+            return {"status": result}
+        if path == "/api/sensor-reads/set_source":
+            source = str(payload.get("source", "")).strip()
+            command = sensor_actions.send_set_sensor_source(source)
+            return {"status": "source_sent", "command": command}
 
         raise ValueError(f"Unknown API endpoint: {path}")
 
@@ -198,8 +238,10 @@ def main() -> None:
     atexit.register(shutdown_safely)
     server = ThreadingHTTPServer((args.host, args.port), LocalWebAppHandler)
     print(f"Source PDS local web app: http://{args.host}:{args.port}")
-    print(f"  - MPPT page:  http://{args.host}:{args.port}/mppt")
-    print(f"  - State page: http://{args.host}:{args.port}/state")
+    print(f"  - MPPT page:        http://{args.host}:{args.port}/mppt")
+    print(f"  - State page:       http://{args.host}:{args.port}/state")
+    print(f"  - Manual page:      http://{args.host}:{args.port}/manual")
+    print(f"  - Sensor Reads:     http://{args.host}:{args.port}/sensor-reads")
     print(f"ESP32 serial port default: {args.serial_port}")
     try:
         server.serve_forever()

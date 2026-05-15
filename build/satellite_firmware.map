@@ -1,5 +1,25 @@
 Archive member included to satisfy reference by file (symbol)
 
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+                              build/src-pds/sensor_inputs/sensor_readings.o (__aeabi_uidiv)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+                              c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_ldivmod.o)
+                              build/src-pds/sensor_inputs/ina226_register_protocol.o (__aeabi_ldivmod)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
+                              build/src-pds/sensor_inputs/ina226_register_protocol.o (__aeabi_uldivmod)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
+                              build/src-pds/sensor_inputs/ina226_register_protocol.o (__aeabi_lmul)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+                              c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o) (__udivmoddi4)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(bpabi.o)
+                              c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_ldivmod.o) (__gnu_ldivmod_helper)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o)
+                              c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o) (__clzdi2)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+                              c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(bpabi.o) (__divdi3)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzsi2.o)
+                              c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o) (__clzsi2)
 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-exit.o)
                               c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crt0.o (exit)
 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-findfp.o)
@@ -26,6 +46,8 @@ c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../
                               c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crt0.o (__libc_init_array)
 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-lock.o)
                               c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-findfp.o) (__retarget_lock_init_recursive)
+c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-memcpy-stub.o)
+                              build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o (memcpy)
 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-freer.o)
                               c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-reent.o) (_free_r)
 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-mallocr.o)
@@ -58,33 +80,212 @@ Discarded input sections
                 0x00000000       0xe2 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crt0.o
  .ARM.attributes
                 0x00000000       0x1b c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crt0.o
- .text          0x00000000        0x0 build/main.o
- .data          0x00000000        0x0 build/main.o
- .bss           0x00000000        0x0 build/main.o
- .text          0x00000000        0x0 build/startup_samd21g17d.o
- .data          0x00000000        0x0 build/startup_samd21g17d.o
- .bss           0x00000000        0x0 build/startup_samd21g17d.o
- .text          0x00000000        0x0 build/system_samd21g17d.o
- .data          0x00000000        0x0 build/system_samd21g17d.o
- .bss           0x00000000        0x0 build/system_samd21g17d.o
- .data.SystemCoreClock
-                0x00000000        0x4 build/system_samd21g17d.o
- .text.SystemInit
-                0x00000000       0x18 build/system_samd21g17d.o
- .text.SystemCoreClockUpdate
-                0x00000000       0x18 build/system_samd21g17d.o
- .debug_info    0x00000000       0xbc build/system_samd21g17d.o
- .debug_abbrev  0x00000000       0x70 build/system_samd21g17d.o
+ .text          0x00000000        0x0 build/src-pds/app/main.o
+ .data          0x00000000        0x0 build/src-pds/app/main.o
+ .bss           0x00000000        0x0 build/src-pds/app/main.o
+ .text          0x00000000        0x0 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .data          0x00000000        0x0 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .bss           0x00000000        0x0 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .text          0x00000000        0x0 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .data          0x00000000        0x0 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .bss           0x00000000        0x0 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .text          0x00000000        0x0 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .data          0x00000000        0x0 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .bss           0x00000000        0x0 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .text          0x00000000        0x0 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .data          0x00000000        0x0 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .bss           0x00000000        0x0 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text          0x00000000        0x0 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .data          0x00000000        0x0 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .bss           0x00000000        0x0 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .text          0x00000000        0x0 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .data          0x00000000        0x0 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .bss           0x00000000        0x0 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .text          0x00000000        0x0 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .data          0x00000000        0x0 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .bss           0x00000000        0x0 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .text          0x00000000        0x0 build/src-pds/sensor_inputs/sensor_readings.o
+ .data          0x00000000        0x0 build/src-pds/sensor_inputs/sensor_readings.o
+ .bss           0x00000000        0x0 build/src-pds/sensor_inputs/sensor_readings.o
+ .text          0x00000000        0x0 build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .data          0x00000000        0x0 build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .bss           0x00000000        0x0 build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .text.decode_ina226_shunt_voltage_register_to_microvolts
+                0x00000000       0x4c build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .text.ina226_register_protocol_built_in_self_test
+                0x00000000       0xec build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .text          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .data          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .bss           0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .text          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .data          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .bss           0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .text          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .data          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .bss           0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .text          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .data          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .bss           0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .text          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .data          0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .bss           0x00000000        0x0 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .text          0x00000000        0x0 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .data          0x00000000        0x0 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .bss           0x00000000        0x0 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .text          0x00000000        0x0 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .data          0x00000000        0x0 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .bss           0x00000000        0x0 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .text.compute_dispatcher_reference_pcu_mode_for_verification_only
+                0x00000000      0x116 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .debug_info    0x00000000      0x346 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .debug_abbrev  0x00000000       0xd0 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
  .debug_aranges
-                0x00000000       0x28 build/system_samd21g17d.o
+                0x00000000       0x20 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
  .debug_rnglists
-                0x00000000       0x19 build/system_samd21g17d.o
- .debug_line    0x00000000      0x17e build/system_samd21g17d.o
- .debug_str     0x00000000      0x1a2 build/system_samd21g17d.o
- .comment       0x00000000       0x56 build/system_samd21g17d.o
- .debug_frame   0x00000000       0x48 build/system_samd21g17d.o
+                0x00000000       0x14 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .debug_line    0x00000000      0x260 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .debug_str     0x00000000      0x8eb build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .comment       0x00000000       0x56 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .debug_frame   0x00000000       0x30 build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
  .ARM.attributes
-                0x00000000       0x2c build/system_samd21g17d.o
+                0x00000000       0x2c build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+ .text          0x00000000        0x0 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .data          0x00000000        0x0 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .bss           0x00000000        0x0 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text          0x00000000        0x0 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .data          0x00000000        0x0 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .bss           0x00000000        0x0 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .text          0x00000000        0x0 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .data          0x00000000        0x0 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .bss           0x00000000        0x0 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .text          0x00000000        0x0 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .data          0x00000000        0x0 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .bss           0x00000000        0x0 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .text          0x00000000        0x0 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .data          0x00000000        0x0 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .bss           0x00000000        0x0 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .text          0x00000000        0x0 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .data          0x00000000        0x0 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .bss           0x00000000        0x0 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .text.read_int32_from_little_endian_bytes
+                0x00000000       0x4c build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .text.write_int32_to_little_endian_payload
+                0x00000000       0x20 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .text          0x00000000        0x0 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .data          0x00000000        0x0 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .bss           0x00000000        0x0 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .text          0x00000000        0x0 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .text.i2c_master_probe_seven_bit_address
+                0x00000000       0x58 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/ina226_battery_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/ina226_battery_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/ina226_battery_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/ina226_panel_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/ina226_panel_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/ina226_panel_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/mainboard_adc_reader.o
+ .data          0x00000000        0x0 build/src/drivers/mainboard_adc_reader.o
+ .bss           0x00000000        0x0 build/src/drivers/mainboard_adc_reader.o
+ .text          0x00000000        0x0 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .data          0x00000000        0x0 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .bss           0x00000000        0x0 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .text          0x00000000        0x0 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .data          0x00000000        0x0 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .bss           0x00000000        0x0 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text          0x00000000        0x0 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .data          0x00000000        0x0 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .bss           0x00000000        0x0 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .text.chips_verify_crc16_kermit_lookup_table_is_correct
+                0x00000000       0x40 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .text.chips_verify_frame_build_and_parse_round_trip
+                0x00000000      0x1e4 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .rodata.test_vector_bytes.0
+                0x00000000        0x9 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .text          0x00000000        0x0 build/src/assertion_handler.o
+ .data          0x00000000        0x0 build/src/assertion_handler.o
+ .bss           0x00000000        0x0 build/src/assertion_handler.o
+ .text          0x00000000        0x0 build/src/mppt_algorithm.o
+ .data          0x00000000        0x0 build/src/mppt_algorithm.o
+ .bss           0x00000000        0x0 build/src/mppt_algorithm.o
+ .text          0x00000000        0x0 build/src/eps_state_machine.o
+ .data          0x00000000        0x0 build/src/eps_state_machine.o
+ .bss           0x00000000        0x0 build/src/eps_state_machine.o
+ .text.clamp_duty_cycle_to_safe_operating_range
+                0x00000000       0x40 build/src/eps_state_machine.o
+ .text.increase_duty_cycle_by_specified_step_size
+                0x00000000       0x3c build/src/eps_state_machine.o
+ .text.decrease_duty_cycle_by_specified_step_size
+                0x00000000       0x40 build/src/eps_state_machine.o
+ .text.check_if_solar_array_voltage_is_above_minimum_operating_threshold
+                0x00000000       0x54 build/src/eps_state_machine.o
+ .text.update_obc_heartbeat_iteration_counter
+                0x00000000       0x50 build/src/eps_state_machine.o
+ .text.check_for_safe_mode_entry_conditions_and_set_alert_flag
+                0x00000000       0xf4 build/src/eps_state_machine.o
+ .text.apply_safe_mode_load_shedding_for_current_sub_state
+                0x00000000       0xbc build/src/eps_state_machine.o
+ .text.check_if_obc_commanded_exit_from_safe_mode
+                0x00000000       0x84 build/src/eps_state_machine.o
+ .text.transition_pcu_to_new_operating_mode
+                0x00000000       0x70 build/src/eps_state_machine.o
+ .text.disable_the_lowest_priority_load_that_is_still_enabled
+                0x00000000       0x90 build/src/eps_state_machine.o
+ .text.run_mppt_charge_mode_logic
+                0x00000000      0x178 build/src/eps_state_machine.o
+ .text.run_cv_float_mode_logic
+                0x00000000      0x1a0 build/src/eps_state_machine.o
+ .text.run_sa_load_follow_mode_logic
+                0x00000000       0xf8 build/src/eps_state_machine.o
+ .text.run_battery_discharge_mode_logic
+                0x00000000       0xe4 build/src/eps_state_machine.o
+ .text.run_pcu_mode_logic_for_current_operating_mode
+                0x00000000       0xa8 build/src/eps_state_machine.o
+ .text.apply_heater_control_and_temperature_safety_checks
+                0x00000000       0xcc build/src/eps_state_machine.o
+ .text.eps_state_machine_run_one_iteration
+                0x00000000      0x15c build/src/eps_state_machine.o
+ .text          0x00000000        0x0 build/startup/startup_samd21j17d.o
+ .data          0x00000000        0x0 build/startup/startup_samd21j17d.o
+ .bss           0x00000000        0x0 build/startup/startup_samd21j17d.o
+ .text          0x00000000        0x0 build/startup/system_samd21j17d.o
+ .data          0x00000000        0x0 build/startup/system_samd21j17d.o
+ .bss           0x00000000        0x0 build/startup/system_samd21j17d.o
+ .text.SystemInit
+                0x00000000       0x18 build/startup/system_samd21j17d.o
+ .text.SystemCoreClockUpdate
+                0x00000000       0x18 build/startup/system_samd21j17d.o
  .text          0x00000000        0x0 build/syscalls_min.o
  .data          0x00000000        0x0 build/syscalls_min.o
  .bss           0x00000000        0x0 build/syscalls_min.o
@@ -101,12 +302,40 @@ Discarded input sections
                 0x00000000       0x50 build/syscalls_min.o
  .debug_rnglists
                 0x00000000       0x37 build/syscalls_min.o
- .debug_line    0x00000000      0x1e0 build/syscalls_min.o
+ .debug_line    0x00000000      0x1e1 build/syscalls_min.o
  .debug_str     0x00000000      0x2d6 build/syscalls_min.o
  .comment       0x00000000       0x56 build/syscalls_min.o
  .debug_frame   0x00000000       0xf0 build/syscalls_min.o
  .ARM.attributes
                 0x00000000       0x2c build/syscalls_min.o
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_ldivmod.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_ldivmod.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
+ .text          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
+ .text          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+ .ARM.extab.text.__udivmoddi4
+                0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+ .text          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(bpabi.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(bpabi.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(bpabi.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o)
+ .text          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+ .ARM.extab.text.__divdi3
+                0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzsi2.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzsi2.o)
  .text          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-exit.o)
  .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-exit.o)
  .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-exit.o)
@@ -268,6 +497,9 @@ Discarded input sections
  .debug_frame   0x00000000       0xb0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-lock.o)
  .ARM.attributes
                 0x00000000       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-lock.o)
+ .text          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-memcpy-stub.o)
+ .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-memcpy-stub.o)
+ .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-memcpy-stub.o)
  .text          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-freer.o)
  .data          0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-freer.o)
  .bss           0x00000000        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-freer.o)
@@ -339,9 +571,52 @@ Linker script and memory map
 LOAD c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crti.o
 LOAD c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
 LOAD c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crt0.o
-LOAD build/main.o
-LOAD build/startup_samd21g17d.o
-LOAD build/system_samd21g17d.o
+LOAD build/src-pds/app/main.o
+LOAD build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+LOAD build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+LOAD build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+LOAD build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+LOAD build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+LOAD build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+LOAD build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+LOAD build/src-pds/sensor_inputs/sensor_readings.o
+LOAD build/src-pds/sensor_inputs/ina226_register_protocol.o
+LOAD build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+LOAD build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+LOAD build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+LOAD build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+LOAD build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+LOAD build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+LOAD build/src-pds/state_machine_pure_logic/functions_to_compute_dispatcher_reference_pcu_mode_for_verification.o
+LOAD build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+LOAD build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+LOAD build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+LOAD build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+LOAD build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+LOAD build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+LOAD build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+LOAD build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+LOAD build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+LOAD build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+LOAD build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+LOAD build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+LOAD build/src/drivers/ina226_battery_on_mainboard.o
+LOAD build/src/drivers/ina226_panel_on_mainboard.o
+LOAD build/src/drivers/voltage_divider_rails_on_mainboard.o
+LOAD build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+LOAD build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+LOAD build/src/drivers/tps25940_imon_battery_on_mainboard.o
+LOAD build/src/drivers/tps25940_imon_panel_on_mainboard.o
+LOAD build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+LOAD build/src/drivers/mainboard_adc_reader.o
+LOAD build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+LOAD build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+LOAD build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+LOAD build/src/assertion_handler.o
+LOAD build/src/mppt_algorithm.o
+LOAD build/src/eps_state_machine.o
+LOAD build/startup/startup_samd21j17d.o
+LOAD build/startup/system_samd21j17d.o
 LOAD build/syscalls_min.o
 START GROUP
 LOAD c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a
@@ -355,11 +630,11 @@ LOAD c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bi
 LOAD c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtn.o
                 0x00001000                        STACK_SIZE = DEFINED (STACK_SIZE)?STACK_SIZE:DEFINED (__stack_size__)?__stack_size__:0x1000
 
-.text           0x00000000      0x2e8
+.text           0x00000000     0x5d8c
                 0x00000000                        . = ALIGN (0x4)
                 0x00000000                        _sfixed = .
  *(.vectors .vectors.*)
- .vectors       0x00000000       0xb8 build/startup_samd21g17d.o
+ .vectors       0x00000000       0xb8 build/startup/startup_samd21j17d.o
                 0x00000000                exception_table
  *(.text .text.* .gnu.linkonce.t.*)
  .text.deregister_tm_clones
@@ -370,163 +645,854 @@ LOAD c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bi
                 0x00000100       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
  .text.frame_dummy
                 0x0000012c       0x24 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
- .text.main     0x00000150       0x28 build/main.o
+ .text.main     0x00000150       0xa0 build/src-pds/app/main.o
                 0x00000150                main
- .text.configure_pb10_as_gpio_output_for_user_led
-                0x00000178       0x24 build/main.o
- .text.toggle_user_led
-                0x0000019c       0x18 build/main.o
- .text.wait_approximately_20_milliseconds_at_1mhz
-                0x000001b4       0x28 build/main.o
+ .text.toggle_status_led_for_heartbeat_if_due_and_not_in_manual_mode
+                0x000001f0       0x48 build/src-pds/app/main.o
+ .text.switch_mcu_clock_from_1mhz_to_48mhz
+                0x00000238        0xe build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+                0x00000238                switch_mcu_clock_from_1mhz_to_48mhz
+ .text.setup_millisecond_timer_for_loop_timing
+                0x00000246        0xe build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+                0x00000246                setup_millisecond_timer_for_loop_timing
+ .text.setup_sercom0_uart_registers_for_esp32_link
+                0x00000254        0xe build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+                0x00000254                setup_sercom0_uart_registers_for_esp32_link
+ .text.setup_sensor_reading_hardware
+                0x00000262       0x1a build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+                0x00000262                setup_sensor_reading_hardware
+ .text.setup_pwm_output_starting_off
+                0x0000027c       0x14 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+                0x0000027c                setup_pwm_output_starting_off
+ .text.setup_output_pins_starting_off
+                0x00000290       0x1a build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+                0x00000290                setup_output_pins_starting_off
+ .text.reset_watchdog_timer
+                0x000002aa        0xa build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+                0x000002aa                reset_watchdog_timer
+ .text.start_esp32_command_reader_with_empty_message_state
+                0x000002b4       0x18 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+                0x000002b4                start_esp32_command_reader_with_empty_message_state
+ .text.read_and_execute_commands_from_esp32
+                0x000002cc       0x3e build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+                0x000002cc                read_and_execute_commands_from_esp32
+ .text.uart_has_unread_bytes_from_esp32
+                0x0000030a       0x18 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .text.read_one_uart_byte_from_esp32
+                0x00000322       0x10 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ *fill*         0x00000332        0x2 
+ .text.update_chips_message_reader_with_received_byte
+                0x00000334       0x2c build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .text.react_to_chips_message_reader_result
+                0x00000360       0x3c build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .text.wait_for_more_uart_bytes_before_doing_anything_else
+                0x0000039c        0xa build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ *fill*         0x000003a6        0x2 
+ .text.execute_valid_chips_command_and_send_reply
+                0x000003a8       0x28 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .text.send_chips_frame_to_esp32
+                0x000003d0       0x64 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+                0x000003d0                send_chips_frame_to_esp32
+ .text.execute_command_from_esp32_and_build_reply
+                0x00000434      0x194 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+                0x00000434                execute_command_from_esp32_and_build_reply
+ .text.prepare_reply_header
+                0x000005c8       0x32 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_off_command
+                0x000005fa       0x50 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_run_pwm_command
+                0x0000064a       0x4e build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_start_mppt_demo_command
+                0x00000698       0x46 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_start_state_demo_command
+                0x000006de       0x7a build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_inject_state_inputs_command
+                0x00000758       0x70 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_get_values_command
+                0x000007c8       0x6c build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_stream_values_command
+                0x00000834       0xcc build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_enter_manual_command
+                0x00000900       0x5e build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_set_manual_pwm_command
+                0x0000095e       0x5e build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_set_manual_pv_command
+                0x000009bc       0x5e build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_set_manual_bat_command
+                0x00000a1a       0x5e build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_set_manual_led_command
+                0x00000a78       0x5e build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.handle_set_sensor_source_command
+                0x00000ad6       0x6c build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.reject_if_not_in_manual_mode
+                0x00000b42       0x2a build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.build_values_reply_with_current_time
+                0x00000b6c       0x30 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .text.read_state_demo_inputs_from_command_payload
+                0x00000b9c       0xd4 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+                0x00000b9c                read_state_demo_inputs_from_command_payload
+ .text.state_demo_inputs_are_valid
+                0x00000c70       0x4c build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+                0x00000c70                state_demo_inputs_are_valid
+ .text.request_mppt_input_sample_from_esp32_model
+                0x00000cbc       0x64 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+                0x00000cbc                request_mppt_input_sample_from_esp32_model
+ .text.build_mppt_input_sample_request
+                0x00000d20       0x74 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .text.wait_for_matching_mppt_input_sample_reply
+                0x00000d94       0xe8 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .text.frame_is_matching_sample_reply
+                0x00000e7c       0x34 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .text.read_sample_from_reply_payload
+                0x00000eb0       0x9c build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .text.execute_command_that_arrived_while_waiting_for_sample
+                0x00000f4c       0x26 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .text.set_starting_runtime_state_to_safe_defaults
+                0x00000f72       0xb0 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x00000f72                set_starting_runtime_state_to_safe_defaults
+ *fill*         0x00001022        0x2 
+ .text.get_pointer_to_pds_runtime_state
+                0x00001024       0x10 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x00001024                get_pointer_to_pds_runtime_state
+ .text.requested_mode_is_off
+                0x00001034       0x12 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x00001034                requested_mode_is_off
+ .text.requested_mode_is_flight
+                0x00001046       0x12 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x00001046                requested_mode_is_flight
+ .text.requested_mode_is_mppt_test
+                0x00001058       0x12 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x00001058                requested_mode_is_mppt_test
+ .text.requested_mode_is_state_test
+                0x0000106a       0x12 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x0000106a                requested_mode_is_state_test
+ .text.requested_mode_is_fixed_pwm_test
+                0x0000107c       0x12 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x0000107c                requested_mode_is_fixed_pwm_test
+ .text.requested_mode_is_manual
+                0x0000108e       0x12 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x0000108e                requested_mode_is_manual
+ .text.pds_control_loop_period_has_elapsed
+                0x000010a0       0x3e build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x000010a0                pds_control_loop_period_has_elapsed
+ *fill*         0x000010de        0x2 
+ .text.reset_mppt_control_loop_state
+                0x000010e0       0x58 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x000010e0                reset_mppt_control_loop_state
+ .text.reset_state_demo_runtime_state_after_new_inputs
+                0x00001138       0x40 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x00001138                reset_state_demo_runtime_state_after_new_inputs
+ .text.record_valid_chips_frame_from_esp32
+                0x00001178       0x20 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x00001178                record_valid_chips_frame_from_esp32
+ .text.record_broken_chips_message_without_changing_outputs
+                0x00001198       0x42 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x00001198                record_broken_chips_message_without_changing_outputs
+ *fill*         0x000011da        0x2 
+ .text.remember_result_of_command_from_esp32
+                0x000011dc       0x74 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                0x000011dc                remember_result_of_command_from_esp32
+ .text.set_default_threshold_values
+                0x00001250       0xdc build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .text.set_default_injected_state_values
+                0x0000132c       0x78 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .text.set_default_snapshot_values
+                0x000013a4       0xe0 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .text.requested_mode_matches
+                0x00001484       0x2e build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ *fill*         0x000014b2        0x2 
+ .text.set_sensor_source
+                0x000014b4       0x40 build/src-pds/sensor_inputs/sensor_readings.o
+                0x000014b4                set_sensor_source
+ .text.get_current_sensor_source
+                0x000014f4       0x14 build/src-pds/sensor_inputs/sensor_readings.o
+                0x000014f4                get_current_sensor_source
+ .text.read_battery_voltage
+                0x00001508       0x24 build/src-pds/sensor_inputs/sensor_readings.o
+                0x00001508                read_battery_voltage
+ .text.read_battery_current
+                0x0000152c       0x24 build/src-pds/sensor_inputs/sensor_readings.o
+                0x0000152c                read_battery_current
+ .text.read_panel_voltage
+                0x00001550       0x24 build/src-pds/sensor_inputs/sensor_readings.o
+                0x00001550                read_panel_voltage
+ .text.read_panel_current
+                0x00001574       0x3c build/src-pds/sensor_inputs/sensor_readings.o
+                0x00001574                read_panel_current
+ .text.read_charging_rail_voltage
+                0x000015b0       0x24 build/src-pds/sensor_inputs/sensor_readings.o
+                0x000015b0                read_charging_rail_voltage
+ .text.read_all_state_machine_sensor_inputs
+                0x000015d4       0xb4 build/src-pds/sensor_inputs/sensor_readings.o
+                0x000015d4                read_all_state_machine_sensor_inputs
+ .text.read_battery_voltage_from_injected
+                0x00001688       0x1a build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_battery_current_from_injected
+                0x000016a2       0x1c build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_panel_voltage_from_injected
+                0x000016be       0x1a build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_panel_current_from_injected
+                0x000016d8       0x1a build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_charging_rail_voltage_from_injected
+                0x000016f2       0x1a build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_battery_voltage_from_real_hardware
+                0x0000170c       0x10 build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_battery_current_from_real_hardware
+                0x0000171c       0x10 build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_panel_voltage_from_real_hardware
+                0x0000172c       0x10 build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_panel_current_from_real_hardware_or_zero
+                0x0000173c       0x10 build/src-pds/sensor_inputs/sensor_readings.o
+ .text.read_charging_rail_voltage_from_real_hardware
+                0x0000174c       0x10 build/src-pds/sensor_inputs/sensor_readings.o
+ .text.convert_millivolts_to_synthetic_panel_raw_adc
+                0x0000175c       0x40 build/src-pds/sensor_inputs/sensor_readings.o
+ .text.convert_milliamps_to_synthetic_panel_raw_adc
+                0x0000179c       0x38 build/src-pds/sensor_inputs/sensor_readings.o
+ .text.decode_ina226_bus_voltage_register_to_millivolts
+                0x000017d4       0x26 build/src-pds/sensor_inputs/ina226_register_protocol.o
+                0x000017d4                decode_ina226_bus_voltage_register_to_millivolts
+ *fill*         0x000017fa        0x2 
+ .text.decode_ina226_current_register_to_milliamps
+                0x000017fc       0xb0 build/src-pds/sensor_inputs/ina226_register_protocol.o
+                0x000017fc                decode_ina226_current_register_to_milliamps
+ .text.compute_ina226_current_lsb_in_microamps
+                0x000018ac       0x4c build/src-pds/sensor_inputs/ina226_register_protocol.o
+                0x000018ac                compute_ina226_current_lsb_in_microamps
+ .text.compute_ina226_calibration_constant
+                0x000018f8       0xbc build/src-pds/sensor_inputs/ina226_register_protocol.o
+                0x000018f8                compute_ina226_calibration_constant
+ .text.default_ina226_configuration_register_value
+                0x000019b4       0x10 build/src-pds/sensor_inputs/ina226_register_protocol.o
+                0x000019b4                default_ina226_configuration_register_value
+ .text.run_fixed_pwm_test_only
+                0x000019c4       0x40 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+                0x000019c4                run_fixed_pwm_test_only
+ .text.run_off_mode
+                0x00001a04       0x1e build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+                0x00001a04                run_off_mode
+ .text.run_full_satellite_logic
+                0x00001a22       0x1e build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+                0x00001a22                run_full_satellite_logic
+ .text.run_manual_control_mode
+                0x00001a40       0xb4 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+                0x00001a40                run_manual_control_mode
+ .text.run_mppt_test_only
+                0x00001af4       0x72 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+                0x00001af4                run_mppt_test_only
+ .text.read_mppt_input_sample
+                0x00001b66       0x38 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ *fill*         0x00001b9e        0x2 
+ .text.read_real_board_sensor_sample
+                0x00001ba0       0x78 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .text.store_missing_mppt_input_sample_for_status
+                0x00001c18       0x38 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .text.store_mppt_demo_result_for_status
+                0x00001c50       0xa2 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .text.run_state_transition_test_only
+                0x00001cf2       0x60 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+                0x00001cf2                run_state_transition_test_only
+ .text.build_load_enable_mask
+                0x00001d52       0x66 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .text.choose_state_demo_pwm_request
+                0x00001db8       0x20 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .text.store_state_demo_result_for_status
+                0x00001dd8       0xb2 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .text.compute_next_pcu_state_and_actuator_commands_from_inputs_and_current_state
+                0x00001e8a      0x106 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+                0x00001e8a                compute_next_pcu_state_and_actuator_commands_from_inputs_and_current_state
+ .text.update_obc_heartbeat_iteration_counter_from_this_iteration_input
+                0x00001f90       0x34 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .text.decide_whether_any_safety_condition_should_override_normal_operation
+                0x00001fc4       0x74 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .text.decide_safe_mode_substate_when_obc_heartbeat_was_lost
+                0x00002038       0x24 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .text.decide_normal_operation_pcu_mode_from_solar_availability_and_battery_state
+                0x0000205c       0xb4 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .text.fill_actuator_commands_for_chosen_pcu_mode_and_safe_substate
+                0x00002110       0xa2 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .text.fill_load_enable_flags_for_normal_operation
+                0x000021b2       0x3e build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .text.fill_load_enable_flags_for_safe_mode_substate
+                0x000021f0       0x62 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ *fill*         0x00002252        0x2 
+ .text.build_ack_reply_to_esp32
+                0x00002254       0x3c build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+                0x00002254                build_ack_reply_to_esp32
+ .text.build_values_reply_to_esp32
+                0x00002290       0xc8 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+                0x00002290                build_values_reply_to_esp32
+ .text.append_reply_header
+                0x00002358       0x52 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text.append_command_counters
+                0x000023aa       0x78 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text.append_mode_and_stream_values
+                0x00002422       0x54 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text.append_pwm_values
+                0x00002476       0x5a build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text.append_state_demo_inputs
+                0x000024d0       0xbe build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text.append_mppt_input_status
+                0x0000258e       0x26 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text.append_runtime_snapshot_values
+                0x000025b4       0xea build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text.append_manual_outputs_and_efuse_status_values
+                0x0000269e       0xae build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .text.append_sensor_reads_block
+                0x0000274c      0x172 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ *fill*         0x000028be        0x2 
+ .text.send_status_if_needed
+                0x000028c0       0xd0 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+                0x000028c0                send_status_if_needed
+ .text.apply_outputs_to_board
+                0x00002990       0x22 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+                0x00002990                apply_outputs_to_board
+ .text.block_dangerous_outputs
+                0x000029b2       0x40 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+                0x000029b2                block_dangerous_outputs
+ *fill*         0x000029f2        0x2 
+ .text.request_pwm_output_in_runtime_state
+                0x000029f4       0x54 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+                0x000029f4                request_pwm_output_in_runtime_state
+ .text.request_no_pwm_output_in_runtime_state
+                0x00002a48       0x44 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+                0x00002a48                request_no_pwm_output_in_runtime_state
+ .text.read_uint16_from_little_endian_bytes
+                0x00002a8c       0x3c build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+                0x00002a8c                read_uint16_from_little_endian_bytes
+ .text.read_int16_from_little_endian_bytes
+                0x00002ac8       0x26 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+                0x00002ac8                read_int16_from_little_endian_bytes
+ *fill*         0x00002aee        0x2 
+ .text.write_uint8_to_payload
+                0x00002af0       0x58 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+                0x00002af0                write_uint8_to_payload
+ .text.write_uint16_to_little_endian_payload
+                0x00002b48       0x3a build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+                0x00002b48                write_uint16_to_little_endian_payload
+ .text.write_int16_to_little_endian_payload
+                0x00002b82       0x24 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+                0x00002b82                write_int16_to_little_endian_payload
+ .text.write_uint32_to_little_endian_payload
+                0x00002ba6       0x32 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+                0x00002ba6                write_uint32_to_little_endian_payload
+ .text.configure_cpu_clock_to_48mhz_using_dfll_open_loop
+                0x00002bd8       0x2c build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+                0x00002bd8                configure_cpu_clock_to_48mhz_using_dfll_open_loop
+ .text.set_flash_wait_states_to_1_for_48mhz_operation
+                0x00002c04       0x1c build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .text.enable_dfll48m_and_clear_ondemand_bit_errata_workaround
+                0x00002c20       0x30 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .text.load_dfll48m_factory_calibration_from_nvm
+                0x00002c50       0x58 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .text.enable_dfll48m_with_calibration_values_loaded
+                0x00002ca8       0x24 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .text.switch_gclk0_source_from_osc8m_to_dfll48m
+                0x00002ccc       0x28 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .text.configure_pb22_as_gpio_output_for_status_led_on_mainboard
+                0x00002cf4       0x24 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+                0x00002cf4                configure_pb22_as_gpio_output_for_status_led_on_mainboard
+ .text.toggle_pb22_status_led_on_mainboard
+                0x00002d18       0x18 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+                0x00002d18                toggle_pb22_status_led_on_mainboard
+ .text.turn_pb22_status_led_on_mainboard
+                0x00002d30       0x18 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+                0x00002d30                turn_pb22_status_led_on_mainboard
+ .text.turn_pb22_status_led_off_on_mainboard
+                0x00002d48       0x18 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+                0x00002d48                turn_pb22_status_led_off_on_mainboard
+ .text.configure_pa16_as_gpio_output_for_pv_efuse_enable_on_mainboard
+                0x00002d60       0x20 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+                0x00002d60                configure_pa16_as_gpio_output_for_pv_efuse_enable_on_mainboard
+ .text.request_pv_efuse_enable_on_mainboard
+                0x00002d80       0x18 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+                0x00002d80                request_pv_efuse_enable_on_mainboard
+ .text.request_pv_efuse_disable_on_mainboard
+                0x00002d98       0x18 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+                0x00002d98                request_pv_efuse_disable_on_mainboard
+ .text.configure_pa17_as_gpio_output_for_bat_efuse_enable_on_mainboard
+                0x00002db0       0x20 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+                0x00002db0                configure_pa17_as_gpio_output_for_bat_efuse_enable_on_mainboard
+ .text.request_bat_efuse_enable_on_mainboard
+                0x00002dd0       0x18 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+                0x00002dd0                request_bat_efuse_enable_on_mainboard
+ .text.request_bat_efuse_disable_on_mainboard
+                0x00002de8       0x18 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+                0x00002de8                request_bat_efuse_disable_on_mainboard
+ .text.configure_pa18_to_pa21_as_gpio_inputs_for_efuse_status_on_mainboard
+                0x00002e00       0x30 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+                0x00002e00                configure_pa18_to_pa21_as_gpio_inputs_for_efuse_status_on_mainboard
+ .text.read_efuse_status_inputs_from_pa18_to_pa21
+                0x00002e30       0xac build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+                0x00002e30                read_efuse_status_inputs_from_pa18_to_pa21
+ .text.i2c_master_initialize
+                0x00002edc       0xb8 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+                0x00002edc                i2c_master_initialize
+ .text.i2c_master_read_register
+                0x00002f94      0x130 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+                0x00002f94                i2c_master_read_register
+ .text.i2c_master_write_register
+                0x000030c4       0xe0 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+                0x000030c4                i2c_master_write_register
+ .text.wait_for_intflag_with_timeout
+                0x000031a4       0x48 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .text.issue_stop_condition
+                0x000031ec       0x34 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .text.battery_ina226_initialize
+                0x00003220       0x4c build/src/drivers/ina226_battery_on_mainboard.o
+                0x00003220                battery_ina226_initialize
+ .text.battery_ina226_read_voltage_mv
+                0x0000326c       0x34 build/src/drivers/ina226_battery_on_mainboard.o
+                0x0000326c                battery_ina226_read_voltage_mv
+ .text.battery_ina226_read_current_ma
+                0x000032a0       0x74 build/src/drivers/ina226_battery_on_mainboard.o
+                0x000032a0                battery_ina226_read_current_ma
+ .text.panel_ina226_initialize
+                0x00003314       0x4c build/src/drivers/ina226_panel_on_mainboard.o
+                0x00003314                panel_ina226_initialize
+ .text.panel_ina226_read_voltage_mv
+                0x00003360       0x34 build/src/drivers/ina226_panel_on_mainboard.o
+                0x00003360                panel_ina226_read_voltage_mv
+ .text.panel_ina226_read_current_ma
+                0x00003394       0x74 build/src/drivers/ina226_panel_on_mainboard.o
+                0x00003394                panel_ina226_read_current_ma
+ .text.rail_divider_read_charging_rail_voltage_mv
+                0x00003408       0x34 build/src/drivers/voltage_divider_rails_on_mainboard.o
+                0x00003408                rail_divider_read_charging_rail_voltage_mv
+ .text.rail_divider_read_panel_bus_voltage_mv
+                0x0000343c       0x34 build/src/drivers/voltage_divider_rails_on_mainboard.o
+                0x0000343c                rail_divider_read_panel_bus_voltage_mv
+ .text.battery_lt6108_read_current_ma
+                0x00003470       0x34 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+                0x00003470                battery_lt6108_read_current_ma
+ .text.panel_lt6108_read_current_ma
+                0x000034a4       0x34 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+                0x000034a4                panel_lt6108_read_current_ma
+ .text.battery_tps25940_read_imon_ma
+                0x000034d8       0x34 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+                0x000034d8                battery_tps25940_read_imon_ma
+ .text.panel_tps25940_read_imon_ma
+                0x0000350c       0x34 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+                0x0000350c                panel_tps25940_read_imon_ma
+ .text.__NVIC_EnableIRQ
+                0x00003540       0x34 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text.SERCOM0_Handler
+                0x00003574       0xcc build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+                0x00003574                SERCOM0_Handler
+ .text.uart_obc_initialize_sercom0_at_115200_baud
+                0x00003640       0x5c build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+                0x00003640                uart_obc_initialize_sercom0_at_115200_baud
+ .text.uart_obc_send_bytes
+                0x0000369c       0x88 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+                0x0000369c                uart_obc_send_bytes
+ .text.uart_obc_number_of_bytes_available_in_receive_buffer
+                0x00003724       0x24 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+                0x00003724                uart_obc_number_of_bytes_available_in_receive_buffer
+ .text.uart_obc_read_one_byte_from_receive_buffer
+                0x00003748       0x4c build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+                0x00003748                uart_obc_read_one_byte_from_receive_buffer
+ .text.enable_sercom0_bus_clock_for_register_access
+                0x00003794       0x1c build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text.connect_48mhz_gclk0_to_sercom0_functional_clock
+                0x000037b0       0x44 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text.configure_pa10_as_sercom0_uart_transmit_pin
+                0x000037f4       0x48 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text.configure_pa11_as_sercom0_uart_receive_pin
+                0x0000383c       0x48 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text.reset_sercom0_to_known_clean_state
+                0x00003884       0x40 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text.configure_sercom0_as_bidirectional_uart_at_115200_baud
+                0x000038c4       0x54 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text.enable_sercom0_uart_and_receive_interrupt
+                0x00003918       0x50 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .text.mainboard_adc_reader_initialize
+                0x00003968       0x30 build/src/drivers/mainboard_adc_reader.o
+                0x00003968                mainboard_adc_reader_initialize
+ .text.mainboard_adc_reader_read_raw_channel
+                0x00003998       0x6c build/src/drivers/mainboard_adc_reader.o
+                0x00003998                mainboard_adc_reader_read_raw_channel
+ .text.mainboard_adc_reader_read_all_channels
+                0x00003a04       0x78 build/src/drivers/mainboard_adc_reader.o
+                0x00003a04                mainboard_adc_reader_read_all_channels
+ .text.mainboard_adc_reader_convert_readings_to_telemetry
+                0x00003a7c      0x12c build/src/drivers/mainboard_adc_reader.o
+                0x00003a7c                mainboard_adc_reader_convert_readings_to_telemetry
+ .text.mainboard_adc_reader_read_telemetry
+                0x00003ba8       0x3c build/src/drivers/mainboard_adc_reader.o
+                0x00003ba8                mainboard_adc_reader_read_telemetry
+ .text.enable_adc_bus_clock_for_register_access
+                0x00003be4       0x1c build/src/drivers/mainboard_adc_reader.o
+ .text.connect_48mhz_gclk0_to_adc_functional_clock
+                0x00003c00       0x28 build/src/drivers/mainboard_adc_reader.o
+ .text.route_mainboard_monitor_pins_to_adc_function_b
+                0x00003c28       0x1c build/src/drivers/mainboard_adc_reader.o
+ .text.route_two_adjacent_port_b_pins_to_function_b
+                0x00003c44       0x60 build/src/drivers/mainboard_adc_reader.o
+ .text.reset_adc_to_known_clean_state
+                0x00003ca4       0x30 build/src/drivers/mainboard_adc_reader.o
+ .text.load_adc_factory_calibration_from_otp4_fuses
+                0x00003cd4       0x60 build/src/drivers/mainboard_adc_reader.o
+ .text.configure_adc_for_single_ended_vddana_range_reads
+                0x00003d34       0x68 build/src/drivers/mainboard_adc_reader.o
+ .text.enable_adc_peripheral
+                0x00003d9c       0x3c build/src/drivers/mainboard_adc_reader.o
+ .text.select_adc_channel
+                0x00003dd8       0x48 build/src/drivers/mainboard_adc_reader.o
+ .text.read_one_adc_conversion
+                0x00003e20       0x58 build/src/drivers/mainboard_adc_reader.o
+ .text.wait_until_adc_is_synchronized
+                0x00003e78       0x3c build/src/drivers/mainboard_adc_reader.o
+ .text.wait_until_adc_result_is_ready
+                0x00003eb4       0x40 build/src/drivers/mainboard_adc_reader.o
+ .text.convert_raw_adc_to_pin_millivolts
+                0x00003ef4       0x40 build/src/drivers/mainboard_adc_reader.o
+ .text.convert_tps25940_imon_pin_mv_to_load_ma
+                0x00003f34       0x5c build/src/drivers/mainboard_adc_reader.o
+ .text.convert_outa_pin_mv_to_load_ma
+                0x00003f90       0x2a build/src/drivers/mainboard_adc_reader.o
+ .text.convert_divider_pin_mv_to_input_mv
+                0x00003fba       0x3c build/src/drivers/mainboard_adc_reader.o
+ *fill*         0x00003ff6        0x2 
+ .text.__NVIC_SetPriority
+                0x00003ff8       0xdc build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .text.SysTick_Config
+                0x000040d4       0x48 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .text.SysTick_Handler
+                0x0000411c       0x18 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+                0x0000411c                SysTick_Handler
+ .text.millisecond_tick_timer_initialize_at_48mhz
+                0x00004134       0x18 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+                0x00004134                millisecond_tick_timer_initialize_at_48mhz
+ .text.millisecond_tick_timer_get_milliseconds_since_boot
+                0x0000414c       0x14 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+                0x0000414c                millisecond_tick_timer_get_milliseconds_since_boot
+ .text.pwm_buck_converter_initialize_for_demo
+                0x00004160       0x40 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+                0x00004160                pwm_buck_converter_initialize_for_demo
+ .text.pwm_buck_converter_set_duty_cycle
+                0x000041a0       0xa0 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+                0x000041a0                pwm_buck_converter_set_duty_cycle
+ .text.enable_tcc0_bus_clock_on_apbc
+                0x00004240       0x1c build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.connect_48mhz_gclk0_to_tcc0_peripheral_clock
+                0x0000425c       0x28 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.route_pa12_as_tcc0_wo6_and_pa13_as_tcc0_wo7
+                0x00004284       0x30 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.force_pa12_and_pa13_low_as_gpio_outputs
+                0x000042b4       0x38 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.reset_tcc0_to_known_clean_state
+                0x000042ec       0x24 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.configure_tcc0_waveform_generation_with_swap2
+                0x00004310       0x28 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.configure_tcc0_dead_time_insertion_on_slices_2_and_3
+                0x00004338       0x18 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.configure_tcc0_fault_safe_output_levels
+                0x00004350       0x14 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.set_tcc0_period_for_300khz_switching_frequency
+                0x00004364       0x24 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.set_tcc0_initial_duty_cycle_to_zero
+                0x00004388       0x10 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.enable_tcc0_pwm_output
+                0x00004398       0x28 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.convert_fractional_duty_cycle_to_compare_value
+                0x000043c0       0x48 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.write_compare_value_to_channels_2_and_3
+                0x00004408       0x30 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.write_buffered_compare_value_to_channels_2_and_3
+                0x00004438       0x30 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.force_tcc0_buffered_register_update
+                0x00004468       0x24 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .text.chips_compute_crc16_kermit_checksum_over_byte_array
+                0x0000448c       0x9c build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+                0x0000448c                chips_compute_crc16_kermit_checksum_over_byte_array
+ .text.chips_parser_initialize_state_machine_to_idle
+                0x00004528       0x34 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+                0x00004528                chips_parser_initialize_state_machine_to_idle
+ .text.chips_parser_process_one_received_byte
+                0x0000455c      0x194 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+                0x0000455c                chips_parser_process_one_received_byte
+ .text.chips_build_stuffed_frame_with_sync_and_crc_into_buffer
+                0x000046f0      0x25c build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+                0x000046f0                chips_build_stuffed_frame_with_sync_and_crc_into_buffer
+ .text.write_one_byte_with_stuffing_into_buffer
+                0x0000494c       0xde build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ *fill*         0x00004a2a        0x2 
+ .text.extract_fields_from_validated_accumulation_buffer
+                0x00004a2c       0xf8 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .text.validate_and_extract_complete_frame
+                0x00004b24       0xa4 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .text.__NVIC_SystemReset
+                0x00004bc8       0x24 build/src/assertion_handler.o
+ .text.satellite_handle_assertion_failure
+                0x00004bec        0xe build/src/assertion_handler.o
+                0x00004bec                satellite_handle_assertion_failure
+ *fill*         0x00004bfa        0x2 
+ .text.clamp_duty_cycle_to_safe_operating_range
+                0x00004bfc       0x40 build/src/mppt_algorithm.o
+ .text.change_is_within_noise_threshold
+                0x00004c3c       0x2c build/src/mppt_algorithm.o
+ .text.increase_duty_cycle_by_one_step
+                0x00004c68       0x34 build/src/mppt_algorithm.o
+ .text.decrease_duty_cycle_by_one_step
+                0x00004c9c       0x34 build/src/mppt_algorithm.o
+ .text.mppt_algorithm_initialize
+                0x00004cd0       0x54 build/src/mppt_algorithm.o
+                0x00004cd0                mppt_algorithm_initialize
+ .text.mppt_algorithm_run_one_iteration
+                0x00004d24      0x200 build/src/mppt_algorithm.o
+                0x00004d24                mppt_algorithm_run_one_iteration
+ .text.eps_state_machine_initialize
+                0x00004f24       0xdc build/src/eps_state_machine.o
+                0x00004f24                eps_state_machine_initialize
  .text.Reset_Handler
-                0x000001dc       0x9c build/startup_samd21g17d.o
-                0x000001dc                Reset_Handler
+                0x00005000       0x9c build/startup/startup_samd21j17d.o
+                0x00005000                Reset_Handler
  .text.Dummy_Handler
-                0x00000278        0x8 build/startup_samd21g17d.o
-                0x00000278                SVCall_Handler
-                0x00000278                DMAC_Handler
-                0x00000278                HardFault_Handler
-                0x00000278                AC_Handler
-                0x00000278                SysTick_Handler
-                0x00000278                PendSV_Handler
-                0x00000278                SERCOM1_Handler
-                0x00000278                ADC_Handler
-                0x00000278                NonMaskableInt_Handler
-                0x00000278                TCC1_Handler
-                0x00000278                SERCOM2_Handler
-                0x00000278                TCC0_Handler
-                0x00000278                RTC_Handler
-                0x00000278                EIC_Handler
-                0x00000278                WDT_Handler
-                0x00000278                TC4_Handler
-                0x00000278                USB_Handler
-                0x00000278                TC3_Handler
-                0x00000278                Dummy_Handler
-                0x00000278                PM_Handler
-                0x00000278                SERCOM5_Handler
-                0x00000278                TCC3_Handler
-                0x00000278                TCC2_Handler
-                0x00000278                EVSYS_Handler
-                0x00000278                SERCOM3_Handler
-                0x00000278                SERCOM4_Handler
-                0x00000278                I2S_Handler
-                0x00000278                NVMCTRL_Handler
-                0x00000278                SERCOM0_Handler
-                0x00000278                DAC_Handler
-                0x00000278                PTC_Handler
-                0x00000278                TC5_Handler
-                0x00000278                SYSCTRL_Handler
+                0x0000509c        0x8 build/startup/startup_samd21j17d.o
+                0x0000509c                SVCall_Handler
+                0x0000509c                DMAC_Handler
+                0x0000509c                HardFault_Handler
+                0x0000509c                AC_Handler
+                0x0000509c                PendSV_Handler
+                0x0000509c                TC7_Handler
+                0x0000509c                SERCOM1_Handler
+                0x0000509c                ADC_Handler
+                0x0000509c                NonMaskableInt_Handler
+                0x0000509c                TCC1_Handler
+                0x0000509c                SERCOM2_Handler
+                0x0000509c                TCC0_Handler
+                0x0000509c                RTC_Handler
+                0x0000509c                EIC_Handler
+                0x0000509c                TC6_Handler
+                0x0000509c                WDT_Handler
+                0x0000509c                TC4_Handler
+                0x0000509c                USB_Handler
+                0x0000509c                TC3_Handler
+                0x0000509c                Dummy_Handler
+                0x0000509c                PM_Handler
+                0x0000509c                SERCOM5_Handler
+                0x0000509c                TCC3_Handler
+                0x0000509c                TCC2_Handler
+                0x0000509c                EVSYS_Handler
+                0x0000509c                SERCOM3_Handler
+                0x0000509c                SERCOM4_Handler
+                0x0000509c                I2S_Handler
+                0x0000509c                NVMCTRL_Handler
+                0x0000509c                DAC_Handler
+                0x0000509c                PTC_Handler
+                0x0000509c                TC5_Handler
+                0x0000509c                SYSCTRL_Handler
+ .text          0x000050a4      0x114 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+                0x000050a4                __aeabi_uidiv
+                0x000050a4                __udivsi3
+                0x000051b0                __aeabi_uidivmod
+ .text          0x000051b8        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+                0x000051b8                __aeabi_idiv0
+                0x000051b8                __aeabi_ldiv0
+ .text          0x000051bc       0x48 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_ldivmod.o)
+                0x000051bc                __aeabi_ldivmod
+ .text          0x00005204       0x40 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
+                0x00005204                __aeabi_uldivmod
+ .text.__muldi3
+                0x00005244       0x5c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
+                0x00005244                __muldi3
+                0x00005244                __aeabi_lmul
+ .text.__udivmoddi4
+                0x000052a0      0x198 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+                0x000052a0                __udivmoddi4
+ .text.__gnu_ldivmod_helper
+                0x00005438       0x3c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(bpabi.o)
+                0x00005438                __gnu_ldivmod_helper
+ .text          0x00005474       0x18 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o)
+                0x00005474                __clzdi2
+ .text.__divdi3
+                0x0000548c      0x1e4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+                0x0000548c                __divdi3
+ .text          0x00005670       0x3c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzsi2.o)
+                0x00005670                __clzsi2
  .text.__libc_init_array
-                0x00000280       0x48 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-init.o)
-                0x00000280                __libc_init_array
+                0x000056ac       0x48 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-init.o)
+                0x000056ac                __libc_init_array
+ .text.memcpy   0x000056f4       0x12 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-memcpy-stub.o)
+                0x000056f4                memcpy
  *(.glue_7t)
- .glue_7t       0x000002c8        0x0 linker stubs
+ .glue_7t       0x00005706        0x0 linker stubs
  *(.glue_7)
- .glue_7        0x000002c8        0x0 linker stubs
+ .glue_7        0x00005706        0x0 linker stubs
  *(.rodata .rodata* .gnu.linkonce.r.*)
+ *fill*         0x00005706        0x2 
+ .rodata        0x00005708       0x60 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .rodata        0x00005768       0x6d build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ *fill*         0x000057d5        0x3 
+ .rodata        0x000057d8       0x77 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ *fill*         0x0000584f        0x1 
+ .rodata        0x00005850       0x6c build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .rodata        0x000058bc       0x3e build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ *fill*         0x000058fa        0x2 
+ .rodata        0x000058fc       0x28 build/src-pds/sensor_inputs/sensor_readings.o
+ .rodata        0x00005924       0x31 build/src-pds/sensor_inputs/ina226_register_protocol.o
+ *fill*         0x00005955        0x3 
+ .rodata        0x00005958       0x54 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .rodata        0x000059ac       0x55 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ *fill*         0x00005a01        0x3 
+ .rodata        0x00005a04       0x4a build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ *fill*         0x00005a4e        0x2 
+ .rodata        0x00005a50       0x41 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ *fill*         0x00005a91        0x3 
+ .rodata        0x00005a94       0x23 build/src/drivers/mainboard_adc_reader.o
+ *fill*         0x00005ab7        0x1 
+ .rodata        0x00005ab8       0x3d build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ *fill*         0x00005af5        0x3 
+ .rodata.crc16_kermit_lookup_table
+                0x00005af8      0x200 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .rodata        0x00005cf8       0x44 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .rodata        0x00005d3c       0x15 build/src/mppt_algorithm.o
+ *fill*         0x00005d51        0x3 
+ .rodata        0x00005d54       0x18 build/src/eps_state_machine.o
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x000002c8                        . = ALIGN (0x4)
+                0x00005d6c                        . = ALIGN (0x4)
  *(.init)
- .init          0x000002c8        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crti.o
-                0x000002c8                _init
- .init          0x000002cc        0x8 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtn.o
-                0x000002d4                        . = ALIGN (0x4)
-                0x000002d4                        __preinit_array_start = .
+ .init          0x00005d6c        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crti.o
+                0x00005d6c                _init
+ .init          0x00005d70        0x8 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtn.o
+                0x00005d78                        . = ALIGN (0x4)
+                0x00005d78                        __preinit_array_start = .
  *(.preinit_array)
-                0x000002d4                        __preinit_array_end = .
-                0x000002d4                        . = ALIGN (0x4)
-                0x000002d4                        __init_array_start = .
+                0x00005d78                        __preinit_array_end = .
+                0x00005d78                        . = ALIGN (0x4)
+                0x00005d78                        __init_array_start = .
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array)
- .init_array    0x000002d4        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
-                0x000002d8                        __init_array_end = .
-                0x000002d8                        . = ALIGN (0x4)
+ .init_array    0x00005d78        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+                0x00005d7c                        __init_array_end = .
+                0x00005d7c                        . = ALIGN (0x4)
  *crtbegin.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o) .ctors)
  *(SORT_BY_NAME(.ctors.*))
  *crtend.o(.ctors)
-                0x000002d8                        . = ALIGN (0x4)
+                0x00005d7c                        . = ALIGN (0x4)
  *(.fini)
- .fini          0x000002d8        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crti.o
-                0x000002d8                _fini
- .fini          0x000002dc        0x8 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtn.o
-                0x000002e4                        . = ALIGN (0x4)
-                0x000002e4                        __fini_array_start = .
+ .fini          0x00005d7c        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crti.o
+                0x00005d7c                _fini
+ .fini          0x00005d80        0x8 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtn.o
+                0x00005d88                        . = ALIGN (0x4)
+                0x00005d88                        __fini_array_start = .
  *(.fini_array)
- .fini_array    0x000002e4        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+ .fini_array    0x00005d88        0x4 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
  *(SORT_BY_NAME(.fini_array.*))
-                0x000002e8                        __fini_array_end = .
+                0x00005d8c                        __fini_array_end = .
  *crtbegin.o(.dtors)
  *(EXCLUDE_FILE(*crtend.o) .dtors)
  *(SORT_BY_NAME(.dtors.*))
  *crtend.o(.dtors)
-                0x000002e8                        . = ALIGN (0x4)
-                0x000002e8                        _efixed = .
+                0x00005d8c                        . = ALIGN (0x4)
+                0x00005d8c                        _efixed = .
                 [!provide]                        PROVIDE (__exidx_start = .)
 
-.vfp11_veneer   0x000002e8        0x0
- .vfp11_veneer  0x000002e8        0x0 linker stubs
+.vfp11_veneer   0x00005d8c        0x0
+ .vfp11_veneer  0x00005d8c        0x0 linker stubs
 
-.v4_bx          0x000002e8        0x0
- .v4_bx         0x000002e8        0x0 linker stubs
+.v4_bx          0x00005d8c        0x0
+ .v4_bx         0x00005d8c        0x0 linker stubs
 
-.iplt           0x000002e8        0x0
- .iplt          0x000002e8        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+.iplt           0x00005d8c        0x0
+ .iplt          0x00005d8c        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
 
-.eh_frame       0x000002e8        0x0
- .eh_frame      0x000002e8        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+.ARM.exidx      0x00005d8c        0x8
+ *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+ .ARM.exidx.text.__udivmoddi4
+                0x00005d8c        0x8 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+ .ARM.exidx.text.__divdi3
+                0x00005d94        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+                                  0x8 (size before relaxing)
+                [!provide]                        PROVIDE (__exidx_end = .)
 
-.rel.dyn        0x000002e8        0x0
- .rel.iplt      0x000002e8        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+.eh_frame       0x00005d94        0x0
+ .eh_frame      0x00005d94        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+
+.rel.dyn        0x00005d94        0x0
+ .rel.iplt      0x00005d94        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
 
 .tm_clone_table
-                0x000002e8        0x0
+                0x00005d94        0x0
  .tm_clone_table
-                0x000002e8        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+                0x00005d94        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
  .tm_clone_table
-                0x000002e8        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtend.o
+                0x00005d94        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtend.o
 
-.igot.plt       0x000002e8        0x0
- .igot.plt      0x000002e8        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+.igot.plt       0x00005d94        0x0
+ .igot.plt      0x00005d94        0x0 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+                0x00005d94                        . = ALIGN (0x4)
+                0x00005d94                        _etext = .
 
-.ARM.exidx
- *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-                [!provide]                        PROVIDE (__exidx_end = .)
-                0x000002e8                        . = ALIGN (0x4)
-                0x000002e8                        _etext = .
-
-.relocate       0x20000000        0x0 load address 0x000002e8
+.relocate       0x20000000        0x8 load address 0x00005d94
                 0x20000000                        . = ALIGN (0x4)
                 0x20000000                        _srelocate = .
  *(.ramfunc .ramfunc.*)
  *(.data .data.*)
-                0x20000000                        . = ALIGN (0x4)
-                0x20000000                        _erelocate = .
+ .data.most_recently_selected_adc_channel
+                0x20000000        0x1 build/src/drivers/mainboard_adc_reader.o
+ *fill*         0x20000001        0x3 
+ .data.SystemCoreClock
+                0x20000004        0x4 build/startup/system_samd21j17d.o
+                0x20000004                SystemCoreClock
+                0x20000008                        . = ALIGN (0x4)
+                0x20000008                        _erelocate = .
 
-.bss            0x20000000       0x1c
-                0x20000000                        . = ALIGN (0x4)
-                0x20000000                        _sbss = .
-                0x20000000                        _szero = .
+.bss            0x20000008      0x534 load address 0x00005d9c
+                0x20000008                        . = ALIGN (0x4)
+                0x20000008                        _sbss = .
+                0x20000008                        _szero = .
  *(.bss .bss.*)
  .bss.completed.1
-                0x20000000        0x1 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
- *fill*         0x20000001        0x3 
- .bss.object.0  0x20000004       0x18 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+                0x20000008        0x1 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+ *fill*         0x20000009        0x3 
+ .bss.object.0  0x2000000c       0x18 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
+ .bss.timestamp_of_last_status_led_heartbeat_toggle_in_milliseconds
+                0x20000024        0x4 build/src-pds/app/main.o
+ .bss.chips_message_reader
+                0x20000028      0x108 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .bss.received_chips_message
+                0x20000130      0x106 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .bss.next_sample_request_sequence_number
+                0x20000236        0x1 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ *fill*         0x20000237        0x1 
+ .bss.pds_runtime_state_storage
+                0x20000238       0xd8 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .bss.current_sensor_source
+                0x20000310        0x1 build/src-pds/sensor_inputs/sensor_readings.o
+ *fill*         0x20000311        0x3 
+ .bss.cached_current_lsb_in_microamps
+                0x20000314        0x4 build/src/drivers/ina226_battery_on_mainboard.o
+ .bss.cached_current_lsb_in_microamps
+                0x20000318        0x4 build/src/drivers/ina226_panel_on_mainboard.o
+ .bss.obc_uart_state
+                0x2000031c      0x214 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .bss.adc_reader_has_been_initialized
+                0x20000530        0x1 build/src/drivers/mainboard_adc_reader.o
+ *fill*         0x20000531        0x3 
+ .bss.milliseconds_elapsed_since_boot
+                0x20000534        0x4 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .bss.pwm_has_been_initialized
+                0x20000538        0x1 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .bss.pwm_outputs_are_routed_to_tcc0
+                0x20000539        0x1 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
  *(COMMON)
-                0x2000001c                        . = ALIGN (0x4)
-                0x2000001c                        _ebss = .
-                0x2000001c                        _ezero = .
+                0x2000053c                        . = ALIGN (0x4)
+ *fill*         0x2000053a        0x2 
+                0x2000053c                        _ebss = .
+                0x2000053c                        _ezero = .
 
-.stack          0x2000001c     0x1004
-                0x20000020                        . = ALIGN (0x8)
- *fill*         0x2000001c        0x4 
-                0x20000020                        _sstack = .
-                0x20001020                        . = (. + STACK_SIZE)
- *fill*         0x20000020     0x1000 
-                0x20001020                        . = ALIGN (0x8)
-                0x20001020                        _estack = .
-                0x20001020                        . = ALIGN (0x4)
-                0x20001020                        _end = .
+.stack          0x2000053c     0x1004 load address 0x000062d0
+                0x20000540                        . = ALIGN (0x8)
+ *fill*         0x2000053c        0x4 
+                0x20000540                        _sstack = .
+                0x20001540                        . = (. + STACK_SIZE)
+ *fill*         0x20000540     0x1000 
+                0x20001540                        . = ALIGN (0x8)
+                0x20001540                        _estack = .
+                0x20001540                        . = ALIGN (0x4)
+                0x20001540                        _end = .
 OUTPUT(build/satellite_firmware.elf elf32-littlearm)
 LOAD linker stubs
 
@@ -537,53 +1503,656 @@ LOAD linker stubs
  .ARM.attributes
                 0x0000001e       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtbegin.o
  .ARM.attributes
-                0x0000004a       0x2c build/main.o
+                0x0000004a       0x2c build/src-pds/app/main.o
  .ARM.attributes
-                0x00000076       0x2c build/startup_samd21g17d.o
+                0x00000076       0x2c build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
  .ARM.attributes
-                0x000000a2       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-init.o)
+                0x000000a2       0x2c build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
  .ARM.attributes
-                0x000000ce       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtend.o
+                0x000000ce       0x2c build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
  .ARM.attributes
-                0x000000fa       0x1e c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtn.o
+                0x000000fa       0x2c build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .ARM.attributes
+                0x00000126       0x2c build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .ARM.attributes
+                0x00000152       0x2c build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .ARM.attributes
+                0x0000017e       0x2c build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .ARM.attributes
+                0x000001aa       0x2c build/src-pds/sensor_inputs/sensor_readings.o
+ .ARM.attributes
+                0x000001d6       0x2c build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .ARM.attributes
+                0x00000202       0x2c build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .ARM.attributes
+                0x0000022e       0x2c build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .ARM.attributes
+                0x0000025a       0x2c build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .ARM.attributes
+                0x00000286       0x2c build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .ARM.attributes
+                0x000002b2       0x2c build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .ARM.attributes
+                0x000002de       0x2c build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .ARM.attributes
+                0x0000030a       0x2c build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .ARM.attributes
+                0x00000336       0x2c build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .ARM.attributes
+                0x00000362       0x2c build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .ARM.attributes
+                0x0000038e       0x2c build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .ARM.attributes
+                0x000003ba       0x2c build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .ARM.attributes
+                0x000003e6       0x2c build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .ARM.attributes
+                0x00000412       0x2c build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .ARM.attributes
+                0x0000043e       0x2c build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .ARM.attributes
+                0x0000046a       0x2c build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .ARM.attributes
+                0x00000496       0x2c build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .ARM.attributes
+                0x000004c2       0x2c build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .ARM.attributes
+                0x000004ee       0x2c build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .ARM.attributes
+                0x0000051a       0x2c build/src/drivers/ina226_battery_on_mainboard.o
+ .ARM.attributes
+                0x00000546       0x2c build/src/drivers/ina226_panel_on_mainboard.o
+ .ARM.attributes
+                0x00000572       0x2c build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .ARM.attributes
+                0x0000059e       0x2c build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .ARM.attributes
+                0x000005ca       0x2c build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .ARM.attributes
+                0x000005f6       0x2c build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .ARM.attributes
+                0x00000622       0x2c build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .ARM.attributes
+                0x0000064e       0x2c build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .ARM.attributes
+                0x0000067a       0x2c build/src/drivers/mainboard_adc_reader.o
+ .ARM.attributes
+                0x000006a6       0x2c build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .ARM.attributes
+                0x000006d2       0x2c build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .ARM.attributes
+                0x000006fe       0x2c build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .ARM.attributes
+                0x0000072a       0x2c build/src/assertion_handler.o
+ .ARM.attributes
+                0x00000756       0x2c build/src/mppt_algorithm.o
+ .ARM.attributes
+                0x00000782       0x2c build/src/eps_state_machine.o
+ .ARM.attributes
+                0x000007ae       0x2c build/startup/startup_samd21j17d.o
+ .ARM.attributes
+                0x000007da       0x2c build/startup/system_samd21j17d.o
+ .ARM.attributes
+                0x00000806       0x1e c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x00000824       0x1e c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .ARM.attributes
+                0x00000842       0x1e c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_ldivmod.o)
+ .ARM.attributes
+                0x00000860       0x1e c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
+ .ARM.attributes
+                0x0000087e       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
+ .ARM.attributes
+                0x000008aa       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+ .ARM.attributes
+                0x000008d6       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(bpabi.o)
+ .ARM.attributes
+                0x00000902       0x1e c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o)
+ .ARM.attributes
+                0x00000920       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+ .ARM.attributes
+                0x0000094c       0x1e c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzsi2.o)
+ .ARM.attributes
+                0x0000096a       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-init.o)
+ .ARM.attributes
+                0x00000996       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-memcpy-stub.o)
+ .ARM.attributes
+                0x000009c2       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtend.o
+ .ARM.attributes
+                0x000009ee       0x1e c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp/crtn.o
 
 .comment        0x00000000       0x55
- .comment       0x00000000       0x55 build/main.o
+ .comment       0x00000000       0x55 build/src-pds/app/main.o
                                  0x56 (size before relaxing)
- .comment       0x00000055       0x56 build/startup_samd21g17d.o
+ .comment       0x00000055       0x56 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .comment       0x00000055       0x56 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .comment       0x00000055       0x56 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .comment       0x00000055       0x56 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .comment       0x00000055       0x56 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .comment       0x00000055       0x56 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .comment       0x00000055       0x56 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .comment       0x00000055       0x56 build/src-pds/sensor_inputs/sensor_readings.o
+ .comment       0x00000055       0x56 build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .comment       0x00000055       0x56 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .comment       0x00000055       0x56 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .comment       0x00000055       0x56 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .comment       0x00000055       0x56 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .comment       0x00000055       0x56 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .comment       0x00000055       0x56 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .comment       0x00000055       0x56 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .comment       0x00000055       0x56 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .comment       0x00000055       0x56 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .comment       0x00000055       0x56 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .comment       0x00000055       0x56 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .comment       0x00000055       0x56 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .comment       0x00000055       0x56 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .comment       0x00000055       0x56 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/ina226_battery_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/ina226_panel_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/mainboard_adc_reader.o
+ .comment       0x00000055       0x56 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .comment       0x00000055       0x56 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .comment       0x00000055       0x56 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .comment       0x00000055       0x56 build/src/assertion_handler.o
+ .comment       0x00000055       0x56 build/src/mppt_algorithm.o
+ .comment       0x00000055       0x56 build/src/eps_state_machine.o
+ .comment       0x00000055       0x56 build/startup/startup_samd21j17d.o
+ .comment       0x00000055       0x56 build/startup/system_samd21j17d.o
 
-.debug_info     0x00000000      0x68f
- .debug_info    0x00000000      0x276 build/main.o
- .debug_info    0x00000276      0x419 build/startup_samd21g17d.o
+.debug_info     0x00000000     0xf5c4
+ .debug_info    0x00000000      0x20e build/src-pds/app/main.o
+ .debug_info    0x0000020e      0x15d build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .debug_info    0x0000036b      0x3a5 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .debug_info    0x00000710      0x1f5 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .debug_info    0x00000905      0xceb build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .debug_info    0x000015f0      0x26c build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .debug_info    0x0000185c      0x501 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .debug_info    0x00001d5d      0xb10 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .debug_info    0x0000286d      0xa2f build/src-pds/sensor_inputs/sensor_readings.o
+ .debug_info    0x0000329c      0x2d9 build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .debug_info    0x00003575      0x665 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .debug_info    0x00003bda      0x657 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .debug_info    0x00004231      0x6b2 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .debug_info    0x000048e3      0x861 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .debug_info    0x00005144      0x892 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .debug_info    0x000059d6      0x7a1 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .debug_info    0x00006177      0xb25 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .debug_info    0x00006c9c      0x73d build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .debug_info    0x000073d9      0x635 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .debug_info    0x00007a0e      0x635 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .debug_info    0x00008043      0x688 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .debug_info    0x000086cb      0x2e9 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .debug_info    0x000089b4      0x46d build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .debug_info    0x00008e21      0x24c build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .debug_info    0x0000906d      0x23c build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .debug_info    0x000092a9      0x23c build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .debug_info    0x000094e5      0x2bd build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .debug_info    0x000097a2      0xca9 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .debug_info    0x0000a44b      0x21a build/src/drivers/ina226_battery_on_mainboard.o
+ .debug_info    0x0000a665      0x21a build/src/drivers/ina226_panel_on_mainboard.o
+ .debug_info    0x0000a87f      0x250 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .debug_info    0x0000aacf      0x231 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .debug_info    0x0000ad00      0x231 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .debug_info    0x0000af31      0x219 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .debug_info    0x0000b14a      0x219 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .debug_info    0x0000b363     0x1081 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .debug_info    0x0000c3e4      0xaf6 build/src/drivers/mainboard_adc_reader.o
+ .debug_info    0x0000ceda      0x403 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .debug_info    0x0000d2dd      0x7dc build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .debug_info    0x0000dab9      0x64b build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .debug_info    0x0000e104      0x1c5 build/src/assertion_handler.o
+ .debug_info    0x0000e2c9      0x2e4 build/src/mppt_algorithm.o
+ .debug_info    0x0000e5ad      0xb42 build/src/eps_state_machine.o
+ .debug_info    0x0000f0ef      0x419 build/startup/startup_samd21j17d.o
+ .debug_info    0x0000f508       0xbc build/startup/system_samd21j17d.o
 
-.debug_abbrev   0x00000000      0x26b
- .debug_abbrev  0x00000000       0xfa build/main.o
- .debug_abbrev  0x000000fa      0x171 build/startup_samd21g17d.o
+.debug_abbrev   0x00000000     0x3886
+ .debug_abbrev  0x00000000       0xc6 build/src-pds/app/main.o
+ .debug_abbrev  0x000000c6       0x9d build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .debug_abbrev  0x00000163      0x1f6 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .debug_abbrev  0x00000359      0x111 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .debug_abbrev  0x0000046a      0x1f6 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .debug_abbrev  0x00000660      0x11c build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .debug_abbrev  0x0000077c      0x1e6 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .debug_abbrev  0x00000962      0x22b build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .debug_abbrev  0x00000b8d      0x247 build/src-pds/sensor_inputs/sensor_readings.o
+ .debug_abbrev  0x00000dd4      0x11e build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .debug_abbrev  0x00000ef2      0x100 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .debug_abbrev  0x00000ff2       0xff build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .debug_abbrev  0x000010f1      0x116 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .debug_abbrev  0x00001207      0x183 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .debug_abbrev  0x0000138a      0x15b build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .debug_abbrev  0x000014e5      0x191 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .debug_abbrev  0x00001676      0x1ae build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .debug_abbrev  0x00001824      0x128 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .debug_abbrev  0x0000194c       0xe2 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .debug_abbrev  0x00001a2e       0xe2 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .debug_abbrev  0x00001b10       0xf1 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .debug_abbrev  0x00001c01       0xe2 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .debug_abbrev  0x00001ce3      0x11d build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .debug_abbrev  0x00001e00       0xb6 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .debug_abbrev  0x00001eb6       0xb6 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .debug_abbrev  0x00001f6c       0xb6 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .debug_abbrev  0x00002022      0x119 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .debug_abbrev  0x0000213b      0x1bd build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .debug_abbrev  0x000022f8       0xbe build/src/drivers/ina226_battery_on_mainboard.o
+ .debug_abbrev  0x000023b6       0xbe build/src/drivers/ina226_panel_on_mainboard.o
+ .debug_abbrev  0x00002474       0xdc build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .debug_abbrev  0x00002550       0xbf build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .debug_abbrev  0x0000260f       0xbf build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .debug_abbrev  0x000026ce       0xbf build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .debug_abbrev  0x0000278d       0xbf build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .debug_abbrev  0x0000284c      0x277 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .debug_abbrev  0x00002ac3      0x24f build/src/drivers/mainboard_adc_reader.o
+ .debug_abbrev  0x00002d12      0x19c build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .debug_abbrev  0x00002eae      0x1c3 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .debug_abbrev  0x00003071      0x222 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .debug_abbrev  0x00003293      0x113 build/src/assertion_handler.o
+ .debug_abbrev  0x000033a6      0x124 build/src/mppt_algorithm.o
+ .debug_abbrev  0x000034ca      0x1db build/src/eps_state_machine.o
+ .debug_abbrev  0x000036a5      0x171 build/startup/startup_samd21j17d.o
+ .debug_abbrev  0x00003816       0x70 build/startup/system_samd21j17d.o
 
-.debug_aranges  0x00000000       0x60
+.debug_aranges  0x00000000      0xc78
  .debug_aranges
-                0x00000000       0x38 build/main.o
+                0x00000000       0x28 build/src-pds/app/main.o
  .debug_aranges
-                0x00000038       0x28 build/startup_samd21g17d.o
+                0x00000028       0x50 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .debug_aranges
+                0x00000078       0x58 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .debug_aranges
+                0x000000d0       0x20 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .debug_aranges
+                0x000000f0       0xa0 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .debug_aranges
+                0x00000190       0x28 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .debug_aranges
+                0x000001b8       0x48 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .debug_aranges
+                0x00000200       0xa8 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .debug_aranges
+                0x000002a8       0xb8 build/src-pds/sensor_inputs/sensor_readings.o
+ .debug_aranges
+                0x00000360       0x50 build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .debug_aranges
+                0x000003b0       0x20 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .debug_aranges
+                0x000003d0       0x28 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .debug_aranges
+                0x000003f8       0x20 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .debug_aranges
+                0x00000418       0x40 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .debug_aranges
+                0x00000458       0x38 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .debug_aranges
+                0x00000490       0x58 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .debug_aranges
+                0x000004e8       0x70 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .debug_aranges
+                0x00000558       0x20 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .debug_aranges
+                0x00000578       0x20 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .debug_aranges
+                0x00000598       0x20 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .debug_aranges
+                0x000005b8       0x28 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .debug_aranges
+                0x000005e0       0x58 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .debug_aranges
+                0x00000638       0x48 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .debug_aranges
+                0x00000680       0x38 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .debug_aranges
+                0x000006b8       0x30 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .debug_aranges
+                0x000006e8       0x30 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .debug_aranges
+                0x00000718       0x28 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .debug_aranges
+                0x00000740       0x48 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .debug_aranges
+                0x00000788       0x30 build/src/drivers/ina226_battery_on_mainboard.o
+ .debug_aranges
+                0x000007b8       0x30 build/src/drivers/ina226_panel_on_mainboard.o
+ .debug_aranges
+                0x000007e8       0x28 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .debug_aranges
+                0x00000810       0x20 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .debug_aranges
+                0x00000830       0x20 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .debug_aranges
+                0x00000850       0x20 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .debug_aranges
+                0x00000870       0x20 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .debug_aranges
+                0x00000890       0x80 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .debug_aranges
+                0x00000910       0xc0 build/src/drivers/mainboard_adc_reader.o
+ .debug_aranges
+                0x000009d0       0x40 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .debug_aranges
+                0x00000a10       0xa0 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .debug_aranges
+                0x00000ab0       0x60 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .debug_aranges
+                0x00000b10       0x28 build/src/assertion_handler.o
+ .debug_aranges
+                0x00000b38       0x48 build/src/mppt_algorithm.o
+ .debug_aranges
+                0x00000b80       0xa8 build/src/eps_state_machine.o
+ .debug_aranges
+                0x00000c28       0x28 build/startup/startup_samd21j17d.o
+ .debug_aranges
+                0x00000c50       0x28 build/startup/system_samd21j17d.o
 
 .debug_rnglists
-                0x00000000       0x3f
+                0x00000000      0x8d4
  .debug_rnglists
-                0x00000000       0x25 build/main.o
+                0x00000000       0x1a build/src-pds/app/main.o
  .debug_rnglists
-                0x00000025       0x1a build/startup_samd21g17d.o
+                0x0000001a       0x37 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .debug_rnglists
+                0x00000051       0x3d build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .debug_rnglists
+                0x0000008e       0x13 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .debug_rnglists
+                0x000000a1       0x75 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .debug_rnglists
+                0x00000116       0x1a build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .debug_rnglists
+                0x00000130       0x33 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .debug_rnglists
+                0x00000163       0x7c build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .debug_rnglists
+                0x000001df       0x86 build/src-pds/sensor_inputs/sensor_readings.o
+ .debug_rnglists
+                0x00000265       0x3a build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .debug_rnglists
+                0x0000029f       0x13 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .debug_rnglists
+                0x000002b2       0x19 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .debug_rnglists
+                0x000002cb       0x14 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .debug_rnglists
+                0x000002df       0x2c build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .debug_rnglists
+                0x0000030b       0x26 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .debug_rnglists
+                0x00000331       0x40 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .debug_rnglists
+                0x00000371       0x54 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .debug_rnglists
+                0x000003c5       0x14 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .debug_rnglists
+                0x000003d9       0x13 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .debug_rnglists
+                0x000003ec       0x13 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .debug_rnglists
+                0x000003ff       0x19 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .debug_rnglists
+                0x00000418       0x3d build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .debug_rnglists
+                0x00000455       0x31 build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .debug_rnglists
+                0x00000486       0x25 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .debug_rnglists
+                0x000004ab       0x1f build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .debug_rnglists
+                0x000004ca       0x1f build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .debug_rnglists
+                0x000004e9       0x1a build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .debug_rnglists
+                0x00000503       0x34 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .debug_rnglists
+                0x00000537       0x1f build/src/drivers/ina226_battery_on_mainboard.o
+ .debug_rnglists
+                0x00000556       0x1f build/src/drivers/ina226_panel_on_mainboard.o
+ .debug_rnglists
+                0x00000575       0x19 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .debug_rnglists
+                0x0000058e       0x13 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .debug_rnglists
+                0x000005a1       0x13 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .debug_rnglists
+                0x000005b4       0x13 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .debug_rnglists
+                0x000005c7       0x13 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .debug_rnglists
+                0x000005da       0x81 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .debug_rnglists
+                0x0000065b       0x8c build/src/drivers/mainboard_adc_reader.o
+ .debug_rnglists
+                0x000006e7       0x2c build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .debug_rnglists
+                0x00000713       0x74 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .debug_rnglists
+                0x00000787       0x4a build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .debug_rnglists
+                0x000007d1       0x19 build/src/assertion_handler.o
+ .debug_rnglists
+                0x000007ea       0x32 build/src/mppt_algorithm.o
+ .debug_rnglists
+                0x0000081c       0x85 build/src/eps_state_machine.o
+ .debug_rnglists
+                0x000008a1       0x1a build/startup/startup_samd21j17d.o
+ .debug_rnglists
+                0x000008bb       0x19 build/startup/system_samd21j17d.o
 
-.debug_line     0x00000000      0x3a2
- .debug_line    0x00000000      0x1be build/main.o
- .debug_line    0x000001be      0x1e4 build/startup_samd21g17d.o
+.debug_line     0x00000000     0x9cdf
+ .debug_line    0x00000000      0x568 build/src-pds/app/main.o
+ .debug_line    0x00000568      0x3e5 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .debug_line    0x0000094d      0x3d7 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .debug_line    0x00000d24      0x205 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .debug_line    0x00000f29      0x8a7 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .debug_line    0x000017d0      0x2e4 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .debug_line    0x00001ab4      0x4e5 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .debug_line    0x00001f99      0x5ce build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .debug_line    0x00002567      0x561 build/src-pds/sensor_inputs/sensor_readings.o
+ .debug_line    0x00002ac8      0x2df build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .debug_line    0x00002da7      0x319 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .debug_line    0x000030c0      0x309 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .debug_line    0x000033c9      0x3f8 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .debug_line    0x000037c1      0x4b4 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .debug_line    0x00003c75      0x47d build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .debug_line    0x000040f2      0x430 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .debug_line    0x00004522      0x742 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .debug_line    0x00004c64      0x3cb build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .debug_line    0x0000502f      0x29e build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .debug_line    0x000052cd      0x2d7 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .debug_line    0x000055a4      0x2bf build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .debug_line    0x00005863      0x294 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .debug_line    0x00005af7      0x2cf build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .debug_line    0x00005dc6      0x1d6 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .debug_line    0x00005f9c      0x1b7 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .debug_line    0x00006153      0x1b8 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .debug_line    0x0000630b      0x23a build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .debug_line    0x00006545      0x4e0 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .debug_line    0x00006a25      0x21c build/src/drivers/ina226_battery_on_mainboard.o
+ .debug_line    0x00006c41      0x222 build/src/drivers/ina226_panel_on_mainboard.o
+ .debug_line    0x00006e63      0x1b0 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .debug_line    0x00007013      0x180 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .debug_line    0x00007193      0x17e build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .debug_line    0x00007311      0x181 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .debug_line    0x00007492      0x17f build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .debug_line    0x00007611      0x49a build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .debug_line    0x00007aab      0x5ad build/src/drivers/mainboard_adc_reader.o
+ .debug_line    0x00008058      0x277 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .debug_line    0x000082cf      0x4b4 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .debug_line    0x00008783      0x57e build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .debug_line    0x00008d01      0x1a5 build/src/assertion_handler.o
+ .debug_line    0x00008ea6      0x2e6 build/src/mppt_algorithm.o
+ .debug_line    0x0000918c      0x7f1 build/src/eps_state_machine.o
+ .debug_line    0x0000997d      0x1e4 build/startup/startup_samd21j17d.o
+ .debug_line    0x00009b61      0x17e build/startup/system_samd21j17d.o
 
-.debug_str      0x00000000      0x63f
- .debug_str     0x00000000      0x27e build/main.o
-                                0x2c3 (size before relaxing)
- .debug_str     0x0000027e      0x3c1 build/startup_samd21g17d.o
-                                0x537 (size before relaxing)
+.debug_str      0x00000000     0x6095
+ .debug_str     0x00000000      0x58a build/src-pds/app/main.o
+                                0x5cf (size before relaxing)
+ .debug_str     0x0000058a      0x29f build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+                                0x4d1 (size before relaxing)
+ .debug_str     0x00000829      0x4d0 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+                                0x75e (size before relaxing)
+ .debug_str     0x00000cf9       0xf3 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+                                0x307 (size before relaxing)
+ .debug_str     0x00000dec     0x10f2 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+                               0x13de (size before relaxing)
+ .debug_str     0x00001ede      0x1ce build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+                                0x52c (size before relaxing)
+ .debug_str     0x000020ac      0x21e build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+                                0x8a5 (size before relaxing)
+ .debug_str     0x000022ca      0x268 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+                               0x15dd (size before relaxing)
+ .debug_str     0x00002532      0x469 build/src-pds/sensor_inputs/sensor_readings.o
+                               0x1287 (size before relaxing)
+ .debug_str     0x0000299b      0x200 build/src-pds/sensor_inputs/ina226_register_protocol.o
+                                0x3f8 (size before relaxing)
+ .debug_str     0x00002b9b       0x90 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+                                0xdf5 (size before relaxing)
+ .debug_str     0x00002c2b       0x63 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+                                0xd7c (size before relaxing)
+ .debug_str     0x00002c8e      0x160 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+                                0xee9 (size before relaxing)
+ .debug_str     0x00002dee      0x14b build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+                               0x10ae (size before relaxing)
+ .debug_str     0x00002f39      0x229 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+                               0x10f6 (size before relaxing)
+ .debug_str     0x00003162      0x32a build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+                               0x105f (size before relaxing)
+ .debug_str     0x0000348c      0x262 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+                               0x11c3 (size before relaxing)
+ .debug_str     0x000036ee       0x5d build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+                                0xeeb (size before relaxing)
+ .debug_str     0x0000374b       0x49 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+                                0xd4e (size before relaxing)
+ .debug_str     0x00003794       0x4c build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+                                0xd57 (size before relaxing)
+ .debug_str     0x000037e0       0x55 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+                                0xda5 (size before relaxing)
+ .debug_str     0x00003835       0xa2 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+                                0x356 (size before relaxing)
+ .debug_str     0x000038d7      0x3fe build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+                                0x5ab (size before relaxing)
+ .debug_str     0x00003cd5       0xf5 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+                                0x316 (size before relaxing)
+ .debug_str     0x00003dca       0x35 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+                                0x2f8 (size before relaxing)
+ .debug_str     0x00003dff       0x36 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+                                0x2fc (size before relaxing)
+ .debug_str     0x00003e35       0xc7 build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+                                0x3a9 (size before relaxing)
+ .debug_str     0x00003efc      0x37b build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+                                0x66c (size before relaxing)
+ .debug_str     0x00004277       0x4a build/src/drivers/ina226_battery_on_mainboard.o
+                                0x362 (size before relaxing)
+ .debug_str     0x000042c1       0x28 build/src/drivers/ina226_panel_on_mainboard.o
+                                0x35a (size before relaxing)
+ .debug_str     0x000042e9      0x18c build/src/drivers/voltage_divider_rails_on_mainboard.o
+                                0x363 (size before relaxing)
+ .debug_str     0x00004475       0x3a build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+                                0x342 (size before relaxing)
+ .debug_str     0x000044af       0x2e build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+                                0x33e (size before relaxing)
+ .debug_str     0x000044dd       0x31 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+                                0x32c (size before relaxing)
+ .debug_str     0x0000450e       0x2f build/src/drivers/tps25940_imon_panel_on_mainboard.o
+                                0x328 (size before relaxing)
+ .debug_str     0x0000453d      0x45c build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+                                0xa59 (size before relaxing)
+ .debug_str     0x00004999      0x557 build/src/drivers/mainboard_adc_reader.o
+                                0xab1 (size before relaxing)
+ .debug_str     0x00004ef0       0xbf build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+                                0x48b (size before relaxing)
+ .debug_str     0x00004faf      0x422 build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+                                0x847 (size before relaxing)
+ .debug_str     0x000053d1      0x3ae build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+                                0x841 (size before relaxing)
+ .debug_str     0x0000577f       0x6d build/src/assertion_handler.o
+                                0x22b (size before relaxing)
+ .debug_str     0x000057ec      0x127 build/src/mppt_algorithm.o
+                                0x472 (size before relaxing)
+ .debug_str     0x00005913      0x3af build/src/eps_state_machine.o
+                               0x1174 (size before relaxing)
+ .debug_str     0x00005cc2      0x396 build/startup/startup_samd21j17d.o
+                                0x53b (size before relaxing)
+ .debug_str     0x00006058       0x3d build/startup/system_samd21j17d.o
+                                0x1a2 (size before relaxing)
 
-.debug_frame    0x00000000      0x100
- .debug_frame   0x00000000       0x88 build/main.o
- .debug_frame   0x00000088       0x4c build/startup_samd21g17d.o
- .debug_frame   0x000000d4       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-init.o)
+.debug_frame    0x00000000     0x2444
+ .debug_frame   0x00000000       0x4c build/src-pds/app/main.o
+ .debug_frame   0x0000004c       0xd4 build/src-pds/board_hardware_startup/functions_to_initialize_board_hardware_before_main_loop_runs.o
+ .debug_frame   0x00000120      0x100 build/src-pds/communication_with_esp32/functions_to_read_chips_commands_received_from_esp32.o
+ .debug_frame   0x00000220       0x34 build/src-pds/communication_with_esp32/chips_reply_sending/functions_to_send_chips_replies_to_esp32.o
+ .debug_frame   0x00000254      0x238 build/src-pds/communication_with_esp32/command_execution/functions_to_execute_board_commands_received_from_esp32.o
+ .debug_frame   0x0000048c       0x50 build/src-pds/communication_with_esp32/command_execution/payload_parsing/functions_to_parse_payloads_inside_board_commands.o
+ .debug_frame   0x000004dc       0xd4 build/src-pds/communication_with_esp32/sensor_sample_requests/functions_to_request_mppt_input_sample_from_esp32.o
+ .debug_frame   0x000005b0      0x234 build/src-pds/runtime_state/functions_to_access_pds_runtime_state.o
+ .debug_frame   0x000007e4      0x270 build/src-pds/sensor_inputs/sensor_readings.o
+ .debug_frame   0x00000a54       0xf4 build/src-pds/sensor_inputs/ina226_register_protocol.o
+ .debug_frame   0x00000b48       0x30 build/src-pds/externally_controlled_board_behaviors/functions_to_apply_manually_requested_pwm_to_buck_converter.o
+ .debug_frame   0x00000b78       0x50 build/src-pds/externally_controlled_board_behaviors/functions_to_keep_board_outputs_off_when_requested.o
+ .debug_frame   0x00000bc8       0x30 build/src-pds/externally_controlled_board_behaviors/functions_to_run_manual_control_mode.o
+ .debug_frame   0x00000bf8       0xb4 build/src-pds/externally_controlled_board_behaviors/functions_to_run_mppt_algorithm_with_selected_input_source.o
+ .debug_frame   0x00000cac       0x90 build/src-pds/externally_controlled_board_behaviors/functions_to_run_power_state_machine_with_injected_sensor_values.o
+ .debug_frame   0x00000d3c      0x118 build/src-pds/state_machine_pure_logic/functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.o
+ .debug_frame   0x00000e54      0x174 build/src-pds/status_reporting_to_esp32/functions_to_build_status_replies_sent_to_esp32.o
+ .debug_frame   0x00000fc8       0x34 build/src-pds/status_reporting_to_esp32/functions_to_stream_status_replies_to_esp32.o
+ .debug_frame   0x00000ffc       0x30 build/src-pds/board_outputs/functions_to_apply_allowed_pwm_to_board_hardware.o
+ .debug_frame   0x0000102c       0x30 build/src-pds/board_outputs/functions_to_block_outputs_when_faults_are_injected.o
+ .debug_frame   0x0000105c       0x50 build/src-pds/board_outputs/functions_to_store_requested_pwm_output_before_safety_checks.o
+ .debug_frame   0x000010ac      0x114 build/src-pds/shared_helpers/functions_to_read_and_write_little_endian_values.o
+ .debug_frame   0x000011c0       0xbc build/src/drivers/clock_configure_48mhz_dfll_open_loop.o
+ .debug_frame   0x0000127c       0x80 build/src/drivers/led_status_pb22_active_high_on_mainboard.o
+ .debug_frame   0x000012fc       0x64 build/src/drivers/gpio_pv_efuse_enable_pa16_on_mainboard.o
+ .debug_frame   0x00001360       0x64 build/src/drivers/gpio_bat_efuse_enable_pa17_on_mainboard.o
+ .debug_frame   0x000013c4       0x4c build/src/drivers/gpio_efuse_status_inputs_pa18_to_pa21_on_mainboard.o
+ .debug_frame   0x00001410       0xc8 build/src/drivers/i2c_master_sercom3_pa22_pa23_on_mainboard.o
+ .debug_frame   0x000014d8       0x6c build/src/drivers/ina226_battery_on_mainboard.o
+ .debug_frame   0x00001544       0x6c build/src/drivers/ina226_panel_on_mainboard.o
+ .debug_frame   0x000015b0       0x50 build/src/drivers/voltage_divider_rails_on_mainboard.o
+ .debug_frame   0x00001600       0x30 build/src/drivers/lt6108_battery_outa2_on_mainboard.o
+ .debug_frame   0x00001630       0x30 build/src/drivers/lt6108_panel_outa1_on_mainboard.o
+ .debug_frame   0x00001660       0x30 build/src/drivers/tps25940_imon_battery_on_mainboard.o
+ .debug_frame   0x00001690       0x30 build/src/drivers/tps25940_imon_panel_on_mainboard.o
+ .debug_frame   0x000016c0      0x1a4 build/src/drivers/uart_obc_sercom0_pa10_pa11_on_mainboard.o
+ .debug_frame   0x00001864      0x290 build/src/drivers/mainboard_adc_reader.o
+ .debug_frame   0x00001af4       0xa4 build/src/drivers/millisecond_tick_timer_using_arm_systick.o
+ .debug_frame   0x00001b98      0x1fc build/src/drivers/pwm_buck_converter_tcc0_pa12_pa13_on_mainboard.o
+ .debug_frame   0x00001d94      0x144 build/src/drivers/chips_protocol_encode_decode_frames_with_crc16_kermit.o
+ .debug_frame   0x00001ed8       0x4c build/src/assertion_handler.o
+ .debug_frame   0x00001f24       0xd4 build/src/mppt_algorithm.o
+ .debug_frame   0x00001ff8      0x260 build/src/eps_state_machine.o
+ .debug_frame   0x00002258       0x4c build/startup/startup_samd21j17d.o
+ .debug_frame   0x000022a4       0x48 build/startup/system_samd21j17d.o
+ .debug_frame   0x000022ec       0x20 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .debug_frame   0x0000230c       0x34 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_muldi3.o)
+ .debug_frame   0x00002340       0x3c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivmoddi4.o)
+ .debug_frame   0x0000237c       0x38 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(bpabi.o)
+ .debug_frame   0x000023b4       0x3c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_divdi3.o)
+ .debug_frame   0x000023f0       0x2c c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-init.o)
+ .debug_frame   0x0000241c       0x28 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libc_nano.a(libc_a-memcpy-stub.o)
+
+.debug_line_str
+                0x00000000       0xe5
+ .debug_line_str
+                0x00000000       0xd9 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_udivsi3.o)
+ .debug_line_str
+                0x000000d9       0xd9 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_dvmd_tls.o)
+ .debug_line_str
+                0x000000d9        0xc c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_ldivmod.o)
+                                 0xd9 (size before relaxing)
+ .debug_line_str
+                0x000000e5       0xd9 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_aeabi_uldivmod.o)
+ .debug_line_str
+                0x000000e5       0xd9 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzdi2.o)
+ .debug_line_str
+                0x000000e5       0xd9 c:/program files (x86)/arm gnu toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/../lib/gcc/arm-none-eabi/12.2.1/thumb/v6-m/nofp\libgcc.a(_clzsi2.o)

@@ -21,6 +21,27 @@
 #define PDS_LINK_COMMAND_READ_MPPT_INPUT_SAMPLE 0x37u
 
 /*
+ * Manual control mode commands. enter_manual moves the firmware into the
+ * manual-control while-loop branch; the four set_manual_* commands are
+ * accepted only while that branch is active and let the operator drive each
+ * physical output independently.
+ */
+#define PDS_BOARD_COMMAND_ENTER_MANUAL        0x38u
+#define PDS_BOARD_COMMAND_SET_MANUAL_PWM      0x39u
+#define PDS_BOARD_COMMAND_SET_MANUAL_PV       0x3Au
+#define PDS_BOARD_COMMAND_SET_MANUAL_BAT      0x3Bu
+#define PDS_BOARD_COMMAND_SET_MANUAL_LED      0x3Cu
+
+/*
+ * Always-on sensor observability. Flips the global sensor source between
+ * injected and real-board-hardware values without changing the active
+ * firmware mode. The status reply already carries the per-sensor readings
+ * in every mode, so this command alone is enough to swap which numbers
+ * the state machine and MPPT loop see.
+ */
+#define PDS_BOARD_COMMAND_SET_SENSOR_SOURCE   0x3Du
+
+/*
  * Fixed byte lengths let the board reject broken commands before any RAM value
  * is changed. The state input payload is 17 bytes, matching the proven demo
  * payload used in src/eps_demo_chips_command_dispatch.c.
@@ -33,6 +54,14 @@
 #define PDS_STREAM_VALUES_PAYLOAD_LENGTH_IN_BYTES     7u
 #define PDS_MPPT_INPUT_SAMPLE_REQUEST_LENGTH_IN_BYTES 2u
 #define PDS_MPPT_INPUT_SAMPLE_REPLY_LENGTH_IN_BYTES   9u
+
+#define PDS_ENTER_MANUAL_PAYLOAD_LENGTH_IN_BYTES   0u
+#define PDS_SET_MANUAL_PWM_PAYLOAD_LENGTH_IN_BYTES 2u
+#define PDS_SET_MANUAL_PV_PAYLOAD_LENGTH_IN_BYTES  1u
+#define PDS_SET_MANUAL_BAT_PAYLOAD_LENGTH_IN_BYTES 1u
+#define PDS_SET_MANUAL_LED_PAYLOAD_LENGTH_IN_BYTES 1u
+
+#define PDS_SET_SENSOR_SOURCE_PAYLOAD_LENGTH_IN_BYTES 1u
 
 #define PDS_CURVE_TYPE_QUADRATIC 0u
 
@@ -50,6 +79,8 @@
 #define PDS_VALUE_FIELD_MPPT          (1u << 5)
 #define PDS_VALUE_FIELD_INPUTS        (1u << 6)
 #define PDS_VALUE_FIELD_COMMANDS      (1u << 7)
+#define PDS_VALUE_FIELD_MANUAL        (1u << 8)
+#define PDS_VALUE_FIELD_SENSOR_READS  (1u << 9)
 #define PDS_VALUE_FIELD_ALL           0xFFFFFFFFu
 
 typedef enum {
@@ -57,7 +88,8 @@ typedef enum {
     PDS_REQUESTED_MODE_FLIGHT = 1,
     PDS_REQUESTED_MODE_MPPT_TEST = 2,
     PDS_REQUESTED_MODE_STATE_TEST = 3,
-    PDS_REQUESTED_MODE_FIXED_PWM_TEST = 4
+    PDS_REQUESTED_MODE_FIXED_PWM_TEST = 4,
+    PDS_REQUESTED_MODE_MANUAL = 5
 } pds_requested_mode_type;
 
 typedef enum {

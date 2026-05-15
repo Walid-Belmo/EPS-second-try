@@ -1,18 +1,82 @@
 /* =============================================================================
  * chips_protocol_encode_decode_frames_with_crc16_kermit.c
+ *
  * CHIPS (CHESS Internal Protocol over Serial) frame encoding and decoding.
- * Provides CRC-16/KERMIT, byte stuffing, a streaming frame parser, and
- * a frame builder. All functions are pure logic — no hardware access.
+ * The wire format the firmware uses to talk to the OBC (and to the ESP32
+ * bridge that proxies for the OBC during demos). Pure logic — no hardware
+ * registers touched, fully testable on a laptop.
  *
  * Category: PURE LOGIC (no hardware registers, testable on a laptop)
  *
- * CRC-16/KERMIT parameters (verified against RevEng CRC catalogue):
- *   Polynomial: 0x1021 (reflected: 0x8408)
- *   Initial value: 0x0000
- *   Input reflected: YES
- *   Output reflected: YES
- *   Final XOR: 0x0000
- *   Check value: CRC("123456789") = 0x2189
+ * ────────────────────────────────────────────────────────────────────
+ * Wire format (per CHIPS spec, mission doc pages 124-128)
+ * ────────────────────────────────────────────────────────────────────
+ *
+ *   ┌──────┬──────┬──────┬──────────────┬───────┬───────┬──────┐
+ *   │ 0x7E │ SEQ  │ R+ID │ payload data │ CRC_L │ CRC_H │ 0x7E │
+ *   └──────┴──────┴──────┴──────────────┴───────┴───────┴──────┘
+ *     start  seq#   resp+   variable      CRC-16 little    end
+ *     sync   byte   cmd ID   length       endian           sync
+ *
+ *   SEQ:  one byte, sequence number — request and response carry the
+ *         same SEQ so they can be paired up.
+ *   R+ID: one byte; high bit = response_flag (1 = reply, 0 = request),
+ *         low 7 bits = command ID.
+ *   CRC:  CRC-16/KERMIT over SEQ + R+ID + payload bytes (the two sync
+ *         bytes are NOT covered).
+ *
+ * ────────────────────────────────────────────────────────────────────
+ * Byte stuffing
+ * ────────────────────────────────────────────────────────────────────
+ *
+ * 0x7E is the frame start/end marker — it must never appear inside a
+ * frame's payload or CRC. So during encoding, every byte equal to
+ * 0x7E inside the frame is replaced by the two-byte sequence
+ * 0x7D 0x5E. And every literal 0x7D becomes 0x7D 0x5D. The decoder
+ * reverses the substitution while parsing.
+ *
+ * This means the wire size of a frame can grow by up to 2× the
+ * payload size in the worst case (a payload entirely made of 0x7E or
+ * 0x7D). The encode helper write_one_byte_with_stuffing_into_buffer
+ * handles the substitution.
+ *
+ * ────────────────────────────────────────────────────────────────────
+ * CRC-16/KERMIT parameters
+ * ────────────────────────────────────────────────────────────────────
+ *
+ * Verified against the RevEng CRC catalogue (the standard reference
+ * for CRC algorithm parameters):
+ *
+ *   Polynomial:        0x1021 (reflected: 0x8408)
+ *   Initial value:     0x0000
+ *   Input reflected:   YES
+ *   Output reflected:  YES
+ *   Final XOR:         0x0000
+ *   Check value:       CRC("123456789") = 0x2189
+ *
+ * The 256-entry lookup table below replaces 8 shift+XOR operations
+ * per byte with one table lookup. ~512 bytes of flash, but turns
+ * "compute CRC over a 100-byte payload" from ~800 operations into
+ * ~100 — meaningful at 115200 baud where the link can saturate.
+ *
+ * ────────────────────────────────────────────────────────────────────
+ * Streaming parser
+ * ────────────────────────────────────────────────────────────────────
+ *
+ * The decoder is a state machine: the caller feeds it ONE BYTE AT A
+ * TIME (because that's how UART bytes arrive — interrupt by interrupt)
+ * and it returns one of three results:
+ *
+ *   INCOMPLETE    - byte consumed, more needed before the frame is whole
+ *   FRAME_READY   - a complete, CRC-valid frame is in the output struct
+ *   ERROR_*       - the frame is broken; caller should drop it and
+ *                   bump the corresponding counter
+ *
+ * Parser state survives between calls (caller passes the same state
+ * struct each time), which is what lets a frame straddle multiple
+ * main-loop iterations: the UART buffer fills with a half-frame on
+ * one iteration, the parser holds the partial state, the rest of the
+ * frame arrives next iteration, the parser completes it.
  * =============================================================================
  */
 

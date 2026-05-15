@@ -60,7 +60,7 @@ h2 {
 
 .serial-controls {
   display: grid;
-  grid-template-columns: auto 110px 92px;
+  grid-template-columns: auto 110px 92px 110px;
   align-items: end;
   gap: 8px;
 }

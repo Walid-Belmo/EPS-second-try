@@ -1,9 +1,9 @@
 #include "functions_to_translate_serial_text_into_source_pds_commands.h"
 
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "functions_to_own_simulated_mppt_model_on_esp32.h"
 #include "functions_to_send_and_receive_chips_frames.h"
 #include "source_pds_command_contract.h"
 
@@ -22,6 +22,20 @@ static void send_state_command(
     Stream &board_uart);
 static void send_get_values_command(char **tokens, int count, Stream &usb_serial, Stream &board_uart);
 static void send_stream_values_command(char **tokens, int count, Stream &usb_serial, Stream &board_uart);
+static void send_enter_manual_command(Stream &usb_serial, Stream &board_uart);
+static void send_set_manual_pwm_command(char **tokens, int count, Stream &usb_serial, Stream &board_uart);
+static void send_set_manual_on_off_command(
+    uint8_t command_id,
+    const char *command_label,
+    char **tokens,
+    int count,
+    Stream &usb_serial,
+    Stream &board_uart);
+static void send_set_sensor_source_command(
+    char **tokens,
+    int count,
+    Stream &usb_serial,
+    Stream &board_uart);
 static void transmit_command(
     uint8_t command_id,
     const uint8_t *payload,
@@ -35,27 +49,35 @@ static bool read_required_u16(char **tokens, int count, const char *key, uint16_
 static bool read_required_i16(char **tokens, int count, const char *key, int16_t *value, Stream &output);
 static bool read_required_double(char **tokens, int count, const char *key, double *value, Stream &output);
 static bool write_state_payload(char **tokens, int count, uint8_t *payload, Stream &output);
-static bool write_mppt_payload(char **tokens, int count, uint8_t *payload, Stream &output);
+static bool configure_mppt_model_from_tokens(char **tokens, int count, Stream &output);
 static bool parse_obc_mode(const char *text, uint8_t *mode);
 static bool parse_safe_substate(const char *text, uint8_t *substate);
 static uint32_t parse_field_mask(const char *field_text);
 static void write_u8(uint8_t *payload, uint16_t *position, uint8_t value);
 static void write_u16(uint8_t *payload, uint16_t *position, uint16_t value);
 static void write_i16(uint8_t *payload, uint16_t *position, int16_t value);
-static void write_i32(uint8_t *payload, uint16_t *position, int32_t value);
 
 void print_source_pds_bridge_help(Stream &output)
 {
     output.println();
-    output.println("Source PDS ESP32 bridge commands:");
+    output.println("[ESP32] Local bridge help. These lines are not from the board.");
+    output.println("[ESP32] Commands you can type:");
     output.println("  off");
     output.println("  run_pwm duty=32768");
     output.println("  start_mppt_demo curve=quadratic a=-12 b=300 c=2500 v_min=0 v_max=18000 battery_voltage=7400");
+    output.println("  start_mppt_demo curve=quadratic a=-12 b=220 c=2500 v_min=0 v_max=18000 battery_voltage=7400");
     output.println("  start_state_demo battery_voltage=7400 battery_current=0 panel_voltage=12000 panel_current=1000 rail_voltage=7400 temperature=220 heartbeat=1 obc_mode=charging safe_substate=charging faults=0");
     output.println("  inject_state battery_voltage=7200 battery_current=-300 panel_voltage=0 panel_current=0 rail_voltage=7200 temperature=220 heartbeat=1 obc_mode=charging safe_substate=charging faults=0");
     output.println("  get_values fields=all");
-    output.println("  stream_values on period=200 fields=mode,pwm,state,loads,faults,mppt,inputs,commands");
+    output.println("  stream_values on period=1000 fields=mode,pwm,mppt");
+    output.println("  stream_values on period=1000 fields=mode,pwm,state,loads,faults,mppt,inputs,commands");
     output.println("  stream_values off");
+    output.println("  enter_manual");
+    output.println("  set_manual_pwm duty=32768");
+    output.println("  set_manual_pv on   |   set_manual_pv off");
+    output.println("  set_manual_bat on  |   set_manual_bat off");
+    output.println("  set_manual_led on  |   set_manual_led off");
+    output.println("  set_sensor_source injected   |   set_sensor_source real");
     output.println();
 }
 
@@ -103,9 +125,42 @@ void execute_text_command_from_usb(
     {
         send_stream_values_command(tokens, count, usb_serial, board_uart);
     }
+    else if (strcmp(tokens[0], "enter_manual") == 0)
+    {
+        send_enter_manual_command(usb_serial, board_uart);
+    }
+    else if (strcmp(tokens[0], "set_manual_pwm") == 0)
+    {
+        send_set_manual_pwm_command(tokens, count, usb_serial, board_uart);
+    }
+    else if (strcmp(tokens[0], "set_manual_pv") == 0)
+    {
+        send_set_manual_on_off_command(
+            PDS_BOARD_COMMAND_SET_MANUAL_PV,
+            "set_manual_pv",
+            tokens, count, usb_serial, board_uart);
+    }
+    else if (strcmp(tokens[0], "set_manual_bat") == 0)
+    {
+        send_set_manual_on_off_command(
+            PDS_BOARD_COMMAND_SET_MANUAL_BAT,
+            "set_manual_bat",
+            tokens, count, usb_serial, board_uart);
+    }
+    else if (strcmp(tokens[0], "set_manual_led") == 0)
+    {
+        send_set_manual_on_off_command(
+            PDS_BOARD_COMMAND_SET_MANUAL_LED,
+            "set_manual_led",
+            tokens, count, usb_serial, board_uart);
+    }
+    else if (strcmp(tokens[0], "set_sensor_source") == 0)
+    {
+        send_set_sensor_source_command(tokens, count, usb_serial, board_uart);
+    }
     else
     {
-        usb_serial.print("Unknown command: ");
+        usb_serial.print("[ESP32] Unknown local command: ");
         usb_serial.println(tokens[0]);
     }
 }
@@ -113,6 +168,112 @@ void execute_text_command_from_usb(
 static void send_off_command(Stream &usb_serial, Stream &board_uart)
 {
     transmit_command(PDS_BOARD_COMMAND_OFF, NULL, 0u, usb_serial, board_uart);
+}
+
+static void send_enter_manual_command(Stream &usb_serial, Stream &board_uart)
+{
+    transmit_command(
+        PDS_BOARD_COMMAND_ENTER_MANUAL, NULL, 0u, usb_serial, board_uart);
+}
+
+static void send_set_manual_pwm_command(
+    char **tokens,
+    int count,
+    Stream &usb_serial,
+    Stream &board_uart)
+{
+    uint16_t duty = 0u;
+    if (!read_required_u16(tokens, count, "duty", &duty, usb_serial))
+    {
+        return;
+    }
+
+    uint8_t payload[2];
+    uint16_t position = 0u;
+    write_u16(payload, &position, duty);
+    transmit_command(
+        PDS_BOARD_COMMAND_SET_MANUAL_PWM,
+        payload,
+        position,
+        usb_serial,
+        board_uart);
+}
+
+static void send_set_sensor_source_command(
+    char **tokens,
+    int count,
+    Stream &usb_serial,
+    Stream &board_uart)
+{
+    if (count < 2)
+    {
+        usb_serial.println("[ESP32] set_sensor_source needs 'injected' or 'real'");
+        return;
+    }
+
+    uint8_t value;
+    if (strcmp(tokens[1], "injected") == 0)
+    {
+        value = PDS_SENSOR_SOURCE_INJECTED;
+    }
+    else if (strcmp(tokens[1], "real") == 0)
+    {
+        value = PDS_SENSOR_SOURCE_REAL_BOARD_HARDWARE;
+    }
+    else
+    {
+        usb_serial.print("[ESP32] set_sensor_source expects 'injected' or 'real', got: ");
+        usb_serial.println(tokens[1]);
+        return;
+    }
+
+    uint8_t payload[1];
+    uint16_t position = 0u;
+    write_u8(payload, &position, value);
+    transmit_command(
+        PDS_BOARD_COMMAND_SET_SENSOR_SOURCE,
+        payload, position, usb_serial, board_uart);
+}
+
+static void send_set_manual_on_off_command(
+    uint8_t command_id,
+    const char *command_label,
+    char **tokens,
+    int count,
+    Stream &usb_serial,
+    Stream &board_uart)
+{
+    if (count < 2)
+    {
+        usb_serial.print("[ESP32] ");
+        usb_serial.print(command_label);
+        usb_serial.println(" needs an 'on' or 'off' argument");
+        return;
+    }
+
+    uint8_t value = 0u;
+    if (strcmp(tokens[1], "on") == 0)
+    {
+        value = 1u;
+    }
+    else if (strcmp(tokens[1], "off") == 0)
+    {
+        value = 0u;
+    }
+    else
+    {
+        usb_serial.print("[ESP32] ");
+        usb_serial.print(command_label);
+        usb_serial.print(" expects 'on' or 'off', got: ");
+        usb_serial.println(tokens[1]);
+        return;
+    }
+
+    uint8_t payload[1];
+    uint16_t position = 0u;
+    write_u8(payload, &position, value);
+    transmit_command(
+        command_id, payload, position, usb_serial, board_uart);
 }
 
 static void send_run_pwm_command(
@@ -139,16 +300,15 @@ static void send_mppt_demo_command(
     Stream &usb_serial,
     Stream &board_uart)
 {
-    uint8_t payload[17];
-    if (!write_mppt_payload(tokens, count, payload, usb_serial))
+    if (!configure_mppt_model_from_tokens(tokens, count, usb_serial))
     {
         return;
     }
 
     transmit_command(
         PDS_BOARD_COMMAND_START_MPPT_DEMO,
-        payload,
-        sizeof(payload),
+        NULL,
+        0u,
         usb_serial,
         board_uart);
 }
@@ -192,7 +352,7 @@ static void send_stream_values_command(
     bool enabled = (count > 1) && (strcmp(tokens[1], "on") == 0);
     if ((count <= 1) || (!enabled && (strcmp(tokens[1], "off") != 0)))
     {
-        usb_serial.println("Use: stream_values on period=200 fields=all OR stream_values off");
+        usb_serial.println("[ESP32] Use: stream_values on period=1000 fields=mode,pwm,mppt OR stream_values off");
         return;
     }
 
@@ -231,7 +391,7 @@ static void transmit_command(
     }
 
     send_chips_frame_to_board(board_uart, &frame);
-    usb_serial.print("TX command=0x");
+    usb_serial.print("[ESP32->BOARD] command=0x");
     usb_serial.print(command_id, HEX);
     usb_serial.print(" sequence=");
     usb_serial.print(frame.sequence_number);
@@ -274,7 +434,7 @@ static bool read_required_i32(
     const char *text = value_for_key(tokens, count, key);
     if (text == NULL)
     {
-        output.print("Missing ");
+        output.print("[ESP32] Missing ");
         output.println(key);
         return false;
     }
@@ -296,6 +456,7 @@ static bool read_required_u16(
     }
     if ((signed_value < 0) || (signed_value > 65535))
     {
+        output.print("[ESP32] ");
         output.print(key);
         output.println(" must be between 0 and 65535");
         return false;
@@ -318,6 +479,7 @@ static bool read_required_i16(
     }
     if ((signed_value < -32768) || (signed_value > 32767))
     {
+        output.print("[ESP32] ");
         output.print(key);
         output.println(" must fit in a signed 16-bit value");
         return false;
@@ -336,7 +498,7 @@ static bool read_required_double(
     const char *text = value_for_key(tokens, count, key);
     if (text == NULL)
     {
-        output.print("Missing ");
+        output.print("[ESP32] Missing ");
         output.println(key);
         return false;
     }
@@ -386,16 +548,15 @@ static bool write_state_payload(
     return true;
 }
 
-static bool write_mppt_payload(
+static bool configure_mppt_model_from_tokens(
     char **tokens,
     int count,
-    uint8_t *payload,
     Stream &output)
 {
     const char *curve = value_for_key(tokens, count, "curve");
     if ((curve == NULL) || (strcmp(curve, "quadratic") != 0))
     {
-        output.println("Only curve=quadratic is supported");
+        output.println("[ESP32] Only curve=quadratic is supported");
         return false;
     }
 
@@ -412,14 +573,14 @@ static bool write_mppt_payload(
     if (!read_required_u16(tokens, count, "v_max", &v_max, output)) return false;
     if (!read_required_u16(tokens, count, "battery_voltage", &battery_voltage, output)) return false;
 
-    uint16_t position = 0u;
-    write_u8(payload, &position, PDS_CURVE_TYPE_QUADRATIC);
-    write_i32(payload, &position, (int32_t)lround(a * 1000.0));
-    write_i32(payload, &position, (int32_t)lround(b * 1000.0));
-    write_i16(payload, &position, c);
-    write_u16(payload, &position, v_min);
-    write_u16(payload, &position, v_max);
-    write_u16(payload, &position, battery_voltage);
+    configure_simulated_mppt_model_on_esp32(
+        a,
+        b,
+        c,
+        v_min,
+        v_max,
+        battery_voltage,
+        output);
     return true;
 }
 
@@ -488,13 +649,4 @@ static void write_u16(uint8_t *payload, uint16_t *position, uint16_t value)
 static void write_i16(uint8_t *payload, uint16_t *position, int16_t value)
 {
     write_u16(payload, position, (uint16_t)value);
-}
-
-static void write_i32(uint8_t *payload, uint16_t *position, int32_t value)
-{
-    uint32_t unsigned_value = (uint32_t)value;
-    payload[(*position)++] = (uint8_t)(unsigned_value & 0xFFu);
-    payload[(*position)++] = (uint8_t)((unsigned_value >> 8u) & 0xFFu);
-    payload[(*position)++] = (uint8_t)((unsigned_value >> 16u) & 0xFFu);
-    payload[(*position)++] = (uint8_t)((unsigned_value >> 24u) & 0xFFu);
 }

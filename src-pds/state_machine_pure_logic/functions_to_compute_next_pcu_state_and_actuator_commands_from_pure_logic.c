@@ -1,13 +1,44 @@
 // =============================================================================
 // functions_to_compute_next_pcu_state_and_actuator_commands_from_pure_logic.c
 //
-// Implementation of the bench-simulator pure dispatcher. Public function plus
-// four private helpers, one per concern (heartbeat counter, safety override
-// decision, normal-operation mode selection, actuator command synthesis).
+// THE EPS state machine. Pure logic — no hardware, no globals, no I/O.
+// Given (current sensor readings, configuration thresholds, persistent state),
+// computes (next persistent state, actuator commands for this iteration).
+//
+// Called once per state-test iteration by run_state_transition_test_only()
+// in the externally_controlled_board_behaviors/ folder. The runner pulls
+// sensor values via the Layer 1 abstraction, calls this function, then
+// pushes the chosen actuator commands into the snapshot for the page to
+// display and into request_pwm_output_in_runtime_state() for the safety
+// pass and hardware write.
+//
+// Decision flow per iteration:
+//
+//   1. Update OBC heartbeat counter (resets to 0 on heartbeat, +1 otherwise).
+//
+//   2. Decide whether ANY safety condition is active right now (battery
+//      below absolute minimum, temperature out of envelope, OBC heartbeat
+//      timed out). One reason wins; battery-voltage takes priority.
+//
+//   3. Latch logic: if a safety condition is active this iteration, set
+//      safe_mode_is_active. If not, but we WERE in safe mode, only release
+//      the latch if the OBC has commanded out of SAFE satellite mode AND
+//      no condition is currently active. Otherwise stay latched.
+//
+//   4. Pick the PCU mode:
+//      - Safe mode: parked in BATTERY_DISCHARGE; pick a sub-state
+//        (operator-commanded if heartbeat alive, autonomous otherwise).
+//      - Normal: pick MPPT_CHARGE / CV_FLOAT / SA_LOAD_FOLLOW /
+//        BATTERY_DISCHARGE based on solar availability and battery state.
+//
+//   5. Persist the chosen mode and sub-state into persistent_state.
+//
+//   6. Emit actuator commands (panel eFuse, PWM duty, heater, per-load
+//      flags, safe-mode telemetry).
 //
 // Numeric thresholds come from *thresholds (eps_configuration_thresholds).
-// Enum values come from eps_state_machine.h. See state-transitions.md for the
-// open issues and the eventual flight-grade target.
+// Enum values come from eps_state_machine.h. See state-transitions.md for
+// the open issues and the eventual flight-grade target.
 // =============================================================================
 
 #include <stdint.h>

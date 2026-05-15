@@ -1,20 +1,84 @@
 /* =============================================================================
  * mainboard_adc_reader.c
- * Read-only SAMD21 ADC driver for EPS PCU testing board V4.1.
  *
- * BUILD TARGET: mainboard only
+ * Read-only SAMD21 ADC driver for the six analog monitor signals on the
+ * EPS PCU testing board V4.1. Used by every Layer 2 sensor wrapper that
+ * reads through the ADC (LT6108, TPS25940 IMON, voltage dividers).
  *
- * Signals read:
- *   PB04 / AIN12 = PV_IMON
- *   PB05 / AIN13 = BAT_IMON
- *   PB06 / AIN14 = OUTA1
- *   PB07 / AIN15 = OUTA2
- *   PB08 / AIN2  = OUTV1
- *   PB09 / AIN3  = OUTV2
+ * BUILD TARGET: mainboard only.
  *
- * This driver does not drive buck PWM, eFuse enables, heater, or power-switch
- * GPIOs. It only routes six package pins to peripheral function B and samples
- * them with the ADC.
+ * ────────────────────────────────────────────────────────────────────
+ * Signals
+ * ────────────────────────────────────────────────────────────────────
+ *
+ *   Pin   Channel  Net name   What it measures
+ *   ───   ───────  ────────   ─────────────────────────────────────
+ *   PB04  AIN12    PV_IMON    TPS25940 (IC4) IMON pin — PV-side eFuse current
+ *   PB05  AIN13    BAT_IMON   TPS25940 (IC7) IMON pin — battery-side eFuse current
+ *   PB06  AIN14    OUTA1      LT6108 (IC10) output    — panel-rail current
+ *   PB07  AIN15    OUTA2      LT6108 (IC11) output    — battery-rail current
+ *   PB08  AIN2     OUTV1      Resistor divider        — panel bus voltage
+ *   PB09  AIN3     OUTV2      Resistor divider        — charging rail voltage
+ *
+ * Six pins → six channels. Each Layer 2 wrapper picks the field it
+ * cares about from the telemetry struct this driver fills.
+ *
+ * ────────────────────────────────────────────────────────────────────
+ * SAMD21 ADC bring-up sequence
+ * ────────────────────────────────────────────────────────────────────
+ *
+ * Same shape as every other SAMD21 peripheral:
+ *   1. Power up the bus clock (PM_APBCMASK) so we can write registers.
+ *   2. Connect a functional clock (GCLK0) so the peripheral can do work.
+ *   3. Configure the pins (PINCFG.PMUXEN + PMUX function B for analog).
+ *   4. Software-reset to a known clean state.
+ *   5. Load factory calibration from OTP4 fuses (Microchip burned the
+ *      per-chip linearity correction into the chip during production —
+ *      we must read those bytes and write them to ADC_CALIB or the ADC
+ *      readings are off by ~1%).
+ *   6. Configure the ADC (reference, resolution, sample timing).
+ *   7. Enable the peripheral.
+ *
+ * ────────────────────────────────────────────────────────────────────
+ * Why we throw away the first conversion after a channel switch
+ * ────────────────────────────────────────────────────────────────────
+ *
+ * The ADC has an internal sample-and-hold capacitor that must be
+ * given time to charge to the new pin's voltage. Switching channels
+ * mid-conversion or without a sacrifice read produces a reading that
+ * is partly the previous channel's voltage — a "ghost" of the last
+ * read. Discarding the first conversion after a channel change
+ * eliminates this. read_raw_channel below tracks the most-recent
+ * channel and only fires the sacrifice read when it actually changed.
+ *
+ * ────────────────────────────────────────────────────────────────────
+ * The four scaling functions
+ * ────────────────────────────────────────────────────────────────────
+ *
+ *   convert_raw_adc_to_pin_millivolts:
+ *     12-bit raw count × 3300 mV / 4095. Used by every other scaling
+ *     function as its starting point.
+ *
+ *   convert_tps25940_imon_pin_mv_to_load_ma:
+ *     The TPS25940 IMON pin sources a current proportional to the
+ *     load current; the external IMON resistor (12.1 kΩ on this PCB)
+ *     converts that to a voltage. Datasheet gives offset 9.68 mV at
+ *     zero load and gain 629.2 µV per mA of load current.
+ *
+ *   convert_outa_pin_mv_to_load_ma:
+ *     The LT6108 outputs a voltage proportional to the shunt current
+ *     it senses, with the gain set by external resistors. The
+ *     scaling factor on this PCB is 40/3 mA per mV.
+ *
+ *   convert_divider_pin_mv_to_input_mv:
+ *     Generic resistor-divider undo. Pin voltage × (top + bottom) /
+ *     bottom = source voltage. Used twice with different ratios for
+ *     OUTV1 (100k / 3.6k) and OUTV2 (100k / 11.8k).
+ *
+ * All four are pure logic, called by mainboard_adc_reader_convert_readings_to_telemetry.
+ * They could (and should, eventually) move to a separate file so a
+ * laptop-side test can exercise them without the chip — currently
+ * deferred.
  * =============================================================================
  */
 

@@ -11,7 +11,7 @@
 #define PDS_CONTROL_LOOP_PERIOD_MS 100u
 #define PDS_MINIMUM_STREAM_PERIOD_MS 100u
 #define PDS_MAXIMUM_STREAM_PERIOD_MS 10000u
-#define PDS_STATUS_PAYLOAD_VERSION 2u
+#define PDS_STATUS_PAYLOAD_VERSION 4u
 
 #define PDS_PANEL_RAW_ADC_TO_MILLIVOLTS_SCALE 5u
 #define PDS_PANEL_RAW_ADC_TO_MILLIAMPS_SCALE 2u
@@ -36,12 +36,30 @@ typedef struct {
     uint8_t heater_is_enabled;
     uint8_t safe_mode_alert_for_obc;
     uint8_t load_enable_mask;
+
+    /* Manual mode readbacks. The status LED level reflects whatever the
+     * manual runner last wrote to PB22; the four eFuse status bits are
+     * sampled live from PA18-PA21 every loop iteration so the UI can
+     * confirm whether the TPS25940 actually accepted each enable request. */
+    uint8_t status_led_is_on;
+    uint8_t pv_efuse_power_good;
+    uint8_t pv_efuse_fault_active;
+    uint8_t bat_efuse_power_good;
+    uint8_t bat_efuse_fault_active;
 } pds_runtime_snapshot_type;
 
 typedef struct {
     uint8_t requested_mode;
     uint8_t mppt_input_source;
     uint16_t fixed_pwm_duty_cycle_as_fraction_of_65535;
+
+    /* Operator-requested values written by the set_manual_* commands and
+     * applied to hardware every loop iteration while the firmware is in
+     * PDS_REQUESTED_MODE_MANUAL. They have no effect outside that mode. */
+    uint16_t manual_pwm_duty_cycle_as_fraction_of_65535;
+    uint8_t manual_pv_switch_requested;
+    uint8_t manual_bat_switch_requested;
+    uint8_t manual_status_led_requested;
 
     pds_state_demo_inputs_type injected_state_inputs;
 
