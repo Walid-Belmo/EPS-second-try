@@ -8,7 +8,8 @@ Every entry is backed by an observed fact (what was sent, what came back).
   (`BOARD=mainboard-pds`).
 - **Bridge:** `tail -f cmds.txt | plink -serial COM3 > com3.log` (manual,
   one command at a time, raw replies read back).
-- **Status:** defects are **not yet fixed**. This file only records them.
+- **Status:** open defects are not yet fixed unless an entry explicitly says
+  it has been fixed in the working tree and still needs reflash/regression.
 
 ---
 
@@ -17,6 +18,28 @@ Every entry is backed by an observed fact (what was sent, what came back).
 - **HIGH** — wrong/unsafe behavior or data the operator would trust and act on.
 - **MED** — misleading behavior or a broken documented contract.
 - **LOW** — cosmetic, robustness nit, or tooling gap.
+
+---
+
+## Fixed in working tree, pending reflash verification
+
+### F7 - ADC reference constant assumed 3.300 V, but bench rail measured 2.86 V - HIGH
+
+During Test B ADC calibration on `TP19` / `OUTV1`, the operator injected a
+DMM-measured `0.175 V` on the ADC-side node. Firmware reported stable
+`sensor_panel_v divider` values around `5.99 V`, while the physical divider
+math with the measured pin voltage predicts about `5.04 V`.
+
+- Root cause: `mainboard_adc_reader.c` configured the ADC reference as
+  `INTVCC1` / VDDANA but converted raw ADC counts using a hardcoded
+  `ADC_REFERENCE_MILLIVOLTS = 3300u`.
+- Evidence: `TP5` measured `2.86 V` during the test. The observed error is
+  consistent with `3300 / 2860 = 1.15x`.
+- Fix applied in working tree on 2026-05-16: changed
+  `ADC_REFERENCE_MILLIVOLTS` from `3300u` to `2860u`.
+- Verification after reflash: repeat the `TP19 = 0.175 V` point. Expected
+  `sensor_panel_v divider` should move from about `5.9-6.0 V` down to about
+  `5.0 V`; then continue the TP19/TP20 calibration sweep.
 
 ---
 

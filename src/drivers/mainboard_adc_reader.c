@@ -56,8 +56,8 @@
  * ────────────────────────────────────────────────────────────────────
  *
  *   convert_raw_adc_to_pin_millivolts:
- *     12-bit raw count × 3300 mV / 4095. Used by every other scaling
- *     function as its starting point.
+ *     12-bit raw count × calibrated ADC reference mV / 4095. Used by
+ *     every other scaling function as its starting point.
  *
  *   convert_tps25940_imon_pin_mv_to_load_ma:
  *     The TPS25940 IMON pin sources a current proportional to the
@@ -93,7 +93,11 @@
 #define MAXIMUM_ADC_WAIT_ITERATIONS           100000u
 #define ADC_RESULT_MASK_12_BITS                  0x0FFFu
 #define ADC_FULL_SCALE_RAW_COUNT                   4095u
-#define ADC_REFERENCE_MILLIVOLTS                   3300u
+/* ADC_REFCTRL_REFSEL_INTVCC1 follows the board analog supply path, not an
+ * ideal external 3.300 V reference. Bench Test B on 2026-05-16 measured the
+ * practical reference rail at TP5 as 2.86 V; refine this if VDDANA is later
+ * probed directly downstream of its analog filter. */
+#define ADC_REFERENCE_MILLIVOLTS                   2860u
 
 #define TPS25940_IMON_OFFSET_MICROVOLTS            9680u
 #define TPS25940_IMON_MICROVOLTS_PER_AMP         629200u
