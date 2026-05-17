@@ -21,9 +21,9 @@ Every entry is backed by an observed fact (what was sent, what came back).
 
 ---
 
-## Fixed in working tree, pending reflash verification
+## Fixed and verified
 
-### F7 - ADC reference constant assumed 3.300 V, but bench rail measured 2.86 V - HIGH
+### F7 - ADC reference constant assumed 3.300 V, but bench rail measured 2.86 V - HIGH - FIXED
 
 During Test B ADC calibration on `TP19` / `OUTV1`, the operator injected a
 DMM-measured `0.175 V` on the ADC-side node. Firmware reported stable
@@ -37,13 +37,42 @@ math with the measured pin voltage predicts about `5.04 V`.
   consistent with `3300 / 2860 = 1.15x`.
 - Fix applied in working tree on 2026-05-16: changed
   `ADC_REFERENCE_MILLIVOLTS` from `3300u` to `2860u`.
-- Verification after reflash: repeat the `TP19 = 0.175 V` point. Expected
-  `sensor_panel_v divider` should move from about `5.9-6.0 V` down to about
-  `5.0 V`; then continue the TP19/TP20 calibration sweep.
+- Verification after reflash: PASS. `TP19 = 0.138 V` expected `3971 mV`
+  reported panel-divider equivalent; firmware reported `3971 mV` twice and
+  central readings averaged `4007 mV` (+0.9%). TP20 / OUTV2 was also swept
+  after the fix, with the stable `TP20 = 1.25 V` point expecting `11843 mV`
+  and the follow-up polls averaging `11830 mV` (-0.1%).
 
 ---
 
 ## Open defects
+
+### H1 - BAT eFuse IC7 does not pass valid BAT_IN voltage to VBAT - HIGH - HARDWARE/PATH
+
+During the powered BAT-path test, firmware commanded manual PWM and requested
+the BAT eFuse on. With `J6 BUCK_IN` fed from 12 V, `J5 PDU_12V` present,
+`J7 BUCK_OUT` jumpered to `J7 +BAT`, and a 100 ohm load from `J9 VBAT` to
+`J9 GND`, the buck produced a valid battery-side input voltage but the
+downstream VBAT node stayed off.
+
+- Evidence at `duty=40000`: operator measured `BUCK_OUT = 7.7 V`,
+  `TP14/+BAT = 7.7 V`, `TP15/BAT_EN = 2.866 V`, `TP17/VBAT = 0 V`, and
+  `J9 VBAT = 0 V`.
+- Firmware state at the same point: `requested=40000`, `applied=40000`,
+  `enabled=1`, `manual bat_req=1`; telemetry reported about `7.6 V` on the
+  upstream battery/eFuse input, while `bat_pgood=0` and `bat_flt=1`.
+- Schematic context: IC7 is the TPS25940ARVCR battery eFuse between the
+  pre-eFuse `+BAT` side and the post-eFuse `VBAT` side. The design note gives
+  the BAT valid input window as approximately `6.58 V` to `9.52 V`, so
+  `7.7 V` should be inside the intended pass range.
+- Conclusion: firmware PWM and firmware BAT-eFuse command generation are not
+  the blocker for this failure. The enable/control node reaches a valid high
+  level, but the IC7 pass path remains open.
+- Fix direction / next diagnostic: inspect IC7 and its surrounding
+  fault/UV/OV/current-limit components. Also verify with board-unpowered DMM
+  continuity that `TP14` reaches the intended IC7 input pins and `TP17` reaches
+  the intended IC7 output pins, in case the issue is assembly/connectivity
+  rather than the IC itself.
 
 ### F1 — INA226 telemetry is failing garbage, reported as valid — HIGH
 

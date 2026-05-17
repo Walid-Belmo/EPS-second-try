@@ -1,0 +1,295 @@
+\section{Firmware Architecture and Implementation}
+\label{sec:architecture}
+
+This chapter walks through the firmware running on the EPS
+microcontroller. It begins with the design philosophy that shapes
+every decision below, then describes each major module --- the main
+loop, the state machine, the MPPT algorithm, the PWM driver, the
+sensor abstraction, the CHIPS codec, and the manual-control
+mode --- and closes with the conventions that the code must comply
+with.
+
+\subsection{Design philosophy}
+
+The firmware is bare-metal C running in a single super-loop. There
+is no real-time operating system, no vendor hardware abstraction
+layer, no dynamic memory allocation after boot, and no recursion.
+Every loop or buffer has a compile-time-known upper bound. These
+constraints come directly from the NASA Power of 10 rules
+\cite{holzmann_powerof10_2006}, the JPL Institutional Coding
+Standard for C \cite{jpl_d60411_2009}, and MISRA C:2004
+\cite{misra_c_2004}, and they exist for the same reason any
+flight-software project adopts them: behaviour that an auditor can
+reason about statically is much easier to argue safe than behaviour
+that depends on runtime memory pressure or scheduling order.
+
+A second principle is the deliberate separation of \textit{pure
+logic} from \textit{hardware access}. Functions that compute --- the
+state machine dispatcher, the MPPT iteration, the CHIPS frame
+codec, the CRC calculator --- never touch registers and never use
+global state. They take input structs, return output structs, and
+can be compiled on a laptop and tested in isolation. Functions
+that touch hardware --- the SERCOM UART driver, the TCC PWM
+driver, the ADC reader, the I\textsuperscript{2}C master --- never
+contain control logic. This split makes every algorithmic claim of
+this report testable without any chip on the bench.
+
+\subsection{Folder and naming conventions}
+
+The source tree is organised by responsibility, not by topic. The
+top-level project folder \texttt{src-pds/} contains one subfolder
+per architectural layer:
+
+\begin{lstlisting}
+src-pds/
+  app/                              main loop
+  board_command_contract/           CHIPS command IDs and payloads
+  board_hardware_startup/           clock, peripherals, GPIO init
+  board_outputs/                    PWM and output-state writes
+  communication_with_esp32/         CHIPS read/dispatch/reply
+  externally_controlled_behaviors/  per-mode runners
+  runtime_state/                    shared snapshot RAM
+  sensor_inputs/                    layered sensor abstraction
+  shared_helpers/                   byte-order helpers
+  state_machine_pure_logic/         pure dispatcher function
+  status_reporting_to_esp32/        telemetry builders
+\end{lstlisting}
+
+File names are sentences, not abbreviations. A reader inspecting
+the folder listing can tell what each file does without opening it:
+\texttt{functions\_to\_run\_mppt\_algorithm\_with\_selected\_input\_source.c},
+\texttt{functions\_to\_apply\_allowed\_pwm\_to\_board\_hardware.c},
+\texttt{functions\_to\_initialize\_board\_hardware\_before\_main\_loop\_runs.c},
+and so on. This style is taken directly from the project's
+\texttt{conventions.md} and is enforced on every file.
+
+\subsection{The main loop}
+\label{sec:main-loop}
+
+The application entry point reads like a table of contents. Listing
+\ref{lst:main-loop} reproduces the body of \texttt{main()} verbatim
+from \texttt{src-pds/app/main.c}, with only minor cosmetic
+shortening.
+
+\begin{lstlisting}[caption={The main super-loop of the EPS firmware.},label={lst:main-loop}]
+int main(void) {
+    switch_mcu_clock_from_1mhz_to_48mhz();
+    setup_sercom0_uart_registers_for_esp32_link();
+    setup_millisecond_timer_for_loop_timing();
+    setup_sensor_reading_hardware();
+    setup_pwm_output_starting_off();
+    setup_output_pins_starting_off();
+
+    start_esp32_command_reader_with_empty_message_state();
+    set_starting_runtime_state_to_safe_defaults();
+
+    while (1) /* @non-terminating@ */ {
+        read_and_execute_commands_from_esp32();
+        toggle_status_led_for_heartbeat_if_due_and_not_in_manual_mode();
+
+        if      (requested_mode_is_off())            run_off_mode();
+        else if (requested_mode_is_flight())         run_full_satellite_logic();
+        else if (requested_mode_is_mppt_test())      run_mppt_test_only();
+        else if (requested_mode_is_state_test())     run_state_transition_test_only();
+        else if (requested_mode_is_fixed_pwm_test()) run_fixed_pwm_test_only();
+        else if (requested_mode_is_manual())         run_manual_control_mode();
+
+        block_dangerous_outputs();
+        apply_outputs_to_board();
+        send_status_if_needed();
+        reset_watchdog_timer();
+    }
+}
+\end{lstlisting}
+
+The mode-dispatch block is one of the project's most explicit
+design choices. Rather than building a single monolithic
+``flight'' loop that runs every behaviour simultaneously, the
+firmware exposes each capability as a separately commandable mode.
+Each mode runs independently, in isolation from the others. This
+keeps every individual capability testable; once each is verified,
+the integration into a single ``flight'' loop becomes one
+additional method, which is the
+\texttt{run\_full\_satellite\_logic()} branch above.
+
+\subsection{The state machine}
+
+The PCU operating-mode state machine is implemented as a single
+pure function in
+\texttt{state\_machine\_pure\_logic/}\\
+\texttt{functions\_to\_compute\_next\_pcu\_state\_and\_actuator\_commands\_from\_pure\_logic.c}.
+The function signature takes a struct of sensor readings (battery
+voltage, panel voltage, panel current, temperature, OBC heartbeat,
+OBC-commanded mode, fault flags) and returns a struct of actuator
+commands (selected PCU mode, safe-mode sub-state, MPPT enable
+flag, heater enable flag, load mask, deploy-antenna flag,
+send-telemetry flag, reboot flag).
+
+The dispatcher reduces to a short cascade of \texttt{if}/\texttt{else
+if} clauses: if any safety condition is tripped, return
+\texttt{SAFE\_MODE}; otherwise return
+\texttt{BATTERY\_DISCHARGE} (no sun), \texttt{MPPT\_CHARGE}
+(below battery-full), \texttt{SA\_LOAD\_FOLLOW} (battery full),
+or \texttt{CV\_FLOAT} (the intermediate band). The full flight FSM
+includes time-based transitions (the \texttt{t1} and \texttt{t2}
+debounce counters), hysteresis bands, and per-mode internal
+algorithms; these are explicitly listed as future work in
+Chapter~\ref{sec:results}.
+
+A complementary verification function, the \texttt{dispatcher()},
+is implemented separately and compared against the FSM output at
+steady state. This is the standard
+specification-versus-implementation cross-check that catches
+regressions when the FSM is extended.
+
+\subsection{The MPPT algorithm}
+
+The MPPT module
+(\texttt{src/mppt\_algorithm.c}) implements Incremental Conductance
+in pure integer arithmetic. The algorithm reads the panel's raw
+ADC values for voltage and current, filters them through an
+8-sample moving average, computes the IncCond decision, and
+returns a new duty cycle in the range $[0, 65535]$ that the PWM
+module will apply to the buck converter.
+
+\begin{lstlisting}[caption={Skeleton of the Incremental Conductance iteration.},label={lst:mppt}]
+uint16_t mppt_algorithm_run_one_iteration(
+        struct mppt_algorithm_state *state,
+        uint16_t raw_panel_voltage_adc,
+        uint16_t raw_panel_current_adc) {
+
+    update_moving_average_filter(state, raw_panel_voltage_adc, raw_panel_current_adc);
+
+    int32_t delta_v = state->filtered_v - state->previous_v;
+    int32_t delta_i = state->filtered_i - state->previous_i;
+
+    /* Decide whether to step duty up or down based on di/dv
+     * and i/v comparison; clamp to [DUTY_MIN, DUTY_MAX]. */
+    state->duty_cycle = apply_incremental_conductance_decision(
+            state, delta_v, delta_i);
+
+    state->previous_v = state->filtered_v;
+    state->previous_i = state->filtered_i;
+
+    return state->duty_cycle;
+}
+\end{lstlisting}
+
+Because the function takes only the algorithm's own state struct
+and the two ADC values, it can be run on a laptop with simulated
+ADC inputs. A reference simulator (a five-parameter single-diode
+panel model) was built for exactly this purpose during the dev-
+board phase of the project; the same algorithm now runs unchanged
+on the SAMD21.
+
+\subsection{The PWM driver}
+
+The PWM driver
+(\texttt{src/drivers/pwm\_buck\_converter\_tcc0\_pa12\_pa13\_on\_mainboard.c})
+configures TCC0 to produce two complementary outputs at 300\,kHz
+on pins PA12 and PA13 with hardware-inserted dead-time. The
+driver exposes one initialisation function and one runtime
+function:
+
+\begin{lstlisting}
+void pwm_tcc0_initialize_complementary_300khz(void);
+void pwm_tcc0_set_duty_cycle(uint16_t duty_as_fraction_of_65535);
+\end{lstlisting}
+
+The duty argument matches the MPPT output range, so the two modules
+plug together without any rescaling. Internally, the driver maps
+the 16-bit duty value to the TCC0 \texttt{CC} register range
+(0--160 for 300\,kHz on the 48\,MHz GCLK), and writes both compare
+channels under the dual-channel TCC0 dead-time scheme required by
+the actual PA12/PA13 routing on the mainboard.
+
+The driver also implements an explicit \textit{arm/disarm} safety
+gate. PWM output is disarmed on boot, on every mode change, and on
+any injected-fault flag. Re-arming requires an explicit
+\texttt{pwm-arm} command from the host. This prevents the buck
+stage from being unintentionally energised during firmware
+development.
+
+\subsection{The sensor abstraction}
+
+The firmware reads sensor values through a three-layer
+abstraction (Figure~\ref{fig:sensor-layers}). The state machine
+and the MPPT algorithm at the top call exactly five functions
+--- \texttt{read\_battery\_voltage()},
+\texttt{read\_battery\_current()},
+\texttt{read\_panel\_voltage()}, \texttt{read\_panel\_current()},
+\texttt{read\_charging\_rail\_voltage()} --- and get back one
+number each in engineering units. They never touch the ADC,
+I\textsuperscript{2}C, or any specific chip. A single runtime
+flag selects whether those numbers come from injected operator
+values (the default during development) or from real PCB
+hardware. The hardware path itself is split per chip
+(INA226, LT6108, TPS25940 IMON, resistor dividers), each behind
+its own small driver.
+
+\begin{figure}[ht]
+\centering
+\fbox{\parbox{0.8\textwidth}{\centering [Figure placeholder]\\
+Sensor abstraction in three layers: top layer = five
+\texttt{read\_X()} functions called by state machine and MPPT;
+middle layer = per-chip drivers (INA226, LT6108, TPS25940 IMON,
+voltage dividers) plus the injected-value branch; bottom layer =
+two bus drivers (ADC reader and I\textsuperscript{2}C master).}}
+\caption{Three-layer sensor abstraction. The top layer hides the
+sensor-source decision from the rest of the firmware.}
+\label{fig:sensor-layers}
+\end{figure}
+
+This split is what lets the same firmware run on the dev board
+(no real sensors --- everything falls back to the injected value)
+and on the real mainboard (the same hardware path now drives
+actual silicon).
+
+\subsection{The CHIPS frame codec}
+
+The CHIPS protocol is implemented as a pure-logic codec in
+\texttt{chips\_protocol\_encode\_decode\_frames\_with\_crc16\_kermit.c}.
+The encoder builds a framed byte stream from a (sequence, command,
+payload) tuple; the decoder is a byte-fed state machine that
+accumulates bytes between sync markers, runs the CRC, and emits
+either \texttt{CHIPS\_FRAME\_READY}, \texttt{CHIPS\_INCOMPLETE},
+or \texttt{CHIPS\_ERROR}. Byte stuffing is applied between the two
+sync markers, exactly as specified by the mission document.
+
+On the SAMD21 side, the codec is wrapped by a thin transport layer
+that reads bytes from the SERCOM0 UART (interrupt-driven, with
+256-byte ring buffers in both directions). On the ESP32 side, the
+same codec runs in an Arduino sketch so that the test harness can
+build valid frames from the laptop's plain-text commands.
+
+\subsection{Manual control mode}
+
+A separate operating mode lets an operator drive every user-facing
+board output independently from a web page, without involving the
+state machine or the MPPT loop. The mode is selected by the
+\texttt{enter\_manual} CHIPS command; four subsequent commands
+(\texttt{set\_manual\_pwm}, \texttt{set\_manual\_pv},
+\texttt{set\_manual\_bat}, \texttt{set\_manual\_led}) write directly
+to the corresponding actuator. This mode exists primarily for
+hardware bring-up and one-off bench verifications; it is not part
+of any flight scenario.
+
+\subsection{Coding conventions}
+
+Every file in the project is required to comply with the rules
+documented in \texttt{conventions.md}. The most-binding rules
+include: names are sentences not abbreviations; functions do one
+job; assertions stay active in flight builds; zero compiler
+warnings under \texttt{-Wall -Wextra -Werror -pedantic};
+fixed-width integer types only; \texttt{volatile} on every
+variable shared between an ISR and the main loop; one statement
+per line; explicit parentheses in every compound expression. Each
+of these rules has a stated rationale, and most are direct
+translations of either the Power of 10 list
+\cite{holzmann_powerof10_2006} or the JPL standard
+\cite{jpl_d60411_2009}.
+
+The total project compiles cleanly under
+\texttt{-Wall -Wextra -Werror} for both the
+\texttt{BOARD=devboard-pds} and \texttt{BOARD=mainboard-pds}
+targets.

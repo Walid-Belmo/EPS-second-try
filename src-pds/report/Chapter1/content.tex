@@ -1,0 +1,138 @@
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{The CHESS mission}
+
+CHESS (CubeSat for High-Energy Spectroscopy) is a CubeSat mission in
+development at the EPFL Spacecraft Team. The satellite's payload is a
+gamma-ray spectrometer designed to observe high-energy astrophysical
+sources from low Earth orbit. CHESS is a student-led project: each
+subsystem --- structure, attitude, thermal, communications, on-board
+computer, and electrical power --- is owned by a team of student
+engineers, with regular reviews against a master mission document
+that defines requirements, modes, and interfaces.
+
+The work described in this report concerns the
+\textit{Electrical Power System} (EPS): the spacecraft subsystem that
+generates, stores, and distributes electrical energy. The EPS is one
+of the few subsystems that must operate before any other on the
+satellite, because every other subsystem --- including the On-Board
+Computer (OBC) that nominally supervises the spacecraft --- needs the
+EPS to provide power before it can boot.
+
+\subsection{The role of the EPS}
+
+The CHESS EPS is built on three functional blocks:
+
+\begin{description}
+\item[Power Conditioning Unit (PCU)] Captures energy from the solar
+array, regulates the charging current into the battery, and protects
+the array--battery interface. The PCU contains the buck converter,
+the maximum-power-point-tracking algorithm, and the four-mode
+operating logic that governs how energy is converted in different
+spacecraft conditions.
+
+\item[Power Distribution Unit (PDU)] Provides regulated 3.3\,V, 5\,V,
+and battery-bus rails to the rest of the satellite. The PDU contains
+eFuses that the EPS can enable or disable through digital pins,
+giving the satellite software-controlled load shedding for
+contingency operations.
+
+\item[EPS microcontroller (MCU)] Reads sensors, runs the control and
+state-machine logic, commands the PCU and PDU actuators, reports
+telemetry to the OBC, and falls back to autonomous behaviour if the
+OBC stops responding. The MCU is a Microchip SAMD21 --- a 32-bit
+Cortex-M0+ core with 128\,kB flash, 16\,kB RAM, and no external
+operating system. All firmware described in this report runs on this
+chip.
+\end{description}
+
+\subsection{Scope of this semester project}
+
+The boundary of this semester project is the firmware that runs on
+the MCU. The PCB hardware was designed by an earlier generation of
+the team; component placement, schematic, and bill-of-materials are
+fixed and were available throughout the work.
+
+Inside that boundary, the project covered:
+
+\begin{itemize}
+\item designing a clean, layered firmware architecture from the
+existing working but ad-hoc code base;
+\item implementing the PCU operating-mode state machine in pure C,
+without hardware dependencies, so that it could be tested on a
+laptop before any board was involved;
+\item implementing the Incremental Conductance MPPT algorithm with
+the same separation between pure logic and hardware;
+\item implementing the complementary 300\,kHz PWM driver with
+hardware dead-time for the EPC2152 GaN half-bridge that drives the
+buck converter;
+\item implementing the CHIPS framing protocol used by every CHESS
+subsystem to talk to the OBC;
+\item building a hardware-in-the-loop demonstration harness centred
+on a local Python web application and an ESP32 serial bridge, so
+that the firmware running on the real chip can be commanded,
+inspected, and exercised end-to-end from a laptop;
+\item bringing up the real PCU testing board V4.1, including the
+external programmer (Atmel-ICE through a Tag-Connect cable), the
+buck-stage PWM scope verification, and a first round of injected
+sensor-value tests;
+\item planning, but not yet executing, a structured bench programme
+to physically verify every firmware capability against known
+electrical stimuli.
+\end{itemize}
+
+Out of scope for this semester were the physical sensor drivers for
+the digital current monitors (INA226) and the SPI battery-temperature
+sensor (whose part number is not yet specified in the mission
+document), and the eventual integration of every subsystem into a
+single super-loop running flight-grade per-mode logic. Both are
+described in the future-work chapter as the next clearly-defined
+steps.
+
+\subsection{What ``done'' means for this report}
+
+The semester deliverable is not a flight-ready EPS: the mission's
+operational thresholds are not yet finalised, the battery part has
+not been selected, and the spacecraft thermal model is still in
+development. What the project does deliver is a firmware architecture
+that can already be exercised end-to-end against real hardware, plus
+the test infrastructure to validate every claim made about it.
+
+Concretely, ``done'' for this report means:
+
+\begin{enumerate}
+\item every firmware capability listed in
+Section~\ref{sec:intro}.3 is implemented and compiles cleanly under
+the JPL/MISRA-derived coding rules of the project;
+\item the firmware has been flashed and exercised on the real PCU
+V4.1 mainboard, with the OBC link (an ESP32 acting as a stand-in)
+verified by valid CHIPS responses;
+\item the four PCU operating modes and the safe-mode entry triggers
+have been exercised against injected sensor values, with each
+expected mode reached;
+\item the MPPT algorithm has been exercised against a software
+solar-panel model on the ESP32, with closed-loop duty-cycle
+convergence observed;
+\item a structured bench-test plan exists with primary-source
+probe-point references, so that any team member can take the project
+forward without re-discovering the same PCB facts.
+\end{enumerate}
+
+\subsection{Report structure}
+
+The remainder of the report is organised as follows.
+\textbf{Chapter~\ref{sec:background}} introduces the mission
+requirements, the electrical concepts (MPPT, buck converters,
+complementary PWM, eFuses) needed to follow the rest of the report,
+and the SAMD21 platform.
+\textbf{Chapter~\ref{sec:architecture}} describes the firmware
+architecture and walks through each major module.
+\textbf{Chapter~\ref{sec:hil}} describes the hardware-in-the-loop test
+harness --- the web app, the ESP32 bridge, and the demo pages --- and
+the bench-test programme planned to physically verify each firmware
+capability.
+\textbf{Chapter~\ref{sec:results}} summarises the verified
+behaviour, lists the gaps between the simulator-grade
+implementation and a flight-grade EPS, and proposes a staged path
+between them.

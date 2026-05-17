@@ -638,14 +638,296 @@ matched exactly at the displayed millivolt precision. The conclusion of this
 specific verification point is therefore that the F7 ADC-reference firmware
 fix worked for the `TP19` / `OUTV1` voltage-divider path.
 
+### 2026-05-16 - Test B ADC calibration - TP20 / OUTV2 direct injection
+
+For the next ADC calibration point, the same safe bench method was used on
+the second voltage-divider channel. The board was not being used as a power
+converter during this test: no PV input, battery rail, or buck power-transfer
+path was intentionally energized. The board remained powered only enough for
+the MCU and sensor-readout firmware to run. The firmware was commanded with
+`off` and then `set_sensor_source real`, so the status replies used real ADC
+hardware readings while keeping PWM disabled. The polls confirmed
+`mode=off`, `sensor source=real`, and PWM `requested=0`, `applied=0`,
+`enabled=0`.
+
+The injected signal was applied directly to `TP20`, the `/OUTV2` ADC-side
+charging-rail voltage-sense node. The bench source positive lead was on
+`TP20`, and the bench source negative lead was on board GND. The DMM was
+connected in parallel with the injection point, with red on `TP20` and black
+on board GND. The operator reported a simultaneous DMM reading of
+`TP20 = 0.358 V`. This is again a direct ADC-side injection, not a
+high-voltage rail injection; the purpose was to test the ADC input and
+firmware divider scaling, not to power the battery or buck path.
+
+Because OUTV2 uses R36 = `100 kOhm` and R37 = `11.8 kOhm`, the firmware
+should scale the ADC-side voltage by `(100000 + 11800) / 11800 = 9.4746`.
+The expected telemetry for the operator's DMM value was therefore
+`0.358 * 9.4746 = 3.392 V`, or about `3392 mV`, in the
+`sensor_rail_v divider` field.
+
+The command sequence was `off`, `set_sensor_source real`, then five separate
+`get_values fields=all` polls. The `set_sensor_source real` reply reported
+`sensor_rail_v divider=3894 mV`; the five follow-up polls reported `3733`,
+`3496`, `3496`, `3562`, and `3581 mV`. The central four follow-up polls
+average `3534 mV`, which is `+4.2 %` versus the `3392 mV` expectation.
+Using all five follow-up polls gives `3574 mV`, or `+5.4 %`.
+
+The conclusion is PASS for the TP20 / OUTV2 mapping: injecting voltage on
+`TP20` moved the firmware's `sensor_rail_v divider` field while `TP19` /
+`sensor_panel_v divider` stayed at zero. The calibration accuracy is not as
+tight as the TP19 point and should be refined with a steadier injection
+source and at least one higher-but-still-safe TP20 voltage point. The result
+is still close enough to confirm that the firmware is reading the correct
+ADC channel and using the OUTV2 divider path after the F7 reference fix.
+
+Important measurement caveat: the injected voltage on `TP20` itself was
+visibly noisy during this test. The operator observed the DMM/input voltage
+varying by up to about `0.08 V` while trying to hold the point near
+`0.358 V`. Because OUTV2 is scaled by `9.4746`, a `0.08 V` movement at TP20
+corresponds to about `0.76 V` movement in the reported
+`sensor_rail_v divider` value. The observed firmware spread and the
+remaining few-percent error are therefore consistent with an unstable
+injection source/probe contact and should not be interpreted as a precise
+ADC gain error from this single TP20 point.
+
+### 2026-05-16 - Test B ADC calibration - TP20 / OUTV2 higher-voltage check
+
+The TP20 / OUTV2 calibration was repeated at a higher ADC-side voltage to
+reduce the relative effect of the noisy low-voltage bench-source setting.
+The board was again kept in a safe readout state, not a power-transfer
+state: no PV, battery, or buck power path was intentionally energized, and
+the firmware was commanded with `off` followed by `set_sensor_source real`.
+The status replies confirmed `mode=off`, real sensor source, and PWM
+`requested=0`, `applied=0`, `enabled=0`.
+
+The bench source positive lead and the DMM red probe were on `TP20`; the
+bench source negative lead and DMM black probe were on board GND. The
+operator reported the DMM/probe voltage as `0.95 V` on TP20. This is still
+a direct ADC-side injection, not a battery or buck rail injection. It is
+above the earlier conservative `0.7 V` sweep limit, but still below the
+MCU/ADC rail measured in this session, so it was acceptable as a one-point
+check. It should not be increased further without a deliberate test plan.
+
+For OUTV2, the resistor ratio is `(100000 + 11800) / 11800 = 9.4746`, so
+the expected firmware telemetry was `0.95 * 9.4746 = 9.001 V`, or about
+`9001 mV`, in `sensor_rail_v divider`. The `set_sensor_source real` reply
+reported `8935 mV`, and the five follow-up `get_values fields=all` polls
+reported `9105`, `9162`, `9105`, `9115`, and `9181 mV`.
+
+The five follow-up polls average `9134 mV`, which is `+1.5 %` relative to
+the `9001 mV` expected value. Including the `set_sensor_source real` reply,
+the six readings average `9101 mV`, or `+1.1 %`. This is a stronger TP20
+calibration point than the earlier `0.358 V` point because the relative
+noise is smaller. The conclusion is PASS: after the F7 ADC-reference fix,
+the TP20 / OUTV2 path reports the expected charging-rail-equivalent voltage
+to within about one to two percent at this test point.
+
+### 2026-05-16 - Test B ADC calibration - TP20 / OUTV2 noisy midpoint
+
+The TP20 / OUTV2 sweep was continued with a midpoint injection. The physical
+setup remained the same as the previous TP20 ADC-side tests: the board was
+not transferring power through the PV, battery, or buck paths, and the
+firmware was put in a safe readout state with `off` followed by
+`set_sensor_source real`. The DMM red probe and bench-source positive lead
+were on `TP20`; the DMM black probe and bench-source negative lead were on
+board GND.
+
+The operator reported the target as about `TP20 = 0.55 V`, but also reported
+that the input voltage was varying by about `0.05 V` during the measurement.
+Using the OUTV2 divider ratio of `9.4746`, an exact `0.55 V` injection would
+correspond to `0.55 * 9.4746 = 5.211 V` in the `sensor_rail_v divider`
+telemetry. With the reported input movement, the reasonable expected band is
+approximately `0.50 * 9.4746 = 4.737 V` to
+`0.60 * 9.4746 = 5.685 V`.
+
+The command sequence was `off`, `set_sensor_source real`, then five separate
+`get_values fields=all` polls. The `set_sensor_source real` reply reported
+`sensor_rail_v divider=5173 mV`. The five follow-up polls reported `5126`,
+`5078`, `5116`, `5126`, and `4984 mV`.
+
+The five follow-up polls average `5086 mV`, which is `-2.4 %` relative to
+the exact `5211 mV` expectation at `0.55 V`. Including the
+`set_sensor_source real` reply gives an average of `5101 mV`, or `-2.1 %`.
+All readings are inside the `4.737 V` to `5.685 V` expected band created by
+the reported `0.05 V` input movement. The conclusion is PASS for this
+midpoint: TP20 / OUTV2 continues to track the injected ADC-side voltage with
+the corrected firmware scaling.
+
+### 2026-05-16 - Test B ADC calibration - TP20 / OUTV2 stable high point
+
+The TP20 / OUTV2 sweep was repeated once more at a higher and much more
+stable ADC-side voltage. The test setup was unchanged from the previous
+TP20 ADC calibration points: the board was kept in a safe readout state, no
+PV, battery, or buck power-transfer path was intentionally energized, and
+the firmware was commanded with `off` followed by `set_sensor_source real`.
+The DMM red probe and bench-source positive lead were on `TP20`; the DMM
+black probe and bench-source negative lead were on board GND. The operator
+reported a stable DMM reading of `TP20 = 1.25 V`.
+
+This was still a direct ADC-side injection into `/OUTV2`, not a battery or
+buck rail injection. The point is below the measured MCU/ADC reference rail
+from this session, so it is valid for this calibration check. The operator
+should turn the injection back down or off after the measurement and should
+not increase it further without a deliberate test plan.
+
+For OUTV2, the divider ratio is `(100000 + 11800) / 11800 = 9.4746`, so
+the expected telemetry at `TP20 = 1.25 V` was
+`1.25 * 9.4746 = 11.843 V`, or about `11843 mV`, in
+`sensor_rail_v divider`.
+
+The command sequence was `off`, `set_sensor_source real`, then five separate
+`get_values fields=all` polls. The `set_sensor_source real` reply reported
+`sensor_rail_v divider=11815 mV`. The five follow-up polls reported
+`11928`, `11872`, `11843`, `11777`, and `11730 mV`.
+
+The five follow-up polls average `11830 mV`, which is `-0.1 %` relative to
+the expected `11843 mV`. Including the `set_sensor_source real` reply, the
+six readings average `11828 mV`, also about `-0.1 %`. One sample landed
+exactly at `11843 mV`, matching the expected value at the displayed
+millivolt precision.
+
+The conclusion is PASS. Together with the earlier `0.358 V`, `0.55 V`, and
+`0.95 V` TP20 points, this stable `1.25 V` point confirms that the
+corrected firmware reads the TP20 / OUTV2 ADC path and scales it into
+`sensor_rail_v divider` correctly across the tested range. The low-voltage
+scatter seen earlier is best explained by input-source noise rather than a
+firmware scaling defect.
+
+### 2026-05-16 - Sensor cross-check baseline - no injected ADC voltage, no load
+
+After finishing the TP20 ADC-side injection sweep, the operator turned the
+TP20 injection off and removed the TP20 lead. The board was left only in its
+normal logic-powered bench state; no PV input, battery rail, or buck
+power-transfer path was intentionally energized. This baseline was taken
+before any powered sensor-comparison test so the zero-load behavior of all
+available sensor sources could be checked.
+
+The firmware was commanded with `off` and then `set_sensor_source real`.
+The following status replies confirmed `mode=off`, `sensor source=real`,
+and PWM `requested=0`, `applied=0`, `enabled=0`. Eight separate
+`get_values fields=all` polls were then taken.
+
+With no injected voltage and no load, the voltage channels behaved as
+expected. `sensor_battery_v ina226` was `0` or `1 mV`, `sensor_battery_v
+divider` was `0 mV`, `sensor_panel_v ina226` was `0 mV`,
+`sensor_panel_v divider` was `0 mV`, and `sensor_rail_v divider` was
+`0 mV`. This confirms that the TP19/TP20 injections had been removed and
+that the calibrated divider paths return to zero at baseline.
+
+The current channels were also near zero. The LT6108 and TPS25940 IMON
+paths reported `0 mA` throughout this baseline. The INA226 current fields
+showed only small few-milliamp values: battery INA226 mostly `5 mA` with
+occasional `7 mA`, and panel INA226 values between `0` and `5 mA`. This is
+no longer the large, non-repeatable garbage pattern previously logged as
+F1; at idle, the INA226 channels now look plausibly close to zero, although
+a powered load test is still needed before calling them calibrated.
+
+The conclusion is PASS for the zero-load sensor baseline. All three current
+measurement paths are close to zero when no power path is energized, and
+both voltage-measurement paths return to zero. The next meaningful sensor
+test is a powered comparison under a known safe load, where INA226 current,
+LT6108 current, TPS25940 IMON current, and voltage-divider readings can be
+compared against the bench supply and DMM.
+
+### 2026-05-16 - Powered BAT-path test - IC7 blocks VBAT output
+
+The goal was to create a real load current on the battery/output side so the
+firmware's voltage and current telemetry could be compared against a DMM and a
+known resistor. The board was wired with logic power on `J5 PDU_3V3`/GND, EPC
+driver bias on `J5 PDU_12V`/GND at about 12 V, `J6 BUCK_IN` fed from a 12 V
+bench supply, `J7 BUCK_OUT` jumpered to `J7 +BAT`, and a 100 ohm load from
+`J9 VBAT` to `J9 GND`. `PV_RAW` was not powered, and the `-PV -> BUCK_IN`
+jumper was not installed because this was a direct buck/BAT-path test.
+
+The firmware was put in manual mode with real sensor reads, BAT eFuse request
+enabled, and PWM ramped upward. The important commands were
+`set_sensor_source real`, `enter_manual`, `set_manual_bat on`, and
+`set_manual_pwm` at increasing duties up to `40000`, with separate
+`get_values fields=all` polls after actuation.
+
+What worked: PWM control and the buck output worked. DMM measurements and
+telemetry tracked the upstream battery/eFuse input as duty increased:
+`J7 +BAT` was `0.886 V` at duty `5000`, `1.82 V` at duty `10000`, about
+`3.8 V` at duty `20000`, about `6.6 V` at duty `35000`, and about `7.6-7.7 V`
+at duty `40000`. The final powered condition was inside the BAT eFuse design
+window (`BAT_IN_MIN` about `6.58 V`, `BAT_IN_MAX` about `9.52 V`).
+
+What failed: the post-eFuse/output side never turned on. At the decisive
+`duty=40000` point, the operator measured `BUCK_OUT = 7.7 V`, `TP14/+BAT =
+7.7 V`, `TP15/BAT_EN = 2.866 V`, but `TP17/VBAT = 0 V` and `J9 VBAT = 0 V`.
+Firmware agreed with the failure state: `manual bat_req=1`, PWM
+`requested=40000 applied=40000 enabled=1`, upstream battery/eFuse telemetry
+around `7.6 V`, but `bat_pgood=0` and `bat_flt=1`.
+
+Conclusion: this is not a firmware PWM-control failure and not a firmware
+BAT-enable command failure. The MCU successfully raised the buck output and
+asserted the BAT eFuse enable node. The failure is local to IC7, the
+TPS25940ARVCR battery eFuse between `TP14/+BAT` and `TP17/VBAT`, or to its
+surrounding analog protection/fault network. Because `VBAT` stayed at zero, no
+real downstream load current flowed through the BAT output path, so the
+intended powered current-sensor comparison could not be completed in this
+configuration.
+
+After the final measurement, the board was safed with `set_manual_pwm duty=0`,
+`set_manual_bat off`, `get_values fields=all`, and `off`; the reliable poll
+confirmed `requested=0`, `applied=0`, `enabled=0`, and `manual bat_req=0`.
+
 ---
 
 ## Open follow-ups (not yet tested — do NOT mark done until an entry exists)
 
 - PV eFuse **power** proof: power PV input, `set_manual_pv on/off`, probe
   **TP10** vs **TP8**, scope **TP9**. (Continues Test B2.)
-- BAT eFuse **power** proof: probe **TP17** (DMM-confirm TP14/TP17 pre/post first,
-  see `What's TP for what test.md` §3).
-- ADC calibration: inject known V, probe **TP19/TP20**.
+- PV-side real-current driver proof:
+  1. LT6108 panel current driver
+     Current through R17 should create a small voltage drop, and IC10/OUTA1 turns that
+     into an ADC voltage. If the reported panel_lt6108_read_current_ma() follows the load
+     current, this proves the ADC channel, the LT6108 wrapper, and the LT6108 current
+     conversion.
+  2. PV eFuse IMON driver
+     IC4 is the PV-side TPS25940 eFuse. Its IMON pin outputs a signal proportional to
+     current flowing through the eFuse itself, and firmware reads that as PV_IMON. If the
+     same current also goes through IC4, then panel_tps25940_read_imon_ma() can be proven
+     too.
+- BAT eFuse hardware follow-up: debug IC7/local protection network; powered
+  proof failed with `TP14=7.7 V`, `TP15=2.866 V`, `TP17=0 V`.
+- Optional ADC calibration refinement: add more TP19/TP20 points only if a
+  higher-precision fit is needed for the report.
 - F6 fix + regression (deferred by decision; re-run Tests 1–5 after).
 - F1 fix: correct INA226 I²C addresses + invalid-read flagging.
+
+### 2026-05-17 - PV-side current driver proof attempt - zero current reported
+
+The goal was to prove the PV-side real-current drivers without using the
+battery path. The intended physical setup was a 12 V bench input on the PV
+input side and a load from the `-PV` return node to board ground, so current
+would flow through IC4 and R17. Before the completed run, the operator found
+that the bench-supply ground had not been connected; after reconnecting it,
+the firmware test was repeated.
+
+Commands sent over COM3 were `off`, `enter_manual`, `set_sensor_source real`,
+`get_values fields=all`, `set_manual_pv on`, three more
+`get_values fields=all` polls, `set_manual_pv off`, `off`, and a final
+`get_values fields=all`. No PWM command was used.
+
+The firmware accepted all commands. During the three PV-on polls, telemetry
+reported `mode=manual`, `outputs panel_efuse=1`, `manual pv_req=1`,
+`pv_pgood=1`, and `pv_flt=0`, with PWM still disabled
+(`requested=0`, `applied=0`, `enabled=0`). This proves that the manual PV
+eFuse command path was active for the test.
+
+The current proof did not succeed. During all PV-on polls,
+`sensor_panel_i lt6108=0` and `sensor_panel_i tps25940=0`; the INA226 panel
+current field only showed its usual near-zero few-milliamp idle value. The
+panel voltage fields also remained at zero:
+`sensor_panel_v ina226=0 divider=0 layer1=0`.
+
+Conclusion: FAIL/BLOCKED for the PV-side real-current proof. Firmware
+successfully requested IC4 on and saw no IC4 fault, but neither the LT6108
+OUTA1 path nor the TPS25940 PV_IMON path reported load current. The next
+debug step is physical measurement, not firmware change: with PV enabled,
+measure `PV_RAW` to GND, `TP10/+PV` to GND, `TP11/-PV` to GND, and the voltage
+across the external load. If `TP10` or `TP11` is not near the applied PV input
+voltage under load, the current loop is still open or IC4 is not passing
+power. If both are near the applied PV input voltage and the load has voltage
+across it, the sensor/ADC path becomes the suspect.

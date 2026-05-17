@@ -1,0 +1,220 @@
+\section{Results, Discussion, and Future Work}
+\label{sec:results}
+
+This chapter summarises what is verified, what is not yet
+verified but planned, what the firmware deliberately does not
+do, and the staged path between the present implementation and
+a flight-ready EPS.
+
+\subsection{What is verified}
+
+The following items are verified to be working on the real PCU
+testing board V4.1 at the time of writing:
+
+\begin{itemize}
+\item The board boots, the 48\,MHz clock initialises, the
+status LED blinks, and the watchdog is fed by the main loop.
+\item The CHIPS link on J3 exchanges frames bi-directionally
+with the ESP32 bridge at 115200\,baud. The bus scan, the
+\texttt{telemetry}, the \texttt{state}, the \texttt{adc}, the
+injected-sensor commands, and the PWM safety commands all
+return valid responses.
+\item The twelve state-transition scenarios pass against the
+pure-dispatcher firmware (12/12 green).
+\item The MPPT demo runs in closed loop against the ESP32-side
+physics model. Convergence is visually clear on the web page;
+the duty cycle settles within tens of iterations.
+\item The complementary PWM at 300\,kHz on PA12/PA13 has been
+scoped at one edge, with a dead-time gap of approximately
+100\,ns. The PWM safety gate disarms on boot, on mode change,
+and on any injected fault.
+\item Manual mode toggles each of the four user-facing outputs
+on the dev board, with the snapshot mirror behaviour matching
+the requested values even on outputs that are not physically
+wired on the dev board.
+\end{itemize}
+
+\subsection{What the bench programme will verify}
+
+The nine-test bench programme described in
+Chapter~\ref{sec:hil}.\ref{sec:bench-test} produces the
+remaining evidence. Once executed, the following statements
+will be supported:
+
+\begin{itemize}
+\item The PWM dead-time is consistent across the duty range and
+on both edges. (Test A.)
+\item Every ADC sensor channel reads correctly against a known
+applied voltage, with calibration coefficients quoted. (Test B.)
+\item Each eFuse can be enabled and disabled by firmware
+commands; the post-eFuse rail and the PGOOD telemetry track the
+commanded state. (Test C.)
+\item The state machine reaches the expected mode for each
+sensor combination when fed by real ADC instead of injected
+values. (Test D.)
+\item The MPPT algorithm running on the real chip converges to
+within a small percentage of the hand-calculated maximum power
+point of a fake-solar source (bench supply with a series
+resistor). (Test E --- the headline figure of the report.)
+\item The buck stage follows the ideal step-down relationship
+across the operating duty range. (Test F.)
+\item The two INA226 chips respond on the I\textsuperscript{2}C
+bus at their schematic-derived addresses and produce readings
+that agree with a multimeter. (Test G.)
+\item The CHIPS link tolerates sustained streaming traffic
+without data loss and rejects corrupted frames as required by the
+protocol. (Test H.)
+\item The watchdog fires on a deliberate stall and the board
+recovers cleanly. (Test I.)
+\end{itemize}
+
+A blank table that the user will fill in as each test is
+executed is included in the appendix.
+
+\subsection{What the simulator deliberately does not prove}
+\label{sec:not-proven}
+
+The state machine running today is a single short pure
+function that maps sensor values to a PCU mode. It is the
+simplest implementation that satisfies the steady-state
+specification, and it deliberately omits the per-mode
+machinery that flight-grade firmware will need. The
+\texttt{state-transitions.md} file inside the repository
+enumerates these omissions; the most important are:
+
+\begin{itemize}
+\item Timer-based transitions. The flight FSM moves from
+\texttt{MPPT\_CHARGE} to \texttt{CV\_FLOAT} only after the
+battery has been at full voltage for at least \texttt{t1}
+consecutive cycles. The current dispatcher detects
+``battery full'' instantaneously.
+
+\item The CV\_FLOAT \texttt{TEMP\_MPPT} sub-state. A transient
+large load that briefly drains the battery while CV\_FLOAT is
+active should trigger a temporary return to the MPPT
+algorithm. The current dispatcher does not implement this.
+
+\item Per-mode duty algorithms. Each mode in flight uses its
+own control law for the buck duty cycle (incremental
+conductance in \texttt{MPPT\_CHARGE}, bang-bang voltage
+regulation in \texttt{CV\_FLOAT}, current-clamped operation in
+\texttt{SA\_LOAD\_FOLLOW}, minimum-duty in
+\texttt{BATTERY\_DISCHARGE}). The simulator uses placeholder
+duty values for everything but \texttt{MPPT\_CHARGE}.
+
+\item Hysteresis and noise robustness. Real sensor readings
+jitter. The flight FSM debounces threshold crossings; the
+simulator receives clean injected values.
+
+\item Load shedding inside \texttt{BATTERY\_DISCHARGE}. When
+the discharge current exceeds the safe limit the flight FSM is
+supposed to shed loads one at a time in priority order. The
+simulator does not implement this.
+
+\item Fault-flag interpretation. The ESP32 bridge can inject a
+fault bitmask; the current dispatcher does not yet decode any
+bit of it.
+
+\item Tuned threshold values. Every numeric threshold (battery
+maximum voltage, battery minimum voltage, temperature limits,
+heartbeat timeout) is a placeholder. Real values depend on the
+chosen battery cell, the thermal model, and the orbit profile,
+and will be set when the relevant hardware decisions are made.
+\end{itemize}
+
+These omissions are not bugs: they are explicit scope choices
+that keep the simulator-grade firmware small enough to be
+inspected and verified end-to-end during the project's
+duration.
+
+\subsection{Path to flight code}
+
+The work remaining to grow the present implementation into a
+flight-grade EPS is itemised in the
+\texttt{what\_the\_simulator\_does\_and\_what\_real\_flight\_software\_still\_needs.md}
+file in the repository. The eleven steps are summarised here:
+
+\begin{enumerate}
+\item Add a control-loop iteration counter to the firmware's
+shared state. This is the foundation for every timing-based
+behaviour.
+\item Implement the \texttt{t1} timeout for the
+\texttt{MPPT\_CHARGE} $\rightarrow$ \texttt{CV\_FLOAT}
+transition.
+\item Implement the \texttt{t2} debounce for the return
+transition.
+\item Add the \texttt{TEMP\_MPPT} sub-state inside
+\texttt{CV\_FLOAT}.
+\item Replace the placeholder duty cycle in
+\texttt{MPPT\_CHARGE} with the real Incremental Conductance
+algorithm. (Already implemented in pure C; only the
+integration is pending.)
+\item Implement bang-bang voltage regulation inside
+\texttt{CV\_FLOAT}.
+\item Implement the current-clamp duty algorithm inside
+\texttt{SA\_LOAD\_FOLLOW}.
+\item Implement per-iteration load shedding inside
+\texttt{BATTERY\_DISCHARGE}.
+\item Add low-pass filters and hysteresis bands for every
+sensor channel.
+\item Define and interpret the fault-flag bits.
+\item Replace every placeholder numeric threshold with the
+mission-tuned values once the corresponding hardware is
+finalised.
+\end{enumerate}
+
+Each of these can be implemented and verified by adding a new
+scenario to the existing twelve-scenario web page; the test
+infrastructure does not need to change.
+
+\subsection{Open issues}
+
+A small set of mission-level open questions affect the
+firmware but cannot be answered inside the firmware itself:
+
+\begin{itemize}
+\item The battery cell has not been chosen, so the values of
+$V_{\text{bat,max}}$, $V_{\text{bat,full}}$,
+$V_{\text{bat,min}}$, $V_{\text{bat,critical}}$, the maximum
+charge and discharge currents, and the temperature limits are
+all placeholders.
+\item The SPI-attached battery-temperature sensor is named in
+the mission document but the exact part is not specified, so
+its driver is currently a stub.
+\item The mission document and the team's communication
+choices disagree on whether the OBC--EPS link is
+I\textsuperscript{2}C or UART; the current firmware uses UART
+per the most recent team decision.
+\item The PCU V4.1 PWM routing requires the dual-channel TCC0
+dead-time workaround documented in
+\texttt{pcb\_design\_error\_for\_pwm.md}; this is implemented
+in firmware but will need to be revisited when the next PCB
+revision is laid out.
+\item The PCB design contains a small documentation
+discrepancy: the EPC2152 reference designator on the
+silkscreen is \texttt{IC6}, whereas an older revision of the
+mainboard pinout document refers to it as \texttt{U1}. The
+firmware itself is unaffected; the documentation has been
+updated.
+\end{itemize}
+
+\subsection{Conclusion}
+
+The work presented in this report delivers a firmware
+architecture for the CHESS EPS that is testable end-to-end on
+real hardware, decoupled by design between pure logic and
+hardware access, and structured so that the path from the
+present simulator-grade implementation to a flight-grade EPS
+is a sequence of well-scoped additions rather than a rewrite.
+The hardware-in-the-loop test harness, the twelve state
+scenarios, the MPPT convergence demonstration, and the
+nine-test bench programme together provide a level of
+verification coverage that is unusual for a one-semester
+student project, and that gives the next student to inherit
+the work a clean starting point.
+
+The next student should source the power resistors required
+for the bench programme, execute the nine tests, and then
+begin the eleven-step climb to flight code. Each step is a
+single isolated change with a single new test scenario, and
+the architecture is ready to absorb them.

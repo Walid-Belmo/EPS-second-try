@@ -1,0 +1,105 @@
+\documentclass[12pt,a4paper,tablecaptionabove]{article}
+
+% packages
+\usepackage{a4wide}
+\usepackage{scrlayer-scrpage}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue},
+  commentstyle=\color{gray},
+  stringstyle=\color{teal},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=5pt,
+  breaklines=true,
+  frame=single,
+  captionpos=b,
+  language=C
+}
+
+% bibliography style
+\usepackage[backend=biber,style=authoryear]{biblatex}
+\addbibresource{references.bib}
+\addbibresource{articles.bib}
+\addbibresource{books.bib}
+
+% no indentation at the beginning of paragraphs
+\setlength{\parindent}{0em}
+\setlength{\parskip}{0.5em}
+
+% set the header height
+\setlength{\headheight}{25.1pt}
+
+% New command for huge and centered section titles
+\titleformat{\section}[block]{\normalfont\huge\bfseries}{\thesection\hspace{1em}}{0em}{}
+
+\begin{document}
+
+% Header and footer
+\pagestyle{scrheadings}
+\clearpairofpagestyles
+\automark[]{section}
+
+\ihead{\includegraphics[width=2.5cm]{Titlepage/epfl_logo.png}}
+\ohead{\headmark}
+\KOMAoptions{headsepline=0.1pt:\textwidth}
+\ofoot{\pagemark}
+
+% Titlepage
+\input{Titlepage/Titlepage}
+\pagebreak
+
+% Contents
+\pagenumbering{roman}
+\setcounter{tocdepth}{2}
+
+\input{Abstract/content}
+\pagebreak
+
+\tableofcontents
+\pagebreak
+
+\input{Acronyms/content}
+\pagebreak
+
+% Start normal page numbering after the contents
+\pagenumbering{arabic}
+
+% Chapters
+\input{Chapter1/content}
+\pagebreak
+
+\input{Chapter2/content}
+\pagebreak
+
+\input{Chapter3/content}
+\pagebreak
+
+\input{Chapter4/content}
+\pagebreak
+
+\input{Chapter5/content}
+\pagebreak
+
+\printbibliography
+
+\pagebreak
+
+\input{Appendix/content}
+
+\end{document}

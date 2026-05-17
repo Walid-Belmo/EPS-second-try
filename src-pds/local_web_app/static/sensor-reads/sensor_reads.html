@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Source PDS - Sensor Reads</title>
+  <link rel="stylesheet" href="/static/sensor-reads/sensor_reads.css">
+</head>
+<body>
+  <header class="top-bar">
+    <div>
+      <h1>Sensor Reads</h1>
+      <p id="connectionStatus">Disconnected</p>
+    </div>
+    <div class="serial-controls">
+      <label for="serialPort">ESP32 port</label>
+      <input id="serialPort" value="COM3" autocomplete="off">
+      <button id="connectButton" type="button">Connect</button>
+      <button id="disconnectButton" type="button">Disconnect</button>
+      <div class="source-toggle" role="group" aria-label="Sensor source">
+        <button id="sourceInjectedButton" type="button" class="source-pill">Injected</button>
+        <button id="sourceRealButton" type="button" class="source-pill">Real Hardware</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="cards-panel" aria-label="Sensor measurements">
+      <p class="hint">
+        Live values from every sensor on every rail. Each card lists every
+        independent source, plus what Layer 1 chose (the value the state
+        machine and MPPT loop actually see). Switching the Source pill
+        above flips the firmware between injected operator inputs and
+        real-board chip readings.
+      </p>
+
+      <!-- Battery voltage -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Battery voltage</h2>
+          <span class="card-subtle">mV</span>
+        </div>
+        <div class="card-body">
+          <div class="sensor-row">
+            <span class="sensor-name">INA226 (I²C)</span>
+            <span class="sensor-value" id="batteryVIna226">—</span>
+          </div>
+          <div class="sensor-row">
+            <span class="sensor-name">Voltage divider (ADC)</span>
+            <span class="sensor-value" id="batteryVDivider">—</span>
+          </div>
+          <hr>
+          <div class="sensor-row layer1">
+            <span class="sensor-name">Layer 1 chose</span>
+            <span class="sensor-value" id="batteryVLayer1">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Battery current -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Battery current</h2>
+          <span class="card-subtle">mA (signed: + = charging)</span>
+        </div>
+        <div class="card-body">
+          <div class="sensor-row">
+            <span class="sensor-name">INA226 (I²C)</span>
+            <span class="sensor-value" id="batteryIIna226">—</span>
+          </div>
+          <div class="sensor-row">
+            <span class="sensor-name">LT6108 (ADC OUTA2)</span>
+            <span class="sensor-value" id="batteryILt6108">—</span>
+          </div>
+          <div class="sensor-row">
+            <span class="sensor-name">TPS25940 IMON</span>
+            <span class="sensor-value" id="batteryITps25940">—</span>
+          </div>
+          <hr>
+          <div class="sensor-row layer1">
+            <span class="sensor-name">Layer 1 chose</span>
+            <span class="sensor-value" id="batteryILayer1">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel voltage -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Panel voltage</h2>
+          <span class="card-subtle">mV</span>
+        </div>
+        <div class="card-body">
+          <div class="sensor-row">
+            <span class="sensor-name">INA226 (I²C)</span>
+            <span class="sensor-value" id="panelVIna226">—</span>
+          </div>
+          <div class="sensor-row">
+            <span class="sensor-name">Voltage divider (ADC)</span>
+            <span class="sensor-value" id="panelVDivider">—</span>
+          </div>
+          <hr>
+          <div class="sensor-row layer1">
+            <span class="sensor-name">Layer 1 chose</span>
+            <span class="sensor-value" id="panelVLayer1">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel current -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Panel current</h2>
+          <span class="card-subtle">mA</span>
+        </div>
+        <div class="card-body">
+          <div class="sensor-row">
+            <span class="sensor-name">INA226 (I²C)</span>
+            <span class="sensor-value" id="panelIIna226">—</span>
+          </div>
+          <div class="sensor-row">
+            <span class="sensor-name">LT6108 (ADC OUTA1)</span>
+            <span class="sensor-value" id="panelILt6108">—</span>
+          </div>
+          <div class="sensor-row">
+            <span class="sensor-name">TPS25940 IMON</span>
+            <span class="sensor-value" id="panelITps25940">—</span>
+          </div>
+          <hr>
+          <div class="sensor-row layer1">
+            <span class="sensor-name">Layer 1 chose</span>
+            <span class="sensor-value" id="panelILayer1">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charging rail voltage -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Charging rail voltage</h2>
+          <span class="card-subtle">mV (one source only)</span>
+        </div>
+        <div class="card-body">
+          <div class="sensor-row">
+            <span class="sensor-name">Voltage divider (ADC)</span>
+            <span class="sensor-value" id="railVDivider">—</span>
+          </div>
+          <hr>
+          <div class="sensor-row layer1">
+            <span class="sensor-name">Layer 1 chose</span>
+            <span class="sensor-value" id="railVLayer1">—</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="status-panel" aria-label="Stream and log">
+      <h2>Stream</h2>
+      <div class="metric-grid">
+        <div class="metric"><span>Mode</span><strong id="liveModeValue">—</strong></div>
+        <div class="metric"><span>Source</span><strong id="liveSourceValue">—</strong></div>
+        <div class="metric"><span>Stream</span><strong id="liveStreamValue">—</strong></div>
+        <div class="metric"><span>Period (ms)</span><strong id="liveStreamPeriodValue">—</strong></div>
+      </div>
+
+      <h2 class="log-title">Command Log</h2>
+      <pre id="commandLog"></pre>
+    </aside>
+  </main>
+
+  <script src="/static/sensor-reads/sensor_reads.js?v=1"></script>
+</body>
+</html>

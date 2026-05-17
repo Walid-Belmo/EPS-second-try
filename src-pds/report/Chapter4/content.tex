@@ -1,0 +1,220 @@
+\section{Test Harness and Hardware-in-the-Loop Demonstration}
+\label{sec:hil}
+
+This chapter describes the hardware-in-the-loop (HIL) test
+infrastructure built around the firmware: the multi-tier
+architecture (web app, ESP32 bridge, SAMD21 board), the demo pages
+exposed to the operator, the twelve preset scenarios used to
+exercise the state machine, the MPPT convergence demo, the
+real-mainboard bring-up, and the bench-test programme that
+produces the physical-measurement evidence backing each firmware
+claim.
+
+\subsection{Why hardware-in-the-loop}
+
+A pure-software simulator can prove that an algorithm produces
+the right answer for a clean set of inputs. It cannot prove that
+the algorithm produces the right answer \textit{on the actual
+chip}, with real ADC noise, real interrupt latency, real
+peripheral configuration, and real wiring. Conversely, a pure
+hardware test --- a board with a solar panel, a battery, and a
+load --- is expensive to set up, hard to script, and gives slow
+feedback when an algorithm needs adjustment.
+
+The HIL approach takes a middle path. The firmware runs unchanged
+on the real chip on the real board. The sensor environment ---
+the solar panel and the battery --- is replaced by a software
+model running on an external companion microcontroller. The
+companion exchanges raw ADC values with the SAMD21 over a serial
+link, closing the loop in real time. Anything the firmware does
+on real hardware (peripheral configuration, interrupt handling,
+timing) is exercised. Anything the firmware does with the
+environment (algorithm decisions, state transitions) is exercised
+against scriptable, repeatable stimuli.
+
+\subsection{The architecture of the harness}
+
+The harness has three tiers:
+
+\begin{description}
+\item[The laptop.] A Python web application serves three local
+pages (\texttt{/mppt}, \texttt{/state}, \texttt{/manual}) at
+\texttt{http://127.0.0.1:8000}. Each page renders an HTML/CSS/JS
+front-end and posts text commands to a small set of
+\texttt{/api/...} endpoints. The application owns a single
+USB-serial connection.
+
+\item[The ESP32 bridge.] An Arduino sketch on an ESP32
+dev-board acts as the OBC stand-in. It translates the plain-text
+commands forwarded from the laptop into binary CHIPS frames, sends
+them to the SAMD21 over a 3.3\,V UART link, parses the replies,
+and prints them back to the laptop in a regex-friendly format.
+
+\item[The SAMD21.] The real EPS firmware. It receives CHIPS frames
+on SERCOM0, dispatches commands, runs the selected mode, applies
+outputs, and streams status replies back to the bridge.
+\end{description}
+
+\begin{figure}[ht]
+\centering
+\fbox{\parbox{0.85\textwidth}{\centering [Figure placeholder]\\
+Three-tier HIL architecture: browser $\rightarrow$ Python web
+app (\texttt{run\_local\_web\_app.py}) $\rightarrow$ USB serial
+(\texttt{COM3}) $\rightarrow$ ESP32 bridge $\rightarrow$ 3.3\,V
+UART $\rightarrow$ SAMD21 mainboard. CHIPS frames flow in both
+directions on the 3.3\,V link; plain text on the USB link.}}
+\caption{The three-tier hardware-in-the-loop architecture.}
+\label{fig:hil-architecture}
+\end{figure}
+
+The advantage of routing everything through one port and one
+Python process is that no second connection has to be opened
+when a new page is added: a new page becomes a new actions module
+and a new \texttt{static/<page>/} folder; the existing serial
+link is reused. The HTML pages share a single live-telemetry
+sidebar that updates from the streamed snapshots.
+
+\subsection{The three demo pages}
+
+\subsubsection{MPPT convergence}
+
+The \texttt{/mppt} page lets the operator configure a simulated
+solar-panel I--V curve (open-circuit voltage, short-circuit
+current, voltage at the maximum power point), launch the MPPT
+demo, and watch the algorithm converge in real time. The ESP32
+runs the physics --- the simulated panel and the buck converter
+model --- and the SAMD21 runs the algorithm. The page plots
+panel voltage, panel current, panel power, and commanded duty
+cycle on a shared time axis, marking the theoretical maximum-
+power point as a horizontal line. Convergence is visually
+obvious to a reviewer who is not familiar with the algorithm.
+
+\subsubsection{State-transition scenarios}
+
+The \texttt{/state} page exposes twelve preset scenarios that
+each inject a steady set of sensor values and assert which
+state the firmware should reach. The scenarios cover the four
+normal PCU modes (\texttt{MPPT\_CHARGE},
+\texttt{CV\_FLOAT}, \texttt{SA\_LOAD\_FOLLOW},
+\texttt{BATTERY\_DISCHARGE}), the three safe-mode entry triggers
+(battery low, temperature out of range, heartbeat lost), and the
+four safe-mode sub-state load masks. Running a scenario sends
+the sensor values, waits a few seconds for steady state, reads
+back the firmware's snapshot, and compares the observed mode and
+output mask to the expected values. A green dot means the
+scenario passed; a red dot opens a side-by-side table of
+expected versus observed values.
+
+A run-all button executes the suite in sequence and reports a
+single pass/fail count. The current implementation reaches
+12 of 12 passes against the pure-dispatcher firmware running on
+the real board.
+
+\subsubsection{Manual control}
+
+The \texttt{/manual} page lets the operator drive each of the
+four user-facing board outputs independently: the PWM duty
+cycle, the photovoltaic (PV) eFuse enable, the battery (BAT)
+eFuse enable, and the green status LED. The page enforces an
+``Off first'' convention before allowing entry into manual
+mode and disarms the PWM on every disconnect. Manual mode is
+primarily used during hardware bring-up when a specific output
+needs to be observed in isolation.
+
+A fourth page, \texttt{/comm} (communication and status), is
+listed in the project plan but is not yet implemented.
+
+\subsection{Real-mainboard bring-up}
+
+The CHESS EPS firmware was first developed against the
+Curiosity Nano DM320119 dev board (SAMD21G17D) and then ported
+to the real PCU testing board V4.1 (SAMD21J17D-MUT). The two
+chips are the same silicon die in different packages, so the
+register-level code is unchanged; only the pin assignments,
+the chip define, the startup file, and the linker script differ
+between the two builds.
+
+The mainboard bring-up established:
+
+\begin{itemize}
+\item the programming path: Atmel-ICE through a Tag-Connect
+TC2050-IDC-NL footprint at J1, with SWD clock at 125\,kHz;
+\item the programming software path: Microchip Studio Device
+Programming (the custom-cable adapter does not connect reset,
+so reset-dependent flows could not be used);
+\item the CHIPS link: the ESP32 bridge wired to J3 (\texttt{TX}
+to PA11, \texttt{RX} to PA10, common GND) exchanges valid
+frames at 115200\,baud;
+\item the full firmware (\texttt{satellite\_firmware.hex}) runs
+on the real chip; telemetry, state-machine scenarios, MPPT
+demo, and PWM safety gating all behave as on the dev board;
+\item the buck PWM signals on PA12/PA13 were observed on an
+oscilloscope, with a measured dead-time gap of approximately
+100\,ns at the first checked edge.
+\end{itemize}
+
+The second PWM edge and a full duty-cycle sweep are part of the
+planned bench programme (Section~\ref{sec:hil}.\ref{sec:bench-test}).
+
+\subsection{The bench-test programme}
+\label{sec:bench-test}
+
+The HIL harness exercises algorithm logic. To complete the
+verification chain the firmware also needs to be exercised
+against \textit{physical electrical stimuli}: known voltages
+applied to ADC inputs, known currents through the shunt
+resistors, a real buck converter producing real V$_{\text{out}}$,
+and a real fake-solar source whose maximum power point can be
+computed by hand.
+
+A structured nine-test programme has been planned and is
+documented in detail in \texttt{src-pds/how\_to\_test.md}.
+Table~\ref{tab:bench-tests} summarises each test, its
+dependencies, and the evidence it produces for the report.
+
+\begin{table}[ht]
+\centering
+\caption{The nine bench tests and what each produces.}
+\label{tab:bench-tests}
+\small
+\begin{tabular}{@{}p{0.05\linewidth}p{0.4\linewidth}p{0.5\linewidth}@{}}
+\toprule
+\textbf{ID} & \textbf{Test} & \textbf{Evidence produced} \\
+\midrule
+A & PWM waveform sign-off & Scope shots of both edges at three
+duty cycles; dead-time table; frequency measurement. \\
+B & ADC calibration vs known voltage & Calibration table per
+sensor net; observed vs reference ADC reference voltage. \\
+C & eFuse switching on real board & Multimeter pre/post
+readings; PGOOD readback table; verified GPIO actuation. \\
+D & State machine on real sensors & Mode-transition table with
+hardware-fed inputs; cross-check against the 12-scenario suite. \\
+E & MPPT against a fake solar source ($\star$ headline) &
+Convergence plot from a known Thevenin source; comparison to the
+hand-calculated maximum power point. \\
+F & Buck transfer curve & Duty vs $V_{\text{out}}/V_{\text{in}}$
+plot showing the expected straight-line relationship. \\
+G & INA226 sensor verification & Bus-scan output; ID
+register reads; multimeter cross-check at two current points. \\
+H & CHIPS communication stress & Total-frames count after a
+ten-minute stream; bad-CRC and duplicate-sequence behaviour. \\
+I & Watchdog timer & Uptime trace around a deliberate stall;
+verification of reset and recovery. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The plan also captures the dependencies between the tests (Test G
+requires the I\textsuperscript{2}C address fix; Test E requires
+the fake-solar power resistors; Tests B, D and the MPPT-on-real-
+sensors workflow require a host-reachable
+\texttt{set\_sensor\_source} command). Each test prescribes the
+exact silkscreen designators, test points, and PCB coordinates
+for every probe location, derived from a primary-source read of
+the public PCB schematic and BOM (Chapter~\ref{sec:results}
+discusses the research process). The user running the test does
+not need to read the schematic itself.
+
+When the bench programme is executed, the resulting tables,
+plots, and scope shots will populate the figures in
+Chapter~\ref{sec:results}.

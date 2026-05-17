@@ -1,0 +1,67 @@
+\section{Appendix}
+
+\subsection{Bench-test results template}
+
+The following table is provided blank; it is filled in as each
+bench test from Chapter~\ref{sec:hil} is executed. The
+date and the operator initials are recorded together with each
+pass/fail mark so that the same table also serves as the
+verification log for the report.
+
+\begin{table}[ht]
+\centering
+\caption{Bench-test results log (to be filled in).}
+\small
+\begin{tabular}{@{}lp{0.4\linewidth}llll@{}}
+\toprule
+\textbf{ID} & \textbf{Test} & \textbf{Date} & \textbf{Operator} & \textbf{Result} & \textbf{Notes} \\
+\midrule
+A & PWM waveform sign-off               &  &  &  &  \\
+B & ADC calibration vs known voltage    &  &  &  &  \\
+C & eFuse switching on real board       &  &  &  &  \\
+D & State machine on real sensor source &  &  &  &  \\
+E & MPPT against a fake solar source    &  &  &  &  \\
+F & Buck transfer curve                 &  &  &  &  \\
+G & INA226 sensor chip verification     &  &  &  &  \\
+H & CHIPS communication stress          &  &  &  &  \\
+I & Watchdog timer                      &  &  &  &  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Build commands and repository layout}
+
+The firmware is built with the GNU ARM toolchain
+(\texttt{arm-none-eabi-gcc} 12.2.1) and flashed with OpenOCD
+or Microchip Studio. The two relevant build targets are:
+
+\begin{lstlisting}[language=bash]
+make BOARD=devboard-pds   flash   # Curiosity Nano dev board
+make BOARD=mainboard-pds  flash   # Real PCU testing board V4.1
+\end{lstlisting}
+
+The repository layout is summarised in Section~\ref{sec:architecture}.2.
+Every file inside \texttt{src-pds/} is described by its own
+file-naming convention; every file inside \texttt{src/drivers/}
+has a header comment indicating its build target (\texttt{devboard
+only}, \texttt{mainboard only}, or \texttt{shared}).
+
+\subsection{External references}
+
+The most useful external references for the firmware are listed
+below.
+
+\begin{itemize}
+\item Microchip SAMD21 datasheet (full chip and peripheral
+reference).
+\item Microchip ATSAMD21 Device Family Pack (DFP), v3.6.144
+(register definitions and startup code used by the firmware).
+\item EPC2152 datasheet (the GaN half-bridge driving the buck).
+\item Texas Instruments INA226 datasheet (the digital
+current/voltage monitors on the I\textsuperscript{2}C bus).
+\item Texas Instruments TPS25940 datasheet (the eFuses on the
+panel and battery rails).
+\item NASA Power of 10 \cite{holzmann_powerof10_2006} and JPL
+Institutional Coding Standard for C \cite{jpl_d60411_2009} ---
+the rule sources for the project's coding conventions.
+\end{itemize}

@@ -1,0 +1,101 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nyt/global//global/global}
+    \entry{holzmann_powerof10_2006}{article}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=9988303f76dfdb0a8fdf32a54e057755}{%
+           family={Holzmann},
+           familyi={H\bibinitperiod},
+           given={Gerard\bibnamedelima J.},
+           giveni={G\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{9988303f76dfdb0a8fdf32a54e057755}
+      \strng{fullhash}{9988303f76dfdb0a8fdf32a54e057755}
+      \strng{bibnamehash}{9988303f76dfdb0a8fdf32a54e057755}
+      \strng{authorbibnamehash}{9988303f76dfdb0a8fdf32a54e057755}
+      \strng{authornamehash}{9988303f76dfdb0a8fdf32a54e057755}
+      \strng{authorfullhash}{9988303f76dfdb0a8fdf32a54e057755}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Computer}
+      \field{number}{6}
+      \field{title}{The Power of 10: Rules for Developing Safety-Critical Code}
+      \field{volume}{39}
+      \field{year}{2006}
+      \field{pages}{95\bibrangedash 97}
+      \range{pages}{3}
+      \verb{doi}
+      \verb 10.1109/MC.2006.212
+      \endverb
+    \endentry
+    \entry{jpl_d60411_2009}{report}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=745785a78099ba05c3da3b30bf8f9676}{%
+           family={{Jet Propulsion Laboratory}},
+           familyi={J\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {NASA Jet Propulsion Laboratory}%
+      }
+      \strng{namehash}{745785a78099ba05c3da3b30bf8f9676}
+      \strng{fullhash}{745785a78099ba05c3da3b30bf8f9676}
+      \strng{bibnamehash}{745785a78099ba05c3da3b30bf8f9676}
+      \strng{authorbibnamehash}{745785a78099ba05c3da3b30bf8f9676}
+      \strng{authornamehash}{745785a78099ba05c3da3b30bf8f9676}
+      \strng{authorfullhash}{745785a78099ba05c3da3b30bf8f9676}
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{number}{{D-60411}}
+      \field{title}{{JPL} Institutional Coding Standard for the {C} Programming Language}
+      \field{type}{Technical Report}
+      \field{year}{2009}
+    \endentry
+    \entry{misra_c_2004}{manual}{}
+      \list{location}{1}{%
+        {Nuneaton, UK}%
+      }
+      \list{organization}{1}{%
+        {Motor Industry Software Reliability Association}%
+      }
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labeltitlesource}{title}
+      \field{title}{{MISRA C}:2004 -- Guidelines for the Use of the {C} Language in Critical Systems}
+      \field{year}{2004}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

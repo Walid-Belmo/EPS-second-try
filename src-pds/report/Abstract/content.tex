@@ -1,0 +1,37 @@
+\section*{Abstract}
+
+The CHESS (CubeSat for High-Energy Spectroscopy) mission, currently
+under development at the EPFL Spacecraft Team, requires an Electrical
+Power System (EPS) capable of managing solar-array energy capture,
+battery charging, load distribution, and autonomous safety
+behaviour. This report describes the design, implementation, and
+hardware-in-the-loop bench-test plan for the firmware that runs on
+the EPS microcontroller --- a Microchip SAMD21 --- and decides, in
+real time, how the satellite's electrical subsystem operates.
+
+The firmware is bare-metal C running in a single super-loop without
+an operating system or vendor hardware abstraction layer. It
+implements a Power Conditioning Unit (PCU) state machine with four
+normal operating modes and a safe-mode override, an Incremental
+Conductance Maximum Power Point Tracking (MPPT) algorithm, a
+complementary 300\,kHz PWM driver for the EPC2152 GaN half-bridge
+buck converter, the CHIPS framing protocol that the satellite uses
+for all internal serial communication, and a sensor abstraction that
+lets the same code consume either injected test values or real ADC
+and I\textsuperscript{2}C readings.
+
+A hardware-in-the-loop test harness, built from a Python web
+application, an ESP32 serial bridge, and the real PCU testing board
+V4.1, is presented. Twelve preset scenarios exercise every base case
+of the state machine; an MPPT convergence page demonstrates the
+algorithm tracking a configurable solar-panel current--voltage curve
+in closed loop; a manual-control page lets an operator drive every
+board output independently. A nine-test bench-measurement program is
+described that produces the physical evidence required to support
+the claim that each firmware capability was verified on the real
+hardware.
+
+The report closes by enumerating the differences between the present
+simulator-grade implementation and the flight-grade firmware the
+mission ultimately requires, and outlines a clearly-staged path
+between the two.
